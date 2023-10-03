@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FileTypes version="1.0">
+	<FileFormatType name="plain">
+		<Writable>true</Writable>
+		<Description>Plain file</Description>
+		<Description lang="ja">べたファイル</Description>
+	</FileFormatType>
+	<FileFormatType name="hdd">
+		<Writable>true</Writable>
+		<Description>Virtual98 file</Description>
+		<Description lang="ja">Virtual98ファイル</Description>
+	</FileFormatType>
+	<FileFormatType name="hdi">
+		<Writable>true</Writable>
+		<Description>Anex86 file</Description>
+		<Description lang="ja">Anex86ファイル</Description>
+	</FileFormatType>
+	<FileFormatType name="nhd">
+		<Writable>true</Writable>
+		<Description>T98 NEXT file</Description>
+		<Description lang="ja">T98 NEXTファイル</Description>
+	</FileFormatType>
+	<FileFormatType name="thd">
+		<Writable>true</Writable>
+		<Description>T98 file</Description>
+		<Description lang="ja">T98ファイル</Description>
+	</FileFormatType>
+
+	<FileType ext="hdi">
+		<Format type="hdi" />
+		<Description>HDI file</Description>
+	</FileType>
+	<FileType ext="hdd">
+		<Format type="hdd" />
+		<Description>HDD file</Description>
+	</FileType>
+	<FileType ext="hdf">
+		<Format type="plain">
+			<DiskTypeHint>HDD-614-8-33-1</DiskTypeHint>
+			<DiskTypeHint>HDD-614-4-33-1</DiskTypeHint>
+			<DiskTypeHint>HDD-309-4-33-1</DiskTypeHint>
+			<DiskTypeHint>HDD-153-4-33-1</DiskTypeHint>
+		</Format>
+		<Description>HDF file</Description>
+	</FileType>
+	<FileType ext="hds">
+		<Format type="plain">
+		</Format>
+		<Description>HDS file</Description>
+	</FileType>
+	<FileType ext="nhd">
+		<Format type="nhd" />
+		<Description>NHD file</Description>
+	</FileType>
+	<FileType ext="thd">
+		<Format type="thd" />
+		<Description>THD file</Description>
+	</FileType>
+</FileTypes>

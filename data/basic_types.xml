@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<DiskBasics version="4.0">
+<DiskBasicFormats version="1.0">
+	<DiskBasicFormat type="3" name="MSDOS">
+		<HasVolumeName>true</HasVolumeName>
+		<GroupFinalCode>0xffff</GroupFinalCode>
+		<GroupSystemCode>0xfff8</GroupSystemCode>
+		<GroupUnusedCode>0x0000</GroupUnusedCode>
+		<FillCodeOnFormat>0xe5</FillCodeOnFormat>
+		<FillCodeOnFAT>0x00</FillCodeOnFAT>
+		<DeleteCodeOnDir>0xe5</DeleteCodeOnDir>
+		<FileNameCharacters>
+			<InvalidCodeRange first="0x00" last="0x1f" />
+			<InvalidCode>0x7f</InvalidCode>
+			<InvalidCharSet> \"\\/:*?|</InvalidCharSet>
+			<InvalidCode>0x3c</InvalidCode>
+			<InvalidCode>0x3e</InvalidCode>
+		</FileNameCharacters>
+		<VolumeNameCharacters>
+			<InvalidCodeRange first="0x00" last="0x1f" />
+			<InvalidCode>0x7f</InvalidCode>
+			<InvalidCharSet>\"\\/:*?|</InvalidCharSet>
+			<InvalidCode>0x3c</InvalidCode>
+			<InvalidCode>0x3e</InvalidCode>
+		</VolumeNameCharacters>
+		<FileNameCompareCase>insensitive</FileNameCompareCase>
+		<ToUpperFileNameBeforeDialog>true</ToUpperFileNameBeforeDialog>
+		<ToUpperFileNameAfterRenamed>true</ToUpperFileNameAfterRenamed>
+		<RequireFileName>true</RequireFileName>
+		<VolumeNameMaxLength>11</VolumeNameMaxLength>
+	</DiskBasicFormat>
+	<DiskBasicFormat type="9" name="OS9">
+		<HasVolumeName>true</HasVolumeName>
+		<SectorsPerGroup>1</SectorsPerGroup>
+		<DirTerminateCode>0</DirTerminateCode>
+		<DirSpaceCode>0</DirSpaceCode>
+		<FillCodeOnFormat>0xe5</FillCodeOnFormat>
+		<FillCodeOnFAT>0x00</FillCodeOnFAT>
+		<DeleteCodeOnDir>0x00</DeleteCodeOnDir>
+		<FileNameCharacters>
+			<ValidFirstCharSet>.</ValidFirstCharSet>
+			<ValidFirstCodeRange first="0x41" last="0x5a" />
+			<ValidFirstCodeRange first="0x61" last="0x7a" />
+			<ValidCharSet>._</ValidCharSet>
+			<ValidCodeRange first="0x30" last="0x39" />
+			<ValidCodeRange first="0x41" last="0x5a" />
+			<ValidCodeRange first="0x61" last="0x7a" />
+		</FileNameCharacters>
+		<VolumeNameCharacters>
+			<ValidCodeRange first="0x20" last="0x7e" />
+		</VolumeNameCharacters>
+		<FileNameCompareCase>insensitive</FileNameCompareCase>
+		<RequireFileName>true</RequireFileName>
+		<VolumeNameMaxLength>32</VolumeNameMaxLength>
+		<AttributesByExtension>
+			<Binary name="BIN" />
+			<Binary name="CMD" />
+			<Binary name="COM" />
+			<Binary name="EXE" />
+		</AttributesByExtension>
+	</DiskBasicFormat>
+	<DiskBasicFormat type="14" name="HU68K">
+		<HasVolumeName>true</HasVolumeName>
+		<GroupFinalCode>0xffff</GroupFinalCode>
+		<GroupSystemCode>0xfff8</GroupSystemCode>
+		<GroupUnusedCode>0x0000</GroupUnusedCode>
+		<FillCodeOnFormat>0x00</FillCodeOnFormat>
+		<FillCodeOnFAT>0x00</FillCodeOnFAT>
+		<DeleteCodeOnDir>0x00</DeleteCodeOnDir>
+		<FileNameCharacters>
+			<InvalidCodeRange first="0x00" last="0x1f" />
+			<InvalidCode>0x7f</InvalidCode>
+			<InvalidCharSet> \"\\/:*?|</InvalidCharSet>
+			<InvalidCode>0x3c</InvalidCode>
+			<InvalidCode>0x3e</InvalidCode>
+		</FileNameCharacters>
+		<VolumeNameCharacters>
+			<InvalidCodeRange first="0x00" last="0x1f" />
+			<InvalidCode>0x7f</InvalidCode>
+			<InvalidCharSet>\"\\/:*?|</InvalidCharSet>
+			<InvalidCode>0x3c</InvalidCode>
+			<InvalidCode>0x3e</InvalidCode>
+		</VolumeNameCharacters>
+		<RequireFileName>true</RequireFileName>
+		<VolumeNameMaxLength>18</VolumeNameMaxLength>
+	</DiskBasicFormat>
+</DiskBasicFormats>
+
+<DiskBasicCategories version="1.0">
+	<DiskBasicCategory name="HU68K">
+		<Description>SHARP X68000 Human68k</Description>
+		<Description lang="ja">シャープ X68000 Human68k</Description>
+	</DiskBasicCategory>
+	<DiskBasicCategory name="OS9">
+		<Description>OS-9</Description>
+		<Description lang="ja">OS-9</Description>
+	</DiskBasicCategory>
+	<DiskBasicCategory name="MSDOS">
+		<Description>MS-DOS</Description>
+		<Description lang="ja">MS-DOS</Description>
+	</DiskBasicCategory>
+</DiskBasicCategories>
+
+<DiskBasicTypes version="1.0">
+	<DiskBasicType name="MSD98-HDD" type="3" category="MSDOS">
+		<ReservedSectors>1</ReservedSectors>
+		<NumberOfFATs>3</NumberOfFATs>
+		<SectorsPerFAT>2</SectorsPerFAT>
+		<FATStartPosition>0</FATStartPosition>
+		<DirEntryCount>192</DirEntryCount>
+		<MediaID>0xf8</MediaID>
+		<JumpBoot type="string">\xeb\x1f\x90</JumpBoot>
+		<Description>MS-DOS for PC-9801 (HDD)</Description>
+	</DiskBasicType>
+	<DiskBasicType name="OS9-HDD" type="9" category="OS9">
+		<SidesPerDisk>2</SidesPerDisk>
+		<SectorsPerTrack>64</SectorsPerTrack>
+		<ManagedSectorNumber>0</ManagedSectorNumber>
+		<DirStartSector>4</DirStartSector>
+		<DirEndSector>11</DirEndSector>
+		<SubDirGroupSize>8</SubDirGroupSize>
+		<Description>OS-9 (HDD)</Description>
+	</DiskBasicType>
+	<DiskBasicType name="OS9-X68K-22-HDD" type="9" category="OS9">
+		<BasedSectorSize>256</BasedSectorSize>
+		<ManagedSectorNumber>3</ManagedSectorNumber>
+		<ReservedSectors>1</ReservedSectors>
+		<SubDirGroupSize>8</SubDirGroupSize>
+		<Description>OS-9/X68000 V2.2 (HDD)</Description>
+	</DiskBasicType>
+	<DiskBasicType name="OS9-X68K-24-HDD" type="9" category="OS9">
+		<BasedSectorSize>256</BasedSectorSize>
+		<ManagedSectorNumber>4</ManagedSectorNumber>
+		<SubDirGroupSize>8</SubDirGroupSize>
+		<Description>OS-9/X68000 V2.4 (HDD)</Description>
+	</DiskBasicType>
+	<DiskBasicType name="HU68K-HDD" type="14" category="HU68K">
+		<!-- following parameters are used on formatting -->
+		<BasedSectorSize>1024</BasedSectorSize>
+		<SectorsPerGroup>1</SectorsPerGroup>
+		<ManagedSectorNumber>0</ManagedSectorNumber>
+		<ReservedSectors>1</ReservedSectors>
+		<NumberOfFATs>2</NumberOfFATs>
+		<ValidNumberOfFATs>1</ValidNumberOfFATs>
+		<FATStartPosition>0</FATStartPosition>
+		<SectorsPerFAT>0</SectorsPerFAT>
+		<DirEntryCount>512</DirEntryCount>
+		<SubDirGroupSize>1</SubDirGroupSize>
+		<MediaID>0xf8</MediaID>
+		<OEMName type="string">Hudson soft 2.00</OEMName>
+		<JumpBoot type="string">\x60\x20</JumpBoot>
+		<IPLCompareString type="string">Hudson</IPLCompareString>
+		<Description>Human68k (HDD)</Description>
+	</DiskBasicType>
+	<DiskBasicType name="HU68K-SCSI-HDD" type="14" category="HU68K">
+		<!-- following parameters are used on formatting -->
+		<BasedSectorSize>1024</BasedSectorSize>
+		<SectorsPerGroup>1</SectorsPerGroup>
+		<ManagedSectorNumber>0</ManagedSectorNumber>
+		<ReservedSectors>1</ReservedSectors>
+		<NumberOfFATs>2</NumberOfFATs>
+		<ValidNumberOfFATs>1</ValidNumberOfFATs>
+		<FATStartPosition>0</FATStartPosition>
+		<SectorsPerFAT>0</SectorsPerFAT>
+		<DirEntryCount>512</DirEntryCount>
+		<SubDirGroupSize>1</SubDirGroupSize>
+		<MediaID>0xf8</MediaID>
+		<OEMName type="string">SHARP/KG    1.00</OEMName>
+		<JumpBoot type="string">\x60\x24</JumpBoot>
+		<IPLCompareString type="string">SCSI IPL</IPLCompareString>
+		<Description>Human68k (SCSI HDD)</Description>
+	</DiskBasicType>
+</DiskBasicTypes>
+</DiskBasics>

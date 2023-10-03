@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Boots version="1.0">
+<BootCategories version="1.0">
+	<BootCategory name="PC98">
+		<Description>NEC PC-98x1</Description>
+		<Description lang="ja">NEC PC-98x1</Description>
+	</BootCategory>
+	<BootCategory name="X68K">
+		<Description>SHARP X680x0</Description>
+		<Description lang="ja">シャープ X680x0</Description>
+	</BootCategory>
+</BootCategories>
+
+<BootTypes version="1.0">
+	<BootType name="PC98-IPL" type="1" category="PC98">
+		<CompareKeywords>
+			<String pos="0">\xeb</String>
+			<String pos="4">IPL1</String>
+			<String>NEC Corporation</String>
+		</CompareKeywords>
+		<DiskBasicTypes>
+			<Type>MSD98-HDD</Type>
+		</DiskBasicTypes>
+		<Description>PC-98x1 IPL</Description>
+	</BootType>
+	<BootType name="OS9-X68K-24-IPL" type="2" category="X68K">
+		<CompareKeywords>
+			<String pos="0">\x60</String>
+			<String pos="2">OS-9/X68000 IPL</String>
+		</CompareKeywords>
+		<DiskBasicTypes>
+			<Type>OS9-X68K-24-HDD</Type>
+		</DiskBasicTypes>
+		<Description>OS-9/X68000 V2.4 IPL</Description>
+	</BootType>
+	<BootType name="HU68K-IPL" type="3" category="X68K">
+		<CompareKeywords>
+			<String pos="0">\x60</String>
+			<String pos="0x400">X68K</String>
+		</CompareKeywords>
+		<DiskBasicTypes>
+			<Type>OS9-X68K-22-HDD</Type>
+			<Type>OS9-X68K-24-HDD</Type>
+			<Type>HU68K-HDD</Type>
+		</DiskBasicTypes>
+		<Description>Human68k IPL</Description>
+	</BootType>
+	<BootType name="OS9-X68K-24-SCSI-IPL" type="4" category="X68K">
+		<CompareKeywords>
+			<String pos="0">X68SCSI</String>
+			<String pos="0x400">\x60</String>
+			<String pos="0x402">OS-9/X68000 IPL</String>
+		</CompareKeywords>
+		<DiskBasicTypes>
+			<Type>OS9-X68K-24-HDD</Type>
+		</DiskBasicTypes>
+		<Description>OS-9/X68000 V2.4 SCSI IPL</Description>
+	</BootType>
+	<BootType name="HU68K-SCSI-IPL" type="5" category="X68K">
+		<CompareKeywords>
+			<String pos="0">X68SCSI</String>
+			<String pos="0x400">\x60</String>
+			<String pos="0x800">X68K</String>
+		</CompareKeywords>
+		<DiskBasicTypes>
+			<Type>OS9-X68K-22-HDD</Type>
+			<Type>OS9-X68K-24-HDD</Type>
+			<Type>HU68K-SCSI-HDD</Type>
+		</DiskBasicTypes>
+		<Description>Human68k SCSI IPL</Description>
+	</BootType>
+</BootTypes>
+</Boots>
