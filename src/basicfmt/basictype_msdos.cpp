@@ -342,7 +342,7 @@ void DiskBasicTypeMSDOS::AdditionalProcessOnMadeDirectory(DiskBasicDirItem *item
 	// 親
 //	buf += newitem->GetDataSize();
 //	newitem->SetDataPtr(0, NULL, gitem->GetSectorStart(), 0, buf);
-	newitem->SetDataPtr(0, NULL, gitem->GetSectorStart(), 0);
+	newitem->SetDataPtr(1, NULL, gitem->GetSectorStart(), newitem->GetDataSize());
 	if (parent_item) {
 		// 親がサブディレクトリ
 		newitem->CopyData(parent_item->GetData());

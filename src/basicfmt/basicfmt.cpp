@@ -507,9 +507,12 @@ void DiskBasic::ClearParseAndAssign()
 {
 	parsed = false;
 	assigned = false;
+	dir->ReleaseRoot(type);
+	dir->SetCurrentAsRoot();
 }
 
 /// ロードできるか
+/// @param [in] item ディレクトリのアイテム
 bool DiskBasic::IsLoadableFile(DiskBasicDirItem *item)
 {
 	if (!item || !item->IsLoadable() || !item->IsUsed()) {
@@ -564,22 +567,22 @@ bool DiskBasic::LoadFile(DiskBasicDirItem *item, wxOutputStream &ostream)
 /// 指定したアイテムのファイルをベリファイ
 /// @param [in] item ディレクトリのアイテム
 /// @param [in] srcpath 比較するファイルのパス
-bool DiskBasic::VerifyFile(DiskBasicDirItem *item, const wxString &srcpath)
+/// @return 0:差異なし 1:差異あり -1:エラー
+int DiskBasic::VerifyFile(DiskBasicDirItem *item, const wxString &srcpath)
 {
 	wxFileInputStream file(srcpath);
 	if (!file.IsOk() || !file.GetFile()->IsOpened()) {
 		errinfo.SetError(DiskBasicError::ERR_CANNOT_VERIFY);
-		return false;
+		return -1;
 	}
 	// ファイルを必要なら変換
 	wxMemoryOutputStream otemp;
-	bool sts = type->ConvertDataForVerify(item, file, otemp);
-	if (!sts) {
-		return false;
+	if (!type->ConvertDataForVerify(item, file, otemp)) {
+		return -1;
 	}
 	// 変換した内容と内部ファイルとをベリファイ
 	wxMemoryInputStream itemp(otemp);
-	sts = VerifyData(item, itemp);
+	int sts = VerifyData(item, itemp);
 	return sts;
 }
 
@@ -589,27 +592,28 @@ bool DiskBasic::VerifyFile(DiskBasicDirItem *item, const wxString &srcpath)
 /// @param [out]    outsize      実際に出力したサイズ(ostreamを指定した時のみ有効)
 bool DiskBasic::LoadData(DiskBasicDirItem *item, wxOutputStream &ostream, size_t *outsize)
 {
-	bool sts = true;
-	for(int fileunit_num = 0; sts; fileunit_num++) {
+	int sts = 0;
+	for(int fileunit_num = 0; sts == 0; fileunit_num++) {
 		if (!item->IsValidFileUnit(fileunit_num)) {
 			break;
 		}
 		sts = AccessUnitData(fileunit_num, item, NULL, &ostream, outsize);
 	}
-	return sts;
+	return (sts == 0);
 }
 
 
 /// 指定したアイテムのファイルをベリファイ
 /// @param [in,out] item         ディレクトリアイテム 
 /// @param [in,out] istream      ベリファイ時指定 
-bool DiskBasic::VerifyData(DiskBasicDirItem *item, wxInputStream &istream)
+/// @return 0:差異なし 1:差異あり -1:エラー
+int DiskBasic::VerifyData(DiskBasicDirItem *item, wxInputStream &istream)
 {
-	bool sts = true;
+	int sts = 0;
 	int file_offset = 0;
 
 	istream.SeekI(0);
-	for(int fileunit_num = 0; sts; fileunit_num++) {
+	for(int fileunit_num = 0; sts == 0; fileunit_num++) {
 		int sizeremain = item->GetFileUnitSize(fileunit_num, istream, file_offset);
 		if (sizeremain < 0) {
 			break;
@@ -626,16 +630,17 @@ bool DiskBasic::VerifyData(DiskBasicDirItem *item, wxInputStream &istream)
 /// @param [in,out] istream      ベリファイ時指定 
 /// @param [in,out] ostream      エクスポート時指定
 /// @param [out]    outsize      実際に出力したサイズ(ostreamを指定した時のみ有効)
-bool DiskBasic::AccessUnitData(int fileunit_num, DiskBasicDirItem *item, wxInputStream *istream, wxOutputStream *ostream, size_t *outsize)
+/// @return 0:差異なし 1:差異あり -1:エラー
+int DiskBasic::AccessUnitData(int fileunit_num, DiskBasicDirItem *item, wxInputStream *istream, wxOutputStream *ostream, size_t *outsize)
 {
 	if (!item) {
 		errinfo.SetError(DiskBasicError::ERR_FILE_NOT_FOUND);
-		return false;
+		return -1;
 	}
 
 	int sector_start = 0;
 	int sector_end = 0;
-	bool rc = true;
+	int rc = 0;
 
 	wxFileOffset osize = 0;
 	if (ostream) osize = ostream->TellO();
@@ -652,11 +657,11 @@ bool DiskBasic::AccessUnitData(int fileunit_num, DiskBasicDirItem *item, wxInput
 
 	// アクセス前に機種固有の処理を行う
 	if (!type->PrepareToAccessFile(fileunit_num, item, istream, ostream, remain, gitems, errinfo)) {
-		return false;
+		return -1;
 	}
 
 	int gidx_end = (int)gitems.Count() - 1;
-	for(int gidx = 0; gidx <= gidx_end && remain > 0 && rc; gidx++) {
+	for(int gidx = 0; gidx <= gidx_end && remain > 0 && rc == 0; gidx++) {
 		DiskBasicGroupItem *gitem = &gitems.Item(gidx);
 
 		sector_start = gitem->GetSectorStart();
@@ -667,7 +672,7 @@ bool DiskBasic::AccessUnitData(int fileunit_num, DiskBasicDirItem *item, wxInput
 			if (!sector) {
 				// セクタがない！
 				errinfo.SetError(DiskBasicError::ERRV2_NO_SECTOR, gitem->GetGroup(), block_num);
-				rc = false;
+				rc = -1;
 				continue;
 			}
 			int bufsize = sector->GetSectorSize();
@@ -681,11 +686,12 @@ bool DiskBasic::AccessUnitData(int fileunit_num, DiskBasicDirItem *item, wxInput
 				if (bufsize == -2) {
 					// セクタがおかしいぞ
 					errinfo.SetError(DiskBasicError::ERRV3_INVALID_SECTOR, gitem->GetGroup(), block_num, bufsize);
+					rc = -1;
 				} else {
 					// データが異なる
 					errinfo.SetError(DiskBasicError::ERRV2_VERIFY_FILE, gitem->GetGroup(), block_num);
+					rc = 1;
 				}
-				rc = false;
 				break;
 			}
 			remain -= bufsize;
@@ -908,7 +914,8 @@ bool DiskBasic::SaveFile(wxInputStream &istream, DiskBasicDirItem *pitem, DiskBa
 		item->CalcFileSize();
 
 		// ベリファイ
-		valid = VerifyData(item, *itemp);
+		int sts = VerifyData(item, *itemp);
+		valid = (sts == 0);
 
 		// 機種個別の処理を行う
 		type->AdditionalProcessOnSavedFile(item);
@@ -1251,6 +1258,7 @@ bool DiskBasic::IsFormattable()
 	bool enable = (type != NULL);
 	if (!enable) {
 		errinfo.SetError(DiskBasicError::ERR_CANNOT_FORMAT);
+		return enable;
 	}
 	enable = type->SupportFormatting();
 	if (!enable) {

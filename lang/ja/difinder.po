@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: difinder\n"
-"POT-Creation-Date: 2022-12-23 20:54+0900\n"
-"PO-Revision-Date: 2022-12-23 20:55+0900\n"
+"POT-Creation-Date: 2023-11-30 18:48+0900\n"
+"PO-Revision-Date: 2023-11-30 18:48+0900\n"
 "Last-Translator: Sasaji <s-sasaji@ddo.jp>\n"
 "Language-Team: \n"
 "Language: Japanese\n"
@@ -158,7 +158,7 @@ msgstr "保存"
 msgid "Save the disk image"
 msgstr "ディスクイメージを保存"
 
-#: src/main.cpp:690 src/ui/configbox.cpp:56
+#: src/main.cpp:690 src/ui/configbox.cpp:130
 msgid "Export"
 msgstr "エクスポート"
 
@@ -166,7 +166,7 @@ msgstr "エクスポート"
 msgid "Export a file from the disk"
 msgstr "ディスクからファイルをエクスポート"
 
-#: src/main.cpp:693 src/ui/configbox.cpp:78
+#: src/main.cpp:693 src/ui/configbox.cpp:156
 msgid "Import"
 msgstr "インポート"
 
@@ -194,16 +194,16 @@ msgstr "最近使用したファイル(&R)"
 msgid "E&xit\tALT+F4"
 msgstr "終了(&X)\tALT+F4"
 
-#: src/main.cpp:987 src/ui/uifilelist.cpp:946
+#: src/main.cpp:987 src/ui/uifilelist.cpp:956
 msgid "&Export..."
 msgstr "エクスポート(&E)..."
 
-#: src/main.cpp:988 src/ui/uifilelist.cpp:947 src/ui/uirawdisk.cpp:544
+#: src/main.cpp:988 src/ui/uifilelist.cpp:957 src/ui/uirawdisk.cpp:544
 #: src/ui/uirawdisk.cpp:1170
 msgid "&Import..."
 msgstr "インポート(&I)..."
 
-#: src/main.cpp:990 src/ui/uifilelist.cpp:949
+#: src/main.cpp:990 src/ui/uifilelist.cpp:959
 msgid "&Delete..."
 msgstr "削除(&D)..."
 
@@ -211,15 +211,15 @@ msgstr "削除(&D)..."
 msgid "Rena&me File"
 msgstr "ファイル名を変更(&M)"
 
-#: src/main.cpp:993 src/ui/uifilelist.cpp:952
+#: src/main.cpp:993 src/ui/uifilelist.cpp:962
 msgid "&Copy"
 msgstr "コピー(&C)"
 
-#: src/main.cpp:994 src/ui/uifilelist.cpp:953
+#: src/main.cpp:994 src/ui/uifilelist.cpp:963
 msgid "&Paste..."
 msgstr "ペースト(&P)..."
 
-#: src/main.cpp:996 src/ui/uifilelist.cpp:955
+#: src/main.cpp:996 src/ui/uifilelist.cpp:968
 msgid "Make Directory(&F)..."
 msgstr "ディレクトリを作成(&F)..."
 
@@ -239,7 +239,7 @@ msgstr "生ディスクモード"
 msgid "&Charactor Code"
 msgstr "キャラクターコード(&C)"
 
-#: src/main.cpp:1014 src/ui/configbox.cpp:49
+#: src/main.cpp:1014 src/ui/configbox.cpp:63
 msgid "Show deleted and hidden files on the file list."
 msgstr "削除した＆隠されたファイルをファイルリストに表示する。"
 
@@ -323,7 +323,15 @@ msgstr "ダンプビュー"
 msgid "Availability"
 msgstr "使用状況"
 
-#: src/main.cpp:2669
+#: src/main.cpp:2550
+msgid "No path of an editor specified."
+msgstr "エディタのパスが指定されていません。"
+
+#: src/main.cpp:2550
+msgid "Edit"
+msgstr ""
+
+#: src/main.cpp:2698
 msgid "About..."
 msgstr "About..."
 
@@ -754,7 +762,7 @@ msgstr " セクタ数:%d ("
 msgid "bytes"
 msgstr "バイト"
 
-#: src/diskimg/diskplain.cpp:1148
+#: src/diskimg/diskplain.cpp:786 src/diskimg/diskplain.cpp:1161
 msgid ""
 "The data cache is reached the limited size. The modified data will be "
 "overwritten to the disk image. Are you sure?"
@@ -762,7 +770,7 @@ msgstr ""
 "データキャッシュが上限に達しました。変更箇所はディスクイメージに上書きされま"
 "す。よろしいですか？"
 
-#: src/diskimg/diskplain.cpp:1149
+#: src/diskimg/diskplain.cpp:787 src/diskimg/diskplain.cpp:1162
 msgid "Data Cache Overflow"
 msgstr "データキャッシュオーバーフロー"
 
@@ -1051,90 +1059,111 @@ msgstr "ボリューム日付"
 msgid "volume name"
 msgstr "ボリューム名"
 
-#: src/ui/basicselbox.cpp:139 src/ui/uifilelist.cpp:2478
+#: src/ui/basicselbox.cpp:139 src/ui/uifilelist.cpp:2609
 msgid "Select BASIC Type"
 msgstr "BASIC種類を選択"
 
-#: src/ui/configbox.cpp:34
+#: src/ui/configbox.cpp:36
 msgid "Configure"
 msgstr "設定"
 
-#: src/ui/configbox.cpp:61
+#: src/ui/configbox.cpp:56
+msgid "General"
+msgstr "一般"
+
+#: src/ui/configbox.cpp:71
+msgid "Show the internal directory information on the property dialog."
+msgstr "プロパティダイアログに内部ディレクトリ情報を表示する。"
+
+#: src/ui/configbox.cpp:78
+msgid "Data Cache"
+msgstr "データキャッシュ"
+
+#: src/ui/configbox.cpp:80
+msgid "Limit size"
+msgstr "上限サイズ"
+
+#: src/ui/configbox.cpp:85 src/ui/configbox.cpp:94
+msgid "MB"
+msgstr ""
+
+#: src/ui/configbox.cpp:89
+msgid "Shrink size"
+msgstr "縮小サイズ"
+
+#: src/ui/configbox.cpp:107
+msgid "System Dependent"
+msgstr ""
+
+#: src/ui/configbox.cpp:108 src/ui/diskparambox.cpp:193
+msgid "Unknown"
+msgstr "不明"
+
+#: src/ui/configbox.cpp:137
 msgid "Add extension suitable for file attribute to filename."
 msgstr "属性から適した拡張子をファイル名に追加する。"
 
-#: src/ui/configbox.cpp:69
+#: src/ui/configbox.cpp:145
 msgid "Set current date and time to exported file."
 msgstr "エクスポートしたファイルに現在日付を設定する。"
 
-#: src/ui/configbox.cpp:83
+#: src/ui/configbox.cpp:163
 msgid "Suppress confirmation dialog."
 msgstr "確認ダイアログを抑制する。"
 
-#: src/ui/configbox.cpp:91
+#: src/ui/configbox.cpp:171
 msgid "Trim extension in filename when decided file attribute by extension."
 msgstr "拡張子で属性を決定できる時は、ファイル名から拡張子をとり除く。"
 
-#: src/ui/configbox.cpp:99
+#: src/ui/configbox.cpp:179
 msgid "Set current date and time to importing file."
 msgstr "インポートするファイルに現在日付を設定する。"
 
-#: src/ui/configbox.cpp:107
+#: src/ui/configbox.cpp:187
 msgid ""
 "Ignore date and time when import or change property. (Supported system only)"
 msgstr "インポートやプロパティ変更時に日時を無視する。（対応システムのみ）"
 
-#: src/ui/configbox.cpp:116
-msgid "Path of temporary folder"
+#: src/ui/configbox.cpp:198
+msgid "Path"
+msgstr "パス"
+
+#: src/ui/configbox.cpp:204
+msgid "Path of the temporary folder"
 msgstr "一時フォルダのパス"
 
-#: src/ui/configbox.cpp:118
+#: src/ui/configbox.cpp:206
 msgid "Use system setting."
 msgstr "システム設定を使用する。"
 
-#: src/ui/configbox.cpp:125
+#: src/ui/configbox.cpp:213
 msgid "Folder..."
 msgstr "フォルダ..."
 
-#: src/ui/configbox.cpp:134
-msgid "Path of binary editer"
+#: src/ui/configbox.cpp:222
+msgid "Path of the binary editor"
 msgstr "バイナリエディタのパス"
 
-#: src/ui/configbox.cpp:138 src/ui/diskparambox.cpp:163
+#: src/ui/configbox.cpp:226 src/ui/configbox.cpp:237
+#: src/ui/diskparambox.cpp:163
 msgid "File..."
 msgstr "ファイル..."
 
-#: src/ui/configbox.cpp:145
-msgid "Data Cache"
-msgstr "データキャッシュ"
+#: src/ui/configbox.cpp:233
+msgid "Path of the text editor"
+msgstr "テキストエディタのパス"
 
-#: src/ui/configbox.cpp:147
-msgid "Limit size"
-msgstr "上限サイズ"
-
-#: src/ui/configbox.cpp:152 src/ui/configbox.cpp:161
-msgid "MB"
-msgstr ""
-
-#: src/ui/configbox.cpp:156
-msgid "Shrink size"
-msgstr "縮小サイズ"
-
-#: src/ui/configbox.cpp:173
-msgid "System Dependent"
-msgstr ""
-
-#: src/ui/configbox.cpp:174 src/ui/diskparambox.cpp:193
-msgid "Unknown"
-msgstr "不明"
-
-#: src/ui/configbox.cpp:240
+#: src/ui/configbox.cpp:298
 msgid "Select the folder for temporary."
 msgstr "テンポラリのフォルダを選択してください。"
 
-#: src/ui/configbox.cpp:250
+#: src/ui/configbox.cpp:308
 msgid "Select the application for editing binary data."
 msgstr "バイナリデータを編集するためのアプリケーションを選択してください。"
+
+#: src/ui/configbox.cpp:318
+msgid "Select the application for editing text data."
+msgstr "テキストデータを編集するためのアプリケーションを選択してください。"
 
 #: src/ui/diskparambox.cpp:75
 msgid "Category:"
@@ -1244,8 +1273,8 @@ msgstr "デフォルト"
 msgid "File Name In The Disk Image"
 msgstr "ディスクイメージ内のファイル名"
 
-#: src/ui/intnamebox.cpp:112 src/ui/uifilelist.cpp:1903
-#: src/ui/uifilelist.cpp:2247
+#: src/ui/intnamebox.cpp:112 src/ui/uifilelist.cpp:1943
+#: src/ui/uifilelist.cpp:2287
 msgid "file name"
 msgstr "ファイル名"
 
@@ -1469,7 +1498,7 @@ msgstr "テキスト"
 msgid "&Invert Datas"
 msgstr "データを反転(&I)"
 
-#: src/ui/uibindump.cpp:345 src/ui/uifilelist.cpp:555
+#: src/ui/uibindump.cpp:345 src/ui/uifilelist.cpp:558
 msgid "Charactor Code"
 msgstr "キャラクターコード"
 
@@ -1553,159 +1582,169 @@ msgstr "日時"
 msgid "Num"
 msgstr "番号"
 
-#: src/ui/uifilelist.cpp:551
+#: src/ui/uifilelist.cpp:554
 msgid "Change"
 msgstr "変更"
 
-#: src/ui/uifilelist.cpp:950
+#: src/ui/uifilelist.cpp:960
 msgid "Rena&me"
 msgstr "名前を変更(&M)"
 
-#: src/ui/uifilelist.cpp:957
+#: src/ui/uifilelist.cpp:965
+msgid "Edit using binary editor..."
+msgstr "バイナリエディタで編集..."
+
+#: src/ui/uifilelist.cpp:966
+msgid "Edit using text editor..."
+msgstr "テキストエディタで編集..."
+
+#: src/ui/uifilelist.cpp:970
 msgid "P&roperty"
 msgstr "プロパティ(&R)"
 
-#: src/ui/uifilelist.cpp:1294
+#: src/ui/uifilelist.cpp:1307
 msgid "Export a file"
 msgstr "ファイルをエクスポート"
 
-#: src/ui/uifilelist.cpp:1297 src/ui/uifilelist.cpp:1654
+#: src/ui/uifilelist.cpp:1310 src/ui/uifilelist.cpp:1667
 #: src/ui/uirawdisk.cpp:673 src/ui/uirawdisk.cpp:1418
 #: src/ui/uirawdisk.cpp:1486
 msgid "All files (*.*)|*.*"
 msgstr "すべてのファイル(*.*)|*.*"
 
-#: src/ui/uifilelist.cpp:1310 src/ui/uifilelist.cpp:1332
+#: src/ui/uifilelist.cpp:1323 src/ui/uifilelist.cpp:1345
+#: src/ui/uifilelist.cpp:2433
 msgid "exporting..."
 msgstr "エクスポート中..."
 
-#: src/ui/uifilelist.cpp:1310 src/ui/uifilelist.cpp:1332
+#: src/ui/uifilelist.cpp:1323 src/ui/uifilelist.cpp:1345
+#: src/ui/uifilelist.cpp:2433
 msgid "exported."
 msgstr "エクスポート完了"
 
-#: src/ui/uifilelist.cpp:1317
+#: src/ui/uifilelist.cpp:1330
 msgid "Choose folder to export files"
 msgstr "エクスポート先フォルダを選択してください。"
 
-#: src/ui/uifilelist.cpp:1524
+#: src/ui/uifilelist.cpp:1537
 msgid "dragging..."
 msgstr "ドラッグ中..."
 
-#: src/ui/uifilelist.cpp:1524
+#: src/ui/uifilelist.cpp:1537
 msgid "dragged."
 msgstr "ドラッグ完了"
 
-#: src/ui/uifilelist.cpp:1548
+#: src/ui/uifilelist.cpp:1561
 msgid "copying..."
 msgstr "コピー中..."
 
-#: src/ui/uifilelist.cpp:1548
+#: src/ui/uifilelist.cpp:1561
 msgid "copied."
 msgstr "コピー完了"
 
-#: src/ui/uifilelist.cpp:1634
+#: src/ui/uifilelist.cpp:1647
 msgid "pasting..."
 msgstr "ペースト中..."
 
-#: src/ui/uifilelist.cpp:1634
+#: src/ui/uifilelist.cpp:1647
 msgid "pasted."
 msgstr "ペースト完了"
 
-#: src/ui/uifilelist.cpp:1651
+#: src/ui/uifilelist.cpp:1664
 msgid "Import file"
 msgstr "ファイルをインポート"
 
-#: src/ui/uifilelist.cpp:1668
+#: src/ui/uifilelist.cpp:1681 src/ui/uifilelist.cpp:2468
 msgid "importing..."
 msgstr "インポート中..."
 
-#: src/ui/uifilelist.cpp:1668
+#: src/ui/uifilelist.cpp:1681 src/ui/uifilelist.cpp:2468
 msgid "imported."
 msgstr "インポート完了"
 
-#: src/ui/uifilelist.cpp:1676
+#: src/ui/uifilelist.cpp:1689
 msgid "dropping..."
 msgstr "ドロップ中..."
 
-#: src/ui/uifilelist.cpp:1676
+#: src/ui/uifilelist.cpp:1689
 msgid "dropped."
 msgstr "ドロップ完了"
 
-#: src/ui/uifilelist.cpp:1747
+#: src/ui/uifilelist.cpp:1760
 msgid "Import Directory"
 msgstr "ディレクトリをインポート"
 
-#: src/ui/uifilelist.cpp:1874
+#: src/ui/uifilelist.cpp:1914
 msgid "Import File"
 msgstr "ファイルをインポート"
 
-#: src/ui/uifilelist.cpp:1887
+#: src/ui/uifilelist.cpp:1927
 #, c-format
 msgid "File size is larger than %d bytes, do you want to continue?"
 msgstr "ファイルは%dバイトを超えています。続けますか？"
 
-#: src/ui/uifilelist.cpp:1888
+#: src/ui/uifilelist.cpp:1928
 msgid "File is too large"
 msgstr "ファイルが大きすぎます"
 
-#: src/ui/uifilelist.cpp:1938
+#: src/ui/uifilelist.cpp:1978
 #, c-format
 msgid "File '%s' already exists and cannot overwrite, please rename it."
 msgstr "ファイル'%s'はすでに存在し上書きできません。名前を変更してください。"
 
-#: src/ui/uifilelist.cpp:1939 src/ui/uifilelist.cpp:1946
-#: src/ui/uifilelist.cpp:2253
+#: src/ui/uifilelist.cpp:1979 src/ui/uifilelist.cpp:1986
+#: src/ui/uifilelist.cpp:2293
 msgid "File exists"
 msgstr "ファイルが存在します"
 
-#: src/ui/uifilelist.cpp:1945
+#: src/ui/uifilelist.cpp:1985
 #, c-format
 msgid "File '%s' already exists, do you really want to overwrite it?"
 msgstr "ファイル'%s'はすでに存在します。本当に上書きしていいですか？"
 
-#: src/ui/uifilelist.cpp:2060
+#: src/ui/uifilelist.cpp:2100
 #, c-format
 msgid "Do you really want to delete '%s'?"
 msgstr "本当に'%s'を削除していいですか？"
 
-#: src/ui/uifilelist.cpp:2061
+#: src/ui/uifilelist.cpp:2101
 msgid "Delete a directory"
 msgstr "ディレクトリを削除"
 
-#: src/ui/uifilelist.cpp:2061
+#: src/ui/uifilelist.cpp:2101
 msgid "Delete a file"
 msgstr "ファイルを削除"
 
-#: src/ui/uifilelist.cpp:2085
+#: src/ui/uifilelist.cpp:2125
 msgid "Do you really want to delete selected files?"
 msgstr "本当に選択したファイルを削除していいですか？"
 
-#: src/ui/uifilelist.cpp:2086
+#: src/ui/uifilelist.cpp:2126
 msgid "Delete files"
 msgstr "ファイルを削除"
 
-#: src/ui/uifilelist.cpp:2252
+#: src/ui/uifilelist.cpp:2292
 #, c-format
 msgid "File '%s' already exists."
 msgstr "ファイル'%s'はすでに存在します。"
 
-#: src/ui/uifilelist.cpp:2365
+#: src/ui/uifilelist.cpp:2496
 msgid "File Attribute"
 msgstr "ファイル属性"
 
-#: src/ui/uifilelist.cpp:2502
+#: src/ui/uifilelist.cpp:2633
 msgid "BASIC Information"
 msgstr "BASIC情報"
 
-#: src/ui/uifilelist.cpp:2541
+#: src/ui/uifilelist.cpp:2672
 msgid "New Directory Name"
 msgstr "新規ディレクトリ名"
 
-#: src/ui/uifilelist.cpp:2590
+#: src/ui/uifilelist.cpp:2721
 msgid "The same file name or directory already exists."
 msgstr "同じファイル名かディレクトリが既に存在します。"
 
-#: src/ui/uifilelist.cpp:2592
+#: src/ui/uifilelist.cpp:2723
 msgid "Please rename this."
 msgstr "名前を変更してください。"
 
@@ -1788,6 +1827,14 @@ msgstr "本当に現在のセクタをクリアしていいですか？"
 #: src/ui/uirawdisk.cpp:1512
 msgid "Clear Sector"
 msgstr "セクタをクリア"
+
+#: src/ui/uirawdisk.cpp:1531
+msgid "No sector data exists."
+msgstr "セクタデータがありません。"
+
+#: src/ui/uirawdisk.cpp:1531
+msgid "Edit Sector"
+msgstr "セクタ編集"
 
 #: src/ui/diskparambox.h:12 src/ui/rawexpbox.h:12 src/ui/rawparambox.h:12
 #: src/ui/rawsectorbox.h:12

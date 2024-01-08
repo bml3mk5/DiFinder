@@ -131,6 +131,7 @@ public:
 	static int wxCALLBACK Compare(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortdata);
 #endif
 	static int CompareName(DiskBasicDirItems *items, int i1, int i2, int dir);
+	static int CompareAttr(DiskBasicDirItems *items, int i1, int i2, int dir);
 	static int CompareSize(DiskBasicDirItems *items, int i1, int i2, int dir);
 	static int CompareGroups(DiskBasicDirItems *items, int i1, int i2, int dir);
 	static int CompareStart(DiskBasicDirItems *items, int i1, int i2, int dir);
@@ -212,6 +213,8 @@ private:
 	/// 指定したファイルをインポート
 	int  ImportDataFiles(const wxString &data_dir, const wxString &attr_dir, const wxArrayString &names, int depth);
 	/// 指定したファイルをインポート
+	bool ImportDataFile(const DiskBasicDirItem *item, const wxString &path, const wxString &start_msg, const wxString &end_msg);
+	/// 指定したファイルをインポート
 	int  ImportDataFile(const wxString &full_data_path, const wxString &full_attr_path, const wxString &file_name);
 
 	/// 指定したファイルを削除
@@ -271,6 +274,8 @@ public:
 	void OnPasteFile(wxCommandEvent& event);
 	/// ディレクトリ作成選択
 	void OnMakeDirectory(wxCommandEvent& event);
+	/// ファイル編集選択
+	void OnEditFile(wxCommandEvent& event);
 	/// プロパティ選択
 	void OnProperty(wxCommandEvent& event);
 	/// リスト上でキー押下
@@ -354,6 +359,9 @@ public:
 	/// ディレクトリを削除する
 	bool DeleteDirectory(DiskImageDisk *disk, int side_num, DiskBasicDirItem *dst_item);
 
+	/// 指定したファイルを編集
+	void EditDataFile(enEditorTypes editor_type);
+
 	/// ファイル名の編集開始
 	void StartEditingFileName();
 	/// ファイル名の編集開始
@@ -426,6 +434,8 @@ public:
 		IDM_DUPLICATE_FILE,
 		IDM_COPY_FILE,
 		IDM_PASTE_FILE,
+		IDM_EDIT_FILE_BINARY,
+		IDM_EDIT_FILE_TEXT,
 		IDM_MAKE_DIRECTORY,
 		IDM_PROPERTY,
 		IDC_TEXT_ATTR,

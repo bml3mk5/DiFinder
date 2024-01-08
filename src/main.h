@@ -21,8 +21,10 @@
 #include <wx/dnd.h>
 #include <wx/fontdlg.h>
 #include <wx/splitter.h>
+#include <wx/filename.h>
 #include <wx/ffile.h>
 #include <wx/timer.h>
+#include "ui/uicommon.h"
 #include "config.h"
 
 
@@ -634,6 +636,12 @@ public:
 	void IncreaseStatusCounter(int idx);
 	void FinishStatusCounter(int idx, const wxString &message);
 	void ClearStatusCounter();
+	//@}
+
+	/// @name その他のUI
+	//@{
+	/// @brief 指定ファイルを引数にして外部エディタを起動する
+	static bool OpenFileWithEditor(enEditorTypes editor_type, const wxFileName &file);
 	//@}
 
 	/// @name property

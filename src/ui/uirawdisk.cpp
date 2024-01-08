@@ -1525,12 +1525,12 @@ void UiDiskRawSector::EditSector()
 	DiskImageSector *sector = GetSelectedSector(&pos);
 	if (!sector) return;
 
-	wxString binary_editer = gConfig.GetBinaryEditer();
-	if (binary_editer.IsEmpty()) return;
-
 	size_t bufsize = sector->GetSectorBufferSize();
 	wxUint8 *buf = sector->GetSectorBuffer();
-	if (buf == NULL || bufsize <= 0) return;
+	if (buf == NULL || bufsize <= 0) {
+		wxMessageBox(_("No sector data exists."), _("Edit Sector"), wxICON_ERROR | wxOK);
+		return;
+	}
 
 	// データを反転して出力するか
 	bool inverted = false;
@@ -1561,14 +1561,7 @@ void UiDiskRawSector::EditSector()
 	if (inverted) mem_invert(buf, bufsize);
 
 	// エディタを起動
-	binary_editer += wxT(" \"");
-	binary_editer += tmp_path.GetFullPath();
-	binary_editer += wxT("\"");
-
-	wxProcess *process = NULL;
-	long psts = wxExecute(binary_editer, wxEXEC_SYNC, process);
-	// エディタ終了
-	if (psts < 0) {
+	if (!frame->OpenFileWithEditor(EDITOR_TYPE_BINARY, tmp_path)) {
 		// コマンド起動失敗
 		return;
 	}

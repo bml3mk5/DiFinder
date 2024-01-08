@@ -44,7 +44,8 @@ protected:
 	int			mWindowWidth;		///< ウィンドウ幅
 	int			mWindowHeight;		///< ウィンドウ高さ
 	wxString	mTemporaryFolder;	///< テンポラリフォルダのパス
-	wxString	mBinaryEditer;		///< バイナリエディタのパス
+	wxString	mBinaryEditor;		///< バイナリエディタのパス
+	wxString	mTextEditor;		///< テキストエディタのパス
 	int			mCacheLimitSize;	///< セクタキャッシュの限界サイズ(MB)
 	int			mCacheShrinkSize;	///< セクタキャッシュの縮小サイズ(MB)
 	wxString	mLanguage;			///< 言語
@@ -99,8 +100,10 @@ public:
 	void			SetTemporaryFolder(const wxString &val);
 	const wxString &GetTemporaryFolder() const { return mTemporaryFolder; }
 	void			ClearTemporaryFolder() { mTemporaryFolder.Empty(); }
-	void			SetBinaryEditer(const wxString &val);
-	const wxString &GetBinaryEditer() const { return mBinaryEditer; }
+	void			SetBinaryEditor(const wxString &val);
+	const wxString &GetBinaryEditor() const { return mBinaryEditor; }
+	void			SetTextEditor(const wxString &val);
+	const wxString &GetTextEditor() const { return mTextEditor; }
 	void 			SetCacheLimitSize(int val) { mCacheLimitSize = val; }
 	int				GetCacheLimitSize() const { return mCacheLimitSize; }
 	void			SetCacheShrinkSize(int val) { mCacheShrinkSize = val; }

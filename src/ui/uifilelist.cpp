@@ -62,7 +62,7 @@ enum en_icons_for_flist {
 /// ファイル一覧の各カラム属性
 const struct st_list_columns gUiDiskFileListColumnDefs[] = {
 	{ "Name",		wxTRANSLATE("File Name"),		true,	160,	wxALIGN_LEFT,	true },
-	{ "Attr",		wxTRANSLATE("Attributes"),		false,	150,	wxALIGN_LEFT,	false },
+	{ "Attr",		wxTRANSLATE("Attributes"),		false,	150,	wxALIGN_LEFT,	true },
 	{ "Size",		wxTRANSLATE("Size"),			false,	 60,	wxALIGN_RIGHT,	true },
 	{ "Groups",		wxTRANSLATE("Groups"),			false,	 40,	wxALIGN_RIGHT,	true },
 	{ "Start",		wxTRANSLATE("Start Group"),		false,	 40,	wxALIGN_RIGHT,	true },
@@ -374,6 +374,9 @@ void UiDiskFileListCtrl::SortDataItems(DiskBasic *basic, int col)
 			case LISTCOL_NAME:
 				exp.cmpfunc = &CompareName;
 				break;
+			case LISTCOL_ATTR:
+				exp.cmpfunc = &CompareAttr;
+				break;
 			case LISTCOL_SIZE:
 				exp.cmpfunc = &CompareSize;
 				break;
@@ -404,6 +407,12 @@ void UiDiskFileListCtrl::SortDataItems(DiskBasic *basic, int col)
 int UiDiskFileListCtrl::CompareName(DiskBasicDirItems *items, int i1, int i2, int dir)
 {
 	return items->Item(i1)->GetFileNameStr().CompareTo(items->Item(i2)->GetFileNameStr()) * dir;
+}
+int UiDiskFileListCtrl::CompareAttr(DiskBasicDirItems *items, int i1, int i2, int dir)
+{
+	int cmp = (items->Item(i1)->GetFileAttrStr().CompareTo(items->Item(i2)->GetFileAttrStr()) * dir);
+	if (cmp == 0) cmp = (items->Item(i1)->GetFileNameStr().CompareTo(items->Item(i2)->GetFileNameStr()) * dir);
+	return cmp;
 }
 int UiDiskFileListCtrl::CompareSize(DiskBasicDirItems *items, int i1, int i2, int dir)
 {
@@ -517,6 +526,9 @@ wxBEGIN_EVENT_TABLE(UiDiskFileList, wxPanel)
 
 	EVT_MENU(IDM_COPY_FILE, UiDiskFileList::OnCopyFile)
 	EVT_MENU(IDM_PASTE_FILE, UiDiskFileList::OnPasteFile)
+
+	EVT_MENU(IDM_EDIT_FILE_BINARY, UiDiskFileList::OnEditFile)
+	EVT_MENU(IDM_EDIT_FILE_TEXT, UiDiskFileList::OnEditFile)
 
 	EVT_MENU(IDM_MAKE_DIRECTORY, UiDiskFileList::OnMakeDirectory)
 
@@ -862,6 +874,13 @@ void UiDiskFileList::OnMakeDirectory(wxCommandEvent& WXUNUSED(event))
 	ShowMakeDirectoryDialog();
 }
 
+/// ファイル編集選択
+/// @param[in] event コマンドイベント
+void UiDiskFileList::OnEditFile(wxCommandEvent& event)
+{
+	EditDataFile(event.GetId() == IDM_EDIT_FILE_BINARY ? EDITOR_TYPE_BINARY : EDITOR_TYPE_TEXT);
+}
+
 /// プロパティ選択
 /// @param[in] event コマンドイベント
 void UiDiskFileList::OnProperty(wxCommandEvent& WXUNUSED(event))
@@ -951,6 +970,9 @@ void UiDiskFileList::MakePopupMenu()
 	menuPopup->AppendSeparator();
 	menuPopup->Append(IDM_COPY_FILE, _("&Copy"));
 	menuPopup->Append(IDM_PASTE_FILE, _("&Paste..."));
+	menuPopup->AppendSeparator();
+	menuPopup->Append(IDM_EDIT_FILE_BINARY, _("Edit using binary editor..."));
+	menuPopup->Append(IDM_EDIT_FILE_TEXT, _("Edit using text editor..."));
 	menuPopup->AppendSeparator();
 	menuPopup->Append(IDM_MAKE_DIRECTORY, _("Make Directory(&F)..."));
 	menuPopup->AppendSeparator();
@@ -1780,6 +1802,33 @@ int UiDiskFileList::ImportDataFiles(const wxString &data_dir, const wxString &at
 	return sts;
 }
 
+/// 指定したファイルを上書きでインポート
+/// @param [in] item ディレクトリアイテム
+/// @param [in] path データファイルパス
+/// @param [in] start_msg 開始メッセージ
+/// @param [in] end_msg   終了メッセージ
+/// @return true:OK false:Error
+bool UiDiskFileList::ImportDataFile(const DiskBasicDirItem *item, const wxString &path, const wxString &start_msg, const wxString &end_msg)
+{
+	DiskBasicDirItem *pitem = basic->CreateDirItem();
+	pitem->CopyItem(*item);
+
+	m_sc_import = frame->StartStatusCounter(1, start_msg);
+
+	bool valid = basic->SaveFile(path, pitem);
+
+	frame->IncreaseStatusCounter(m_sc_import);
+	frame->FinishStatusCounter(m_sc_import, end_msg);
+
+	// リストを更新
+	RefreshFiles();
+	// 左パネルのツリーを更新
+	frame->RefreshAllDirectoryNodesOnDiskList(basic->GetDisk(), basic->GetSelectedSide());
+
+	delete pitem;
+	return valid;
+}
+
 /// 指定したファイルをインポート
 /// @param [in] full_data_path データファイルパス
 /// @param [in] full_attr_path 属性ファイルパス
@@ -1917,13 +1966,13 @@ int UiDiskFileList::ShowIntNameBoxAndCheckSameFile(DiskBasicDirItem *temp_item, 
 				bool ignore_datetime = gConfig.DoesIgnoreDateTime();
 				DiskBasicDirItem::enDateTime ignore_type = temp_item->CanIgnoreDateTime();
 				if (!(ignore_datetime && (ignore_type & DiskBasicDirItem::DATETIME_CREATE) != 0)) {
-					date_time.SetCreateDateTime(temp_item->GetFileCreateDateTime());
+					temp_item->SetFileCreateDateTime(date_time.GetCreateDateTime());
 				}
 				if (!(ignore_datetime && (ignore_type & DiskBasicDirItem::DATETIME_MODIFY) != 0)) {
-					date_time.SetModifyDateTime(temp_item->GetFileModifyDateTime());
+					temp_item->SetFileModifyDateTime(date_time.GetModifyDateTime());
 				}
 				if (!(ignore_datetime && (ignore_type & DiskBasicDirItem::DATETIME_ACCESS) != 0)) {
-					date_time.SetAccessDateTime(temp_item->GetFileAccessDateTime());
+					temp_item->SetFileAccessDateTime(date_time.GetAccessDateTime());
 				}
 			}
 			ans = wxYES;
@@ -2341,6 +2390,97 @@ bool UiDiskFileList::DeleteDirectory(DiskImageDisk *disk, int side_num, DiskBasi
 	if (!tmp_basic) return false;
 
 	return (DeleteDataFile(tmp_basic, dst_item) != 0);
+}
+
+/// 指定したファイルを編集
+void UiDiskFileList::EditDataFile(enEditorTypes editor_type)
+{
+	if (!basic) return;
+
+	if (!list) return;
+
+	MyFileListItems selected_items;
+	int selcount = list->GetListSelections(selected_items);
+	if (selcount <= 0) return;
+
+	UiDiskApp *app = &wxGetApp();
+
+	// テンポラリディレクトリを作成
+	wxString tmp_dir_name;
+	if (!app->MakeTempDir(tmp_dir_name)) {
+		return;
+	}
+
+	basic->ClearErrorMessage();
+
+	bool sts = true;
+	do {
+		wxString filename;
+		DiskBasicDirItem *item = NULL;
+
+		// １つだけ選択
+		item = GetFileName(selected_items.Item(0), filename);
+		if (!item) {
+			sts = false;
+			break;
+		}
+		// エクスポートできるか
+		if (!basic->IsLoadableFile(item)) {
+			sts = false;
+			break;
+		}
+		// エクスポートする前の処理（ファイル名を変更するか）
+		if (!item->PreExportDataFile(filename)) {
+			sts = false;
+			break;
+		}
+		// ファイル名を変換
+		filename = Utils::EncodeFileName(filename);
+		// フルパスを作成
+		wxFileName path = wxFileName(tmp_dir_name, filename);
+
+		if (!ExportDataFile(item, path.GetFullPath(), _("exporting..."), _("exported."))) {
+			sts = false;
+			break;
+		}
+
+		wxFile file;
+		file.Open(path.GetFullPath());
+		wxFileOffset in_file_size = file.Length();
+		file.Close();
+
+		// エディタを起動
+		if (!frame->OpenFileWithEditor(editor_type, path)) {
+			// コマンド起動失敗
+			sts = false;
+			break;
+		}
+
+		file.Open(path.GetFullPath());
+		wxFileOffset out_file_size = file.Length();
+		file.Close();
+
+		if (in_file_size == out_file_size) {
+			// ファイルを変更しているか
+			int sts = basic->VerifyFile(item, path.GetFullPath());
+			if (sts < 0) {
+				// エラーあり
+				sts = false;
+				break;
+			} else if (sts == 0) {
+				// 変更なし
+				break;
+			}
+		}
+
+		// ディスク内にセーブする
+		sts = ImportDataFile(item, path.GetFullPath(), _("importing..."), _("imported."));
+
+	} while(0);
+
+	if (!sts) {
+		basic->ShowErrorMessage();
+	}
 }
 
 /// ファイル属性プロパティダイアログを表示

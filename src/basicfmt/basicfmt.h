@@ -169,14 +169,14 @@ public:
 	bool			LoadFile(DiskBasicDirItem *item, wxOutputStream &ostream);
 
 	/// 指定したアイテムのファイルをベリファイ
-	bool			VerifyFile(DiskBasicDirItem *item, const wxString &srcpath);
+	int				VerifyFile(DiskBasicDirItem *item, const wxString &srcpath);
 
 	/// 指定したストリームにファイルをロード
 	bool			LoadData(DiskBasicDirItem *item, wxOutputStream &ostream, size_t *outsize = NULL);
 	/// 指定したアイテムのファイルをベリファイ
-	bool			VerifyData(DiskBasicDirItem *item, wxInputStream &istream);
+	int				VerifyData(DiskBasicDirItem *item, wxInputStream &istream);
 	/// ディスクデータにアクセス（ロード/ベリファイで使用）
-	bool			AccessUnitData(int fileunit_num, DiskBasicDirItem *item, wxInputStream *istream, wxOutputStream *ostream, size_t *outsize = NULL);
+	int				AccessUnitData(int fileunit_num, DiskBasicDirItem *item, wxInputStream *istream, wxOutputStream *ostream, size_t *outsize = NULL);
 	//@}
 	/// @name 比較・チェック
 	//@{

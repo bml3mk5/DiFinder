@@ -2539,6 +2539,34 @@ void UiDiskFrame::ClearStatusCounter()
 	SetStatusText(wxT(""), 0);
 }
 
+/// 指定ファイルを引数にして外部エディタを起動する
+/// @param[in] editor_type 0:binary editor 1:text editor
+/// @param[in] file
+bool UiDiskFrame::OpenFileWithEditor(enEditorTypes editor_type, const wxFileName &file)
+{
+	// エディタのあるパスを得る
+	wxString editor = editor_type == EDITOR_TYPE_BINARY ? gConfig.GetBinaryEditor() : gConfig.GetTextEditor();
+	if (editor.IsEmpty()) {
+		wxMessageBox(_("No path of an editor specified."), _("Edit"), wxICON_ERROR | wxOK);
+		return false;
+	}
+	// エディタを起動
+	editor += wxT(" \"");
+	editor += file.GetFullPath();
+	editor += wxT("\"");
+
+	wxProcess *process = NULL;
+	long psts = wxExecute(editor, wxEXEC_SYNC, process);
+	// エディタ終了
+	if (psts < 0) {
+		// コマンド起動失敗
+		return false;
+	}
+
+	return true;
+}
+
+
 //////////////////////////////////////////////////////////////////////
 
 // ドラッグアンドドロップ時のフォーマットID

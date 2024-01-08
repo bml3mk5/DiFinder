@@ -421,7 +421,7 @@ void DiskBasicTypeHU68K::AdditionalProcessOnMadeDirectory(DiskBasicDirItem *item
 	// カレントと親ディレクトリのエントリを作成する
 	DiskBasicGroupItem *gitem = &group_items.Item(0);
 
-	DiskImageSector *sector = basic->GetDisk()->GetSector(gitem->GetSectorStart());
+//	DiskImageSector *sector = basic->GetDisk()->GetSector(gitem->GetSectorStart());
 
 //	wxUint8 *buf = sector->GetSectorBuffer();
 //	DiskBasicDirItem *newitem = basic->CreateDirItem(gitem->GetSectorStart(), 0, buf);
@@ -435,7 +435,7 @@ void DiskBasicTypeHU68K::AdditionalProcessOnMadeDirectory(DiskBasicDirItem *item
 	// 親
 //	buf += newitem->GetDataSize();
 //	newitem->SetDataPtr(0, NULL, gitem->GetSectorStart(), 0, buf);
-	newitem->SetDataPtr(0, NULL, gitem->GetSectorStart(), 0);
+	newitem->SetDataPtr(1, NULL, gitem->GetSectorStart(), newitem->GetDataSize());
 	if (parent_item) {
 		// 親がサブディレクトリ
 		newitem->CopyData(parent_item->GetData());

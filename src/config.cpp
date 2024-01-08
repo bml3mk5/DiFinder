@@ -38,7 +38,8 @@ Params::Params()
 	mWindowWidth = 1000;
 	mWindowHeight = 600;
 	mTemporaryFolder.Empty();
-	mBinaryEditer.Empty();
+	mBinaryEditor.Empty();
+	mTextEditor.Empty();
 	mCacheLimitSize = CACHE_LIMIT_SIZE;
 	mCacheShrinkSize = CACHE_SHRINK_SIZE;
 	mLanguage.Empty();
@@ -104,9 +105,14 @@ void Params::SetTemporaryFolder(const wxString &val)
 	mTemporaryFolder = wxFileName::FileName(val).GetFullPath();
 }
 
-void Params::SetBinaryEditer(const wxString &val)
+void Params::SetBinaryEditor(const wxString &val)
 {
-	mBinaryEditer = wxFileName::FileName(val).GetFullPath();
+	mBinaryEditor = wxFileName::FileName(val).GetFullPath();
+}
+
+void Params::SetTextEditor(const wxString &val)
+{
+	mTextEditor = wxFileName::FileName(val).GetFullPath();
 }
 
 //
@@ -179,7 +185,12 @@ void Config::Load()
 	// テンポラリフォルダのパス
 	ini->Read(wxT("TemporaryFolder"), &mTemporaryFolder);
 	// バイナリエディタのパス
-	ini->Read(wxT("BinaryEditer"), &mBinaryEditer);
+	ini->Read(wxT("BinaryEditor"), &mBinaryEditor);
+	if (mBinaryEditor.IsEmpty()) {
+		ini->Read(wxT("BinaryEditer"), &mBinaryEditor);
+	}
+	// テキストエディタのパス
+	ini->Read(wxT("TextEditor"), &mTextEditor);
 	// セクタキャッシュの限界サイズ
 	ini->Read(wxT("CacheLimitSize"), &mCacheLimitSize);
 	// セクタキャッシュの縮小サイズ
@@ -263,7 +274,10 @@ void Config::Save()
 	// テンポラリフォルダのパス
 	ini->Write(wxT("TemporaryFolder"), mTemporaryFolder);
 	// バイナリエディタのパス
-	ini->Write(wxT("BinaryEditer"), mBinaryEditer);
+	ini->Write(wxT("BinaryEditor"), mBinaryEditor);
+	ini->DeleteEntry(wxT("BinaryEditer"));
+	// テキストエディタのパス
+	ini->Write(wxT("TextEditor"), mTextEditor);
 	// セクタキャッシュの限界サイズ
 	ini->Write(wxT("CacheLimitSize"), mCacheLimitSize);
 	// セクタキャッシュの縮小サイズ

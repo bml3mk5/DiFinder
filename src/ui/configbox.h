@@ -36,7 +36,9 @@ private:
 	wxTextCtrl *txtTempFolder;
 	wxCheckBox *chkTempFolder;
 	wxButton   *btnTempFolder;
-	wxTextCtrl *txtBinaryEditer;
+	wxTextCtrl *txtBinaryEditor;
+	wxTextCtrl *txtTextEditor;
+	wxCheckBox *chkInterDirItem;
 	wxSpinCtrl *spnCacheLimit;
 	wxSpinCtrl *spnCacheShrink;
 	wxChoice   *comLanguage;
@@ -56,8 +58,11 @@ public:
 		IDC_TEXT_TEMP_FOLDER,
 		IDC_BUTTON_TEMP_FOLDER,
 		IDC_CHECK_TEMP_FOLDER,
-		IDC_TEXT_BINARY_EDITER,
-		IDC_BUTTON_BINARY_EDITER,
+		IDC_TEXT_BINARY_EDITOR,
+		IDC_BUTTON_BINARY_EDITOR,
+		IDC_TEXT_TEXT_EDITOR,
+		IDC_BUTTON_TEXT_EDITOR,
+		IDC_CHECK_INTER_DIR_ITEM,
 		IDC_SPIN_CACHE_LIMIT,
 		IDC_SPIN_CACHE_SHRINK,
 		IDC_COMBO_LANGUAGE,
@@ -76,7 +81,8 @@ public:
 	void OnOK(wxCommandEvent& event);
 	void OnCheckTempFolder(wxCommandEvent& event);
 	void OnClickTempFolder(wxCommandEvent& event);
-	void OnClickBinaryEditer(wxCommandEvent& event);
+	void OnClickBinaryEditor(wxCommandEvent& event);
+	void OnClickTextEditor(wxCommandEvent& event);
 
 	// properties
 

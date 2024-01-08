@@ -161,7 +161,7 @@ bool	IsUpperString(const wxString &str);
 /// @brief 2のn乗かどうか
 bool	IsPowerOfTwo(wxUint32 val, int digit);
 
-/// CRC32を計算する
+/// @brief CRC32を計算する
 wxUint32 CRC32(wxUint8 *data, int size);
 
 }; /* namespace Utils */
