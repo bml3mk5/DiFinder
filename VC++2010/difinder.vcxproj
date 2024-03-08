@@ -38,6 +38,7 @@
     <ResourceCompile Include="..\src\res\difinder.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\basicfmt\basiccategory.cpp" />
     <ClCompile Include="..\src\basicfmt\basiccommon.cpp" />
     <ClCompile Include="..\src\basicfmt\basicdir.cpp" />
     <ClCompile Include="..\src\basicfmt\basicdiritem.cpp" />
@@ -48,6 +49,7 @@
     <ClCompile Include="..\src\basicfmt\basicfat.cpp" />
     <ClCompile Include="..\src\basicfmt\basicfmt.cpp" />
     <ClCompile Include="..\src\basicfmt\basicparam.cpp" />
+    <ClCompile Include="..\src\basicfmt\basictemplate.cpp" />
     <ClCompile Include="..\src\basicfmt\basictype.cpp" />
     <ClCompile Include="..\src\basicfmt\basictype_fat12.cpp" />
     <ClCompile Include="..\src\basicfmt\basictype_fat16.cpp" />
@@ -87,6 +89,7 @@
     <ClCompile Include="..\src\ui\intnamebox.cpp" />
     <ClCompile Include="..\src\ui\intnamevalid.cpp" />
     <ClCompile Include="..\src\ui\mymenu.cpp" />
+    <ClCompile Include="..\src\ui\partitionbox.cpp" />
     <ClCompile Include="..\src\ui\rawexpbox.cpp" />
     <ClCompile Include="..\src\ui\rawparambox.cpp" />
     <ClCompile Include="..\src\ui\rawsectorbox.cpp" />
@@ -99,11 +102,14 @@
     <ClCompile Include="..\src\ui\uidisklist.cpp" />
     <ClCompile Include="..\src\ui\uifatarea.cpp" />
     <ClCompile Include="..\src\ui\uifilelist.cpp" />
+    <ClCompile Include="..\src\ui\uimainframe.cpp" />
+    <ClCompile Include="..\src\ui\uimainprocess.cpp" />
     <ClCompile Include="..\src\ui\uirawdisk.cpp" />
     <ClCompile Include="..\src\ui\uirpanel.cpp" />
     <ClCompile Include="..\src\utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\basicfmt\basiccategory.h" />
     <ClInclude Include="..\src\basicfmt\basiccommon.h" />
     <ClInclude Include="..\src\basicfmt\basicdir.h" />
     <ClInclude Include="..\src\basicfmt\basicdiritem.h" />
@@ -114,6 +120,7 @@
     <ClInclude Include="..\src\basicfmt\basicfat.h" />
     <ClInclude Include="..\src\basicfmt\basicfmt.h" />
     <ClInclude Include="..\src\basicfmt\basicparam.h" />
+    <ClInclude Include="..\src\basicfmt\basictemplate.h" />
     <ClInclude Include="..\src\basicfmt\basictype.h" />
     <ClInclude Include="..\src\basicfmt\basictype_fat12.h" />
     <ClInclude Include="..\src\basicfmt\basictype_fat16.h" />
@@ -153,6 +160,7 @@
     <ClInclude Include="..\src\ui\intnamebox.h" />
     <ClInclude Include="..\src\ui\intnamevalid.h" />
     <ClInclude Include="..\src\ui\mymenu.h" />
+    <ClInclude Include="..\src\ui\partitionbox.h" />
     <ClInclude Include="..\src\ui\rawexpbox.h" />
     <ClInclude Include="..\src\ui\rawparambox.h" />
     <ClInclude Include="..\src\ui\rawsectorbox.h" />
@@ -166,22 +174,22 @@
     <ClInclude Include="..\src\ui\uidisklist.h" />
     <ClInclude Include="..\src\ui\uifatarea.h" />
     <ClInclude Include="..\src\ui\uifilelist.h" />
+    <ClInclude Include="..\src\ui\uimainframe.h" />
+    <ClInclude Include="..\src\ui\uimainprocess.h" />
     <ClInclude Include="..\src\ui\uirawdisk.h" />
     <ClInclude Include="..\src\ui\uirpanel.h" />
     <ClInclude Include="..\src\utils.h" />
     <ClInclude Include="..\src\version.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\data\basic_types.xml">
-      <SubType>Designer</SubType>
-    </None>
+    <None Include="..\data\basic_types.xml" />
     <None Include="..\data\boot_types.xml" />
     <None Include="..\data\char_codes.xml" />
     <None Include="..\data\disk_types.xml" />
     <None Include="..\data\file_types.xml" />
     <None Include="..\lang\ja\difinder.mo" />
-    <None Include="..\src\res\fd_5inch.ico" />
     <None Include="..\src\res\difinder.ico" />
+    <None Include="..\src\res\fd_5inch.ico" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{78F03D52-24EA-44BD-BAAF-DC918E22E3CD}</ProjectGuid>
@@ -203,11 +211,13 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>Windows7.1SDK</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DLLDebug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>Windows7.1SDK</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -226,12 +236,14 @@
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>Windows7.1SDK</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DLLRelease|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>Windows7.1SDK</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -283,11 +295,13 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)$(Configuration)\$(Platform)\</OutDir>
     <IntDir>$(Configuration)\$(Platform)\</IntDir>
+    <PlatformToolset>Windows7.1SDK</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DLLDebug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)$(Configuration)\$(Platform)\</OutDir>
     <IntDir>$(Configuration)\$(Platform)\</IntDir>
+    <PlatformToolset>Windows7.1SDK</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -303,11 +317,13 @@
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)$(Configuration)\$(Platform)\</OutDir>
     <IntDir>$(Configuration)\$(Platform)\</IntDir>
+    <PlatformToolset>Windows7.1SDK</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DLLRelease|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)$(Configuration)\$(Platform)\</OutDir>
     <IntDir>$(Configuration)\$(Platform)\</IntDir>
+    <PlatformToolset>Windows7.1SDK</PlatformToolset>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -325,6 +341,7 @@
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(wxWidgetsIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;$(Platform);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
     <PostBuildEvent>
       <Command>post_build.bat "$(SolutionDir)" "$(Configuration)\$(Platform)"</Command>
@@ -351,6 +368,7 @@
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(wxWidgetsIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;$(Platform);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
     <PostBuildEvent>
       <Command>post_build.bat "$(SolutionDir)" "$(Configuration)\$(Platform)"</Command>
@@ -377,6 +395,7 @@
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(wxWidgetsIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;$(Platform);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
     <PostBuildEvent>
       <Command>post_build.bat "$(SolutionDir)" "$(Configuration)\$(Platform)"</Command>
@@ -403,6 +422,7 @@
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(wxWidgetsIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;$(Platform);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
     <PostBuildEvent>
       <Command>post_build.bat "$(SolutionDir)" "$(Configuration)\$(Platform)"</Command>
@@ -433,6 +453,7 @@
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(wxWidgetsIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;$(Platform);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
     <PostBuildEvent>
       <Command>post_build.bat "$(SolutionDir)" "$(Configuration)\$(Platform)"</Command>
@@ -463,6 +484,7 @@
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(wxWidgetsIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;$(Platform);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
     <PostBuildEvent>
       <Command>post_build.bat "$(SolutionDir)" "$(Configuration)\$(Platform)"</Command>
@@ -493,6 +515,7 @@
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(wxWidgetsIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;$(Platform);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
     <PostBuildEvent>
       <Command>post_build.bat "$(SolutionDir)" "$(Configuration)\$(Platform)"</Command>
@@ -523,6 +546,7 @@
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(wxWidgetsIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;$(Platform);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
     <PostBuildEvent>
       <Command>post_build.bat "$(SolutionDir)" "$(Configuration)\$(Platform)"</Command>

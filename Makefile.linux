@@ -55,8 +55,10 @@ OBJS=	$(SRCDIR)/utils.o \
 	$(SRCDIR)/logging.o \
 	$(SRCDIR)/result.o \
 	$(SRCDIR)/parambase.o \
+	$(SRCBASICFMTDIR)/basiccategory.o \
 	$(SRCBASICFMTDIR)/basiccommon.o \
 	$(SRCBASICFMTDIR)/basicparam.o \
+	$(SRCBASICFMTDIR)/basictemplate.o \
 	$(SRCBASICFMTDIR)/basicerror.o \
 	$(SRCBASICFMTDIR)/basictype.o \
 	$(SRCBASICFMTDIR)/basictype_fat_base.o \
@@ -96,6 +98,7 @@ OBJS=	$(SRCDIR)/utils.o \
 	$(SRCUIDIR)/fontminibox.o \
 	$(SRCUIDIR)/intnamebox.o \
 	$(SRCUIDIR)/intnamevalid.o \
+	$(SRCUIDIR)/partitionbox.o \
 	$(SRCUIDIR)/rawparambox.o \
 	$(SRCUIDIR)/rawexpbox.o \
 	$(SRCUIDIR)/rawsectorbox.o \
@@ -107,6 +110,8 @@ OBJS=	$(SRCDIR)/utils.o \
 	$(SRCUIDIR)/uidiskattr.o \
 	$(SRCUIDIR)/uidisklist.o \
 	$(SRCUIDIR)/uifilelist.o \
+	$(SRCUIDIR)/uimainframe.o \
+	$(SRCUIDIR)/uimainprocess.o \
 	$(SRCUIDIR)/uirawdisk.o \
 	$(SRCUIDIR)/uifatarea.o \
 	$(SRCUIDIR)/uirpanel.o \

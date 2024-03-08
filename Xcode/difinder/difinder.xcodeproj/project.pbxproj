@@ -27,6 +27,13 @@
 		D904F16729423CC100DC7C27 /* boot_types.xml in Resources */ = {isa = PBXBuildFile; fileRef = D904F16629423CC000DC7C27 /* boot_types.xml */; };
 		D904F1682942404B00DC7C27 /* boot_types.xml in CopyFiles */ = {isa = PBXBuildFile; fileRef = D904F16629423CC000DC7C27 /* boot_types.xml */; };
 		D924DDF029530DF30063100E /* mymenu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D924DDEF29530DF30063100E /* mymenu.cpp */; };
+		D9614BE22B80DF6000A19A9B /* basictemplate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D9614BDF2B80DF6000A19A9B /* basictemplate.cpp */; };
+		D9614BE32B80DF6000A19A9B /* basiccategory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D9614BE02B80DF6000A19A9B /* basiccategory.cpp */; };
+		D9614BE52B80E41200A19A9B /* category_types.xml in Resources */ = {isa = PBXBuildFile; fileRef = D9614BE42B80E41200A19A9B /* category_types.xml */; };
+		D9614BE62B80E42C00A19A9B /* category_types.xml in CopyFiles */ = {isa = PBXBuildFile; fileRef = D9614BE42B80E41200A19A9B /* category_types.xml */; };
+		D9614BE92B80E7D200A19A9B /* partitionbox.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D9614BE72B80E79600A19A9B /* partitionbox.cpp */; };
+		D981CC5A2B6410F500658BC3 /* uimainframe.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D981CC562B6410AB00658BC3 /* uimainframe.cpp */; };
+		D981CC5B2B6410F500658BC3 /* uimainprocess.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D981CC572B6410AB00658BC3 /* uimainprocess.cpp */; };
 		D99171C1213296F10086F44F /* common.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D991719F213296F10086F44F /* common.cpp */; };
 		D99171C821329CA30086F44F /* file_types.xml in CopyFiles */ = {isa = PBXBuildFile; fileRef = D99171C621329C8A0086F44F /* file_types.xml */; };
 		D996BCF1213CF34000902715 /* logging.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D996BCE6213CF34000902715 /* logging.cpp */; };
@@ -109,6 +116,7 @@
 		D9C4D09E24275AB2004521A2 /* triangle_down.xpm in Resources */ = {isa = PBXBuildFile; fileRef = D9C4D08C24275AB2004521A2 /* triangle_down.xpm */; };
 		D9C4D09F24275AB2004521A2 /* triangle_up.xpm in Resources */ = {isa = PBXBuildFile; fileRef = D9C4D08D24275AB2004521A2 /* triangle_up.xpm */; };
 		D9C4D0A024275ACD004521A2 /* difinder.icns in Resources */ = {isa = PBXBuildFile; fileRef = D9C49F051BF1D4CB00831032 /* difinder.icns */; };
+		D9DDCEAD2B59750200590D15 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9DDCEAC2B59750200590D15 /* QuartzCore.framework */; };
 		D9DDDE692487971800312CAE /* intnamevalid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D9DDDE672487971800312CAE /* intnamevalid.cpp */; };
 /* End PBXBuildFile section */
 
@@ -120,6 +128,7 @@
 			dstSubfolderSpec = 7;
 			files = (
 				D904F1682942404B00DC7C27 /* boot_types.xml in CopyFiles */,
+				D9614BE62B80E42C00A19A9B /* category_types.xml in CopyFiles */,
 				D99171C821329CA30086F44F /* file_types.xml in CopyFiles */,
 				D9C49F001BF1D38800831032 /* basic_types.xml in CopyFiles */,
 				D9C49F011BF1D38A00831032 /* char_codes.xml in CopyFiles */,
@@ -171,6 +180,17 @@
 		D904F16629423CC000DC7C27 /* boot_types.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = boot_types.xml; sourceTree = "<group>"; };
 		D924DDEE29530DF20063100E /* mymenu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mymenu.h; sourceTree = "<group>"; };
 		D924DDEF29530DF30063100E /* mymenu.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mymenu.cpp; sourceTree = "<group>"; };
+		D9614BDE2B80DF6000A19A9B /* basiccategory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = basiccategory.h; sourceTree = "<group>"; };
+		D9614BDF2B80DF6000A19A9B /* basictemplate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = basictemplate.cpp; sourceTree = "<group>"; };
+		D9614BE02B80DF6000A19A9B /* basiccategory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = basiccategory.cpp; sourceTree = "<group>"; };
+		D9614BE12B80DF6000A19A9B /* basictemplate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = basictemplate.h; sourceTree = "<group>"; };
+		D9614BE42B80E41200A19A9B /* category_types.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = category_types.xml; sourceTree = "<group>"; };
+		D9614BE72B80E79600A19A9B /* partitionbox.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = partitionbox.cpp; sourceTree = "<group>"; };
+		D9614BE82B80E79600A19A9B /* partitionbox.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = partitionbox.h; sourceTree = "<group>"; };
+		D981CC562B6410AB00658BC3 /* uimainframe.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = uimainframe.cpp; sourceTree = "<group>"; };
+		D981CC572B6410AB00658BC3 /* uimainprocess.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = uimainprocess.cpp; sourceTree = "<group>"; };
+		D981CC582B6410AB00658BC3 /* uimainframe.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = uimainframe.h; sourceTree = "<group>"; };
+		D981CC592B6410AB00658BC3 /* uimainprocess.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = uimainprocess.h; sourceTree = "<group>"; };
 		D991719F213296F10086F44F /* common.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = common.cpp; sourceTree = "<group>"; };
 		D99171C621329C8A0086F44F /* file_types.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = file_types.xml; sourceTree = "<group>"; };
 		D996BCE6213CF34000902715 /* logging.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = logging.cpp; sourceTree = "<group>"; };
@@ -310,6 +330,7 @@
 		D9C4D08B24275AB2004521A2 /* labelicon_normal.xpm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = labelicon_normal.xpm; sourceTree = "<group>"; };
 		D9C4D08C24275AB2004521A2 /* triangle_down.xpm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = triangle_down.xpm; sourceTree = "<group>"; };
 		D9C4D08D24275AB2004521A2 /* triangle_up.xpm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = triangle_up.xpm; sourceTree = "<group>"; };
+		D9DDCEAC2B59750200590D15 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		D9DDDE672487971800312CAE /* intnamevalid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = intnamevalid.cpp; sourceTree = "<group>"; };
 		D9DDDE682487971800312CAE /* intnamevalid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = intnamevalid.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -319,6 +340,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D9DDCEAD2B59750200590D15 /* QuartzCore.framework in Frameworks */,
 				D9C49EC71BF1C05900831032 /* OpenGL.framework in Frameworks */,
 				D9C49EC51BF1C03700831032 /* AudioToolbox.framework in Frameworks */,
 				D9C49EC31BF1C02D00831032 /* Cocoa.framework in Frameworks */,
@@ -412,6 +434,7 @@
 		D9C49EF01BF1C55F00831032 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D9DDCEAC2B59750200590D15 /* QuartzCore.framework */,
 				D9C49EF11BF1CA4100831032 /* WebKit.framework */,
 				D9C49EC61BF1C05900831032 /* OpenGL.framework */,
 				D9C49EC41BF1C03700831032 /* AudioToolbox.framework */,
@@ -427,6 +450,7 @@
 			children = (
 				D904F16629423CC000DC7C27 /* boot_types.xml */,
 				D9C49EF41BF1D26400831032 /* basic_types.xml */,
+				D9614BE42B80E41200A19A9B /* category_types.xml */,
 				D9C49EF51BF1D26400831032 /* char_codes.xml */,
 				D9C49EF61BF1D26400831032 /* disk_types.xml */,
 				D99171C621329C8A0086F44F /* file_types.xml */,
@@ -467,6 +491,8 @@
 		D9C4CF4624275894004521A2 /* basicfmt */ = {
 			isa = PBXGroup;
 			children = (
+				D9614BE02B80DF6000A19A9B /* basiccategory.cpp */,
+				D9614BDE2B80DF6000A19A9B /* basiccategory.h */,
 				D9C4CF4924275964004521A2 /* basiccommon.cpp */,
 				D9C4CF4A24275964004521A2 /* basiccommon.h */,
 				D9C4CF4B24275964004521A2 /* basicdir.cpp */,
@@ -487,6 +513,8 @@
 				D9C4CF8824275965004521A2 /* basicfmt.h */,
 				D9C4CF8924275965004521A2 /* basicparam.cpp */,
 				D9C4CF8A24275965004521A2 /* basicparam.h */,
+				D9614BDF2B80DF6000A19A9B /* basictemplate.cpp */,
+				D9614BE12B80DF6000A19A9B /* basictemplate.h */,
 				D9C4CF9324275965004521A2 /* basictype_fat_base.cpp */,
 				D9C4CF9424275965004521A2 /* basictype_fat_base.h */,
 				D9C4CF9724275965004521A2 /* basictype_fat12.cpp */,
@@ -565,6 +593,8 @@
 				D9DDDE682487971800312CAE /* intnamevalid.h */,
 				D924DDEF29530DF30063100E /* mymenu.cpp */,
 				D924DDEE29530DF20063100E /* mymenu.h */,
+				D9614BE72B80E79600A19A9B /* partitionbox.cpp */,
+				D9614BE82B80E79600A19A9B /* partitionbox.h */,
 				D9C4D04624275986004521A2 /* rawexpbox.cpp */,
 				D9C4D04724275986004521A2 /* rawexpbox.h */,
 				D9C4D04824275986004521A2 /* rawparambox.cpp */,
@@ -592,6 +622,10 @@
 				D9C4D05E24275986004521A2 /* uifatarea.h */,
 				D9C4D05F24275986004521A2 /* uifilelist.cpp */,
 				D9C4D06024275986004521A2 /* uifilelist.h */,
+				D981CC562B6410AB00658BC3 /* uimainframe.cpp */,
+				D981CC582B6410AB00658BC3 /* uimainframe.h */,
+				D981CC572B6410AB00658BC3 /* uimainprocess.cpp */,
+				D981CC592B6410AB00658BC3 /* uimainprocess.h */,
 				D9C4D06124275986004521A2 /* uirawdisk.cpp */,
 				D9C4D06224275986004521A2 /* uirawdisk.h */,
 				D9C4D06324275986004521A2 /* uirpanel.cpp */,
@@ -641,6 +675,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 				Base,
 			);
@@ -667,6 +702,7 @@
 				D9C4D09024275AB2004521A2 /* fd_5inch_16_2.xpm in Resources */,
 				D9C4D08F24275AB2004521A2 /* fd_5inch_16_1.xpm in Resources */,
 				D9C4D09324275AB2004521A2 /* fd_5inch_16_export.xpm in Resources */,
+				D9614BE52B80E41200A19A9B /* category_types.xml in Resources */,
 				D9C4D09524275AB2004521A2 /* fd_5inch_16_new.xpm in Resources */,
 				D904F16729423CC100DC7C27 /* boot_types.xml in Resources */,
 				D9C4D09E24275AB2004521A2 /* triangle_down.xpm in Resources */,
@@ -695,6 +731,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D9614BE92B80E7D200A19A9B /* partitionbox.cpp in Sources */,
+				D981CC5A2B6410F500658BC3 /* uimainframe.cpp in Sources */,
+				D981CC5B2B6410F500658BC3 /* uimainprocess.cpp in Sources */,
 				D9C4D03424275975004521A2 /* diskwriter.cpp in Sources */,
 				D9C4D06724275986004521A2 /* configbox.cpp in Sources */,
 				D9C4CFE524275965004521A2 /* basicdiritem.cpp in Sources */,
@@ -733,6 +772,8 @@
 				D9C4CFE824275965004521A2 /* basicfmt.cpp in Sources */,
 				D904F15929423BAB00DC7C27 /* diskplain.cpp in Sources */,
 				D904F15829423BAB00DC7C27 /* diskhdiparser.cpp in Sources */,
+				D9614BE22B80DF6000A19A9B /* basictemplate.cpp in Sources */,
+				D9614BE32B80DF6000A19A9B /* basiccategory.cpp in Sources */,
 				D9C4D03124275975004521A2 /* diskresult.cpp in Sources */,
 				D9C4CFF024275965004521A2 /* basictype_fat12.cpp in Sources */,
 				D9C4D06A24275986004521A2 /* fileselbox.cpp in Sources */,
@@ -807,7 +848,7 @@
 					"$(WX_WIDGET_INCLUDE)",
 				);
 				LIBRARY_SEARCH_PATHS = "$(WX_WIDGET_LIB)";
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = (
@@ -821,13 +862,13 @@
 				);
 				SDKROOT = macosx;
 				WX_H = wx_osx_cocoau_;
-				WX_WIDGET_BASE = "../../../../../../Devel/wxWidgets-3.1.3/";
+				WX_WIDGET_BASE = "../../../../../../Devel/wxWidgets-3.2.4/";
 				WX_WIDGET_CFLAGS = "-D_FILE_OFFSET_BITS=64 -DwxDEBUG_LEVEL=0 -D__WXMAC__ -D__WXOSX__ -D__WXOSX_COCOA__";
 				WX_WIDGET_DIR = "$(WX_WIDGET_BASE)build_debug_static_unicode/";
-				WX_WIDGET_INCLUDE = "$(WX_WIDGET_DIR)lib/wx/include/osx_cocoa-unicode-static-3.1 $(WX_WIDGET_BASE)include";
+				WX_WIDGET_INCLUDE = "$(WX_WIDGET_DIR)lib/wx/include/osx_cocoa-unicode-static-3.2 $(WX_WIDGET_BASE)include";
 				WX_WIDGET_LDFLAGS = "-lz -lpthread -liconv -lexpat";
 				WX_WIDGET_LIB = "$(WX_WIDGET_DIR)lib/";
-				WX_WIDGET_LIBS = "-lwxscintilla-3.1 -lwxregexu-3.1 -lwxtiff-3.1 -lwxjpeg-3.1 -lwxpng-3.1 -lwx_baseu-3.1 -lwx_baseu_xml-3.1 -lwx_baseu_net-3.1 -l$(WX_H)adv-3.1 -l$(WX_H)aui-3.1 -l$(WX_H)core-3.1 -l$(WX_H)gl-3.1 -l$(WX_H)html-3.1 -l$(WX_H)media-3.1 -l$(WX_H)propgrid-3.1 -l$(WX_H)qa-3.1 -l$(WX_H)ribbon-3.1 -l$(WX_H)richtext-3.1 -l$(WX_H)stc-3.1 -l$(WX_H)xrc-3.1";
+				WX_WIDGET_LIBS = "-lwxscintilla-3.2 -lwxregexu-3.2 -lwxtiff-3.2 -lwxjpeg-3.2 -lwxpng-3.2 -lwx_baseu-3.2 -lwx_baseu_xml-3.2 -lwx_baseu_net-3.2 -l$(WX_H)adv-3.2 -l$(WX_H)aui-3.2 -l$(WX_H)core-3.2 -l$(WX_H)gl-3.2 -l$(WX_H)html-3.2 -l$(WX_H)media-3.2 -l$(WX_H)propgrid-3.2 -l$(WX_H)qa-3.2 -l$(WX_H)ribbon-3.2 -l$(WX_H)richtext-3.2 -l$(WX_H)stc-3.2 -l$(WX_H)xrc-3.2";
 			};
 			name = Debug;
 		};
@@ -866,7 +907,7 @@
 					"$(WX_WIDGET_INCLUDE)",
 				);
 				LIBRARY_SEARCH_PATHS = "$(WX_WIDGET_LIB)";
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_CFLAGS = "$(WX_WIDGET_CFLAGS)";
 				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
@@ -876,13 +917,13 @@
 				);
 				SDKROOT = macosx;
 				WX_H = wx_osx_cocoau_;
-				WX_WIDGET_BASE = "../../../../../../Devel/wxWidgets-3.1.3/";
+				WX_WIDGET_BASE = "../../../../../../Devel/wxWidgets-3.2.4/";
 				WX_WIDGET_CFLAGS = "-D_FILE_OFFSET_BITS=64 -DwxDEBUG_LEVEL=0 -D__WXMAC__ -D__WXOSX__ -D__WXOSX_COCOA__";
 				WX_WIDGET_DIR = "$(WX_WIDGET_BASE)build_debug_static_unicode/";
-				WX_WIDGET_INCLUDE = "$(WX_WIDGET_DIR)lib/wx/include/osx_cocoa-unicode-static-3.1 $(WX_WIDGET_BASE)include";
+				WX_WIDGET_INCLUDE = "$(WX_WIDGET_DIR)lib/wx/include/osx_cocoa-unicode-static-3.2 $(WX_WIDGET_BASE)include";
 				WX_WIDGET_LDFLAGS = "-lz -lpthread -liconv -lexpat";
 				WX_WIDGET_LIB = "$(WX_WIDGET_DIR)lib/";
-				WX_WIDGET_LIBS = "-lwxscintilla-3.1 -lwxregexu-3.1 -lwxtiff-3.1 -lwxjpeg-3.1 -lwxpng-3.1 -lwx_baseu-3.1 -lwx_baseu_xml-3.1 -lwx_baseu_net-3.1 -l$(WX_H)adv-3.1 -l$(WX_H)aui-3.1 -l$(WX_H)core-3.1 -l$(WX_H)gl-3.1 -l$(WX_H)html-3.1 -l$(WX_H)media-3.1 -l$(WX_H)propgrid-3.1 -l$(WX_H)qa-3.1 -l$(WX_H)ribbon-3.1 -l$(WX_H)richtext-3.1 -l$(WX_H)stc-3.1 -l$(WX_H)xrc-3.1";
+				WX_WIDGET_LIBS = "-lwxscintilla-3.2 -lwxregexu-3.2 -lwxtiff-3.2 -lwxjpeg-3.2 -lwxpng-3.2 -lwx_baseu-3.2 -lwx_baseu_xml-3.2 -lwx_baseu_net-3.2 -l$(WX_H)adv-3.2 -l$(WX_H)aui-3.2 -l$(WX_H)core-3.2 -l$(WX_H)gl-3.2 -l$(WX_H)html-3.2 -l$(WX_H)media-3.2 -l$(WX_H)propgrid-3.2 -l$(WX_H)qa-3.2 -l$(WX_H)ribbon-3.2 -l$(WX_H)richtext-3.2 -l$(WX_H)stc-3.2 -l$(WX_H)xrc-3.2";
 			};
 			name = Release;
 		};
@@ -892,6 +933,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = "$(SRCROOT)/../../src/res/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -902,6 +944,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = "$(SRCROOT)/../../src/res/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

@@ -23,7 +23,6 @@ Params::Params()
 	mListFontSize = 0;
 	mDumpFontName.Empty();
 	mDumpFontSize = 0;
-//	mTrimUnusedData = true;
 	mShowDeletedFile = false;
 	mAddExtExport = true;
 	mCurrentDateExport = false;
@@ -35,6 +34,7 @@ Params::Params()
 #else
 	mShowInterDirItem = false;
 #endif
+	mDirDepth = 20;
 	mWindowWidth = 1000;
 	mWindowHeight = 600;
 	mTemporaryFolder.Empty();
@@ -137,6 +137,8 @@ void Config::Load()
 {
 	if (ini_file.IsEmpty()) return;
 
+	int ival;
+
 	// load ini file
 	wxFileConfig *ini = new wxFileConfig(wxEmptyString,wxEmptyString,ini_file,wxEmptyString
 		,wxCONFIG_USE_LOCAL_FILE | wxCONFIG_USE_RELATIVE_PATH | wxCONFIG_USE_NO_ESCAPE_CHARACTERS);
@@ -162,8 +164,6 @@ void Config::Load()
 	ini->Read(wxT("DumpFontName"), &mDumpFontName);
 	// ダンプウィンドウのフォントサイズ
 	ini->Read(wxT("DumpFontSize"), &mDumpFontSize);
-//	// 未使用データを切り落とすか
-//	ini->Read(wxT("TrimUnusedData"), &mTrimUnusedData);
 	// 削除したファイルを表示するか
 	ini->Read(wxT("ShowDeletedFile"), &mShowDeletedFile);
 	// エクスポート時に属性から拡張子を追加するか
@@ -178,6 +178,10 @@ void Config::Load()
 	ini->Read(wxT("SetCurrentDateTimeWhenImport"), &mCurrentDateImport);
 	// プロパティで内部データをリストで表示するか
 	ini->Read(wxT("ShowInterDirItem"), &mShowInterDirItem);
+	// 一度に処理できるディレクトリの深さ
+	ival = 0;
+	ini->Read(wxT("DirectoriesDepth"), &ival);
+	if (ival >= 1 && ival <= 100) mDirDepth = ival;
 	// ウィンドウ幅
 	ini->Read(wxT("WindowWidth"), &mWindowWidth);
 	// ウィンドウ高さ
@@ -251,8 +255,6 @@ void Config::Save()
 	ini->Write(wxT("DumpFontName"), mDumpFontName);
 	// ダンプウィンドウのフォントサイズ
 	ini->Write(wxT("DumpFontSize"), mDumpFontSize);
-//	// 未使用データを切り落とすか
-//	ini->Write(wxT("TrimUnusedData"), mTrimUnusedData);
 	// 削除したファイルを表示するか
 	ini->Write(wxT("ShowDeletedFile"), mShowDeletedFile);
 	// エクスポート時に属性から拡張子を追加するか
@@ -267,6 +269,8 @@ void Config::Save()
 	ini->Write(wxT("SetCurrentDateTimeWhenImport"), mCurrentDateImport);
 	// プロパティで内部データをリストで表示するか
 	ini->Write(wxT("ShowInterDirItem"), mShowInterDirItem);
+	// 一度に処理できるディレクトリの深さ
+	ini->Write(wxT("DirectoriesDepth"), mDirDepth);
 	// ウィンドウ幅
 	ini->Write(wxT("WindowWidth"), mWindowWidth);
 	// ウィンドウ高さ

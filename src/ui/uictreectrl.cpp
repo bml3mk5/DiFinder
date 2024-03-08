@@ -88,3 +88,17 @@ MyCTreeItem MyCTreeCtrl::AddTreeNode(const MyCTreeItem &parent, const wxString &
 	SetItemHasChildren(node, false);
 	return node;
 }
+
+/// 指定した座標にノードがあるか
+bool MyCTreeCtrl::HasNodeAtPoint(int x, int y) const
+{
+	wxPoint pt(x, y);
+	return HitTest(pt).IsOk();
+}
+
+/// 指定した座標にあるノードを返す
+MyCTreeItem MyCTreeCtrl::GetNodeAtPoint(int x, int y) const
+{
+	wxPoint pt(x, y);
+	return HitTest(pt);
+}

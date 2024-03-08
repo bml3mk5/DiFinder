@@ -20,6 +20,7 @@
 #include <wx/utils.h>
 #include "mymenu.h"
 #include "../main.h"
+#include "uimainframe.h"
 #include "rawtrackbox.h"
 #include "rawsectorbox.h"
 #include "rawparambox.h"
@@ -366,6 +367,7 @@ void MySliderText::OnSlider(wxCommandEvent &event)
 // Attach Event
 wxBEGIN_EVENT_TABLE(UiDiskRawTrack, wxControl)
 	EVT_BUTTON(IDC_BTN_SUBMIT, UiDiskRawTrack::OnButtonSubmit)
+	EVT_BUTTON(IDC_BTN_SEARCH, UiDiskRawTrack::OnButtonSearch)
 
 	EVT_CHAR(UiDiskRawTrack::OnChar)
 
@@ -381,6 +383,8 @@ UiDiskRawTrack::UiDiskRawTrack(UiDiskFrame *parentframe, UiDiskRawPanel *parentw
 	p_file = NULL;
 
 	// controls
+	wxSizerFlags flags_center = wxSizerFlags().Centre().Border(wxALL, 4);
+
 	wxBoxSizer *szrAll = new wxBoxSizer(wxVERTICAL);
 
 	wxStaticBoxSizer *track_box = new wxStaticBoxSizer(wxVERTICAL, this, _("Track Number"));
@@ -399,7 +403,18 @@ UiDiskRawTrack::UiDiskRawTrack(UiDiskFrame *parentframe, UiDiskRawPanel *parentw
 	wxBoxSizer *hbox = new wxBoxSizer(wxHORIZONTAL);
 	btnSubmit = new wxButton(this, IDC_BTN_SUBMIT, _("Submit"));
 	hbox->Add(btnSubmit);
-	szrAll->Add(hbox, wxSizerFlags().Centre().Border(wxALL, 4));
+	szrAll->Add(hbox, flags_center);
+
+	wxStaticBoxSizer *sector_box = new wxStaticBoxSizer(wxVERTICAL, this, _("Sector Number"));
+	szrAll->Add(sector_box);
+
+	txtSector = new MySliderText(this, IDC_TXT_SECTOR, wxDefaultPosition, sz);
+	sector_box->Add(txtSector);
+
+	hbox = new wxBoxSizer(wxHORIZONTAL);
+	btnSearch = new wxButton(this, IDC_BTN_SEARCH, _("Search"));
+	hbox->Add(btnSearch);
+	szrAll->Add(hbox, flags_center);
 
 	wxFont font;
 	frame->GetDefaultListFont(font);
@@ -422,6 +437,14 @@ void UiDiskRawTrack::OnButtonSubmit(wxCommandEvent& event)
 	if (!p_file) return;
 
 	SelectData();
+}
+
+/// Searchボタン押下
+void UiDiskRawTrack::OnButtonSearch(wxCommandEvent& event)
+{
+	if (!p_file) return;
+
+	SearchDataBySector();
 }
 
 /// トラックプロパティ選択
@@ -460,6 +483,26 @@ void UiDiskRawTrack::SelectData()
 	int end_sector = start_sector + p_file->GetSectorsPerTrack() - 1;
 
 	parent->SetSectorListData(p_file, trk, sid, start_sector, end_sector);
+
+	SetTracks(trk, sid, start_sector);
+}
+
+/// セクタ番号で検索
+void UiDiskRawTrack::SearchDataBySector()
+{
+	if (!p_file) return;
+
+	int sec = txtSector->GetValue();
+
+	int trk = ((sec / p_file->GetSectorsPerTrack()) / p_file->GetSidesPerDisk());
+	int sid = ((sec / p_file->GetSectorsPerTrack()) % p_file->GetSidesPerDisk());
+
+	int start_sector = (trk * p_file->GetSidesPerDisk() + sid) * p_file->GetSectorsPerTrack();
+	int end_sector = start_sector + p_file->GetSectorsPerTrack() - 1;
+
+	parent->SetSectorListData(p_file, trk, sid, start_sector, end_sector);
+
+	SetTracks(trk, sid, sec);
 }
 
 /// トラックリストをセット
@@ -494,8 +537,9 @@ void UiDiskRawTrack::RefreshTracks()
 {
 	int trk_num = txtTrack->GetValue();
 	int sid_num = txtSide->GetValue();
+	int sec_num = txtSector->GetValue();
 
-	SetTracks(trk_num, sid_num);
+	SetTracks(trk_num, sid_num, sec_num);
 }
 
 /// トラックリストを再セット
@@ -509,17 +553,19 @@ void UiDiskRawTrack::SetTracks(int start_sector)
 	int trk_num = start_sector / secs / sides;
 	int sid_num = (start_sector / secs) % sides;
 
-	SetTracks(trk_num, sid_num);
+	SetTracks(trk_num, sid_num, start_sector);
 }
 
 /// トラックリストをセット
-void UiDiskRawTrack::SetTracks(int track_num, int side_num)
+void UiDiskRawTrack::SetTracks(int track_num, int side_num, int sector_num)
 {
 	int tracks = p_file->GetTracksPerSide();
 	int sides = p_file->GetSidesPerDisk();
+	int sectors = tracks * sides * p_file->GetSectorsPerTrack();
 
 	txtTrack->SetRangeValue(0, tracks - 1, track_num);
 	txtSide->SetRangeValue(0, sides - 1, side_num);
+	txtSector->SetRangeValue(0, sectors - 1, sector_num);
 }
 
 /// トラックリストをクリア
@@ -666,12 +712,11 @@ bool UiDiskRawTrack::ShowImportTrackDialog()
 
 	wxString caption = _("Import data to track");
 
-	UiDiskFileDialog fdlg(
+	UiDiskOpenFileDialog fdlg(
 		caption,
 		frame->GetIniExportFilePath(),
 		wxEmptyString,
-		_("All files (*.*)|*.*"),
-		wxFD_OPEN);
+		_("All files (*.*)|*.*"));
 	int sts = fdlg.ShowModal();
 	if (sts != wxID_OK) return false;
 
@@ -798,13 +843,15 @@ void UiDiskRawTrack::SetListFont(const wxFont &font)
 {
 	wxPanel::SetFont(font);
 	wxFont fontb = font;
-	int pt = font.GetPointSize() * 2;
+	int pt = font.GetPointSize() * 1.2;
 	if (pt > 18) pt = 18;
 	fontb.SetPointSize(pt);
 
 	txtTrack->SetFont(fontb);
 	txtSide->SetFont(fontb);
 	btnSubmit->SetFont(fontb);
+	txtSector->SetFont(fontb);
+	btnSearch->SetFont(fontb);
 }
 
 /// 次のサイドへ
@@ -1411,12 +1458,11 @@ bool UiDiskRawSector::ShowExportDataFileDialog()
 			m_track_num, m_side_num, sector_num,
 			m_track_num, m_side_num, sector_num);
 
-		UiDiskFileDialog dlg(
+		UiDiskSaveFileDialog dlg(
 			_("Export data from sector"),
 			frame->GetIniExportFilePath(),
 			filename,
-			_("All files (*.*)|*.*"),
-			wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+			_("All files (*.*)|*.*"));
 
 		int rc = dlg.ShowModal();
 		wxString path = dlg.GetPath();
@@ -1479,12 +1525,11 @@ bool UiDiskRawSector::ExportDataFile(const wxString &path, DiskImageSector *sect
 /// インポートダイアログ表示
 bool UiDiskRawSector::ShowImportDataFileDialog()
 {
-	UiDiskFileDialog dlg(
+	UiDiskOpenFileDialog dlg(
 		_("Import data to sector"),
 		frame->GetIniExportFilePath(),
 		wxEmptyString,
-		_("All files (*.*)|*.*"),
-		wxFD_OPEN);
+		_("All files (*.*)|*.*"));
 
 	int dlgsts = dlg.ShowModal();
 	wxString path = dlg.GetPath();

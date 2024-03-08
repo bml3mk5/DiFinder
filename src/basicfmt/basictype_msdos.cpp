@@ -8,6 +8,7 @@
 #include "basictype_msdos.h"
 #include "basicfmt.h"
 #include "basicdir.h"
+#include "basictemplate.h"
 
 
 //
@@ -322,8 +323,8 @@ void DiskBasicTypeMSDOS::AdditionalProcessOnMadeDirectory(DiskBasicDirItem *item
 {
 	if (group_items.Count() <= 0) return;
 
-	// ファイルサイズをクリア
-	item->SetFileSize(0);
+//	// ファイルサイズをクリア
+//	item->SetFileSize(0);
 
 	// カレントと親ディレクトリのエントリを作成する
 	DiskBasicGroupItem *gitem = &group_items.Item(0);
@@ -342,7 +343,7 @@ void DiskBasicTypeMSDOS::AdditionalProcessOnMadeDirectory(DiskBasicDirItem *item
 	// 親
 //	buf += newitem->GetDataSize();
 //	newitem->SetDataPtr(0, NULL, gitem->GetSectorStart(), 0, buf);
-	newitem->SetDataPtr(1, NULL, gitem->GetSectorStart(), newitem->GetDataSize());
+	newitem->SetDataPtr(1, NULL, gitem->GetSectorStart(), (int)newitem->GetDataSize());
 	if (parent_item) {
 		// 親がサブディレクトリ
 		newitem->CopyData(parent_item->GetData());

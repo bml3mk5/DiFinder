@@ -63,6 +63,12 @@ public:
 	//@{
 	//@}
 
+	/// @name data access (read / verify)
+	//@{
+	/// @brief ファイルの最終セクタのデータサイズを求める
+	virtual int		CalcDataSizeOnLastSector(DiskBasicDirItem *item, wxInputStream *istream, wxOutputStream *ostream, const wxUint8 *sector_buffer, int sector_size, int remain_size);
+	//@}
+
 	/// @name save / write
 	//@{
 	//@}

@@ -886,6 +886,39 @@ int MyCListCtrl::SelectColumnSortDir(int &col, int &idx, bool &match_col)
 	return dir;
 }
 
+/// 指定した座標に行アイテムがあるか
+bool MyCListCtrl::HasItemAtPoint(int x, int y) const
+{
+	return (GetItemAtPoint(x, y) != wxNOT_FOUND);
+}
+
+/// 指定した座標にある行アイテムを返す
+MyCListItem MyCListCtrl::GetItemAtPoint(int x, int y) const
+{
+	wxPoint pt(x, y);
+	int flags = wxLIST_HITTEST_ONITEM;
+	MyCListItem item = HitTest(pt, flags);
+#if defined(__WXOSX__) || defined(__WXGTK__)
+	if (item != wxNOT_FOUND) {
+		// なぜかY座標がずれるので補正する
+		wxRect re;
+		GetItemRect(item, re);
+		if (re.height > 0) {
+			if (re.y + re.height < pt.y) {
+				int df = ((pt.y - re.y) / re.height);
+				pt.y += (df * re.height);
+				item = HitTest(pt, flags);
+			} else if (re.y > pt.y) {
+				int df = ((re.y - pt.y) / re.height) + 1;
+				pt.y -= (df * re.height);
+				item = HitTest(pt, flags);
+			}
+		}
+	}
+#endif
+	return item;
+}
+
 #ifdef USE_VIRTUAL_ON_LIST_CTRL
 // ソート
 bool MyCListCtrl::SortItems(wxListCtrlCompare fnSortCallBack, wxIntPtr sortData)

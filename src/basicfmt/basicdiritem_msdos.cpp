@@ -6,6 +6,7 @@
 ///
 
 #include "basicdiritem_msdos.h"
+#include <wx/stream.h>
 #include "basicfmt.h"
 #include "basictype.h"
 #include "../charcodes.h"
@@ -373,6 +374,13 @@ int DiskBasicDirItemMSDOS::GetFileSize() const
 	return wxUINT32_SWAP_ON_BE(val);
 }
 
+/// ディレクトリサイズをセット
+/// MS-DOSでは常に0をセットする
+void DiskBasicDirItemMSDOS::SetDirectorySize(int val)
+{
+	SetFileSize(0);
+}
+
 /// ファイルサイズとグループ数を計算する
 void DiskBasicDirItemMSDOS::CalcFileUnitSize(int fileunit_num)
 {
@@ -576,6 +584,33 @@ wxUint32 DiskBasicDirItemMSDOS::GetStartGroup(int fileunit_num) const
 int DiskBasicDirItemMSDOS::ConvFileTypeFromFileName(const wxString &filename) const
 {
 	return FILE_TYPE_ARCHIVE_MASK;
+}
+
+/// ファイルの終端コードをチェックする必要があるか
+bool DiskBasicDirItemMSDOS::NeedCheckEofCode()
+{
+	// テキストファイルかは拡張子で判断する
+	bool rc = false;
+	const MyAttribute *sa = basic->GetAttributesByExtension().FindUpperCase(GetFileExtPlainStr());
+	if (sa) {
+		rc = ((sa->GetType() & FILE_TYPE_ASCII_MASK) != 0); 
+	}
+	return rc;
+}
+
+/// セーブ時にファイルサイズを再計算する ファイルの終端コードが必要な場合など
+int DiskBasicDirItemMSDOS::RecalcFileSizeOnSave(wxInputStream *istream, int file_size)
+{
+	if (NeedCheckEofCode()) {
+		// ファイル終端に終端文字があるか
+		wxFileOffset curr_pos = istream->TellI();
+		istream->SeekI(-1, wxFromEnd);
+		if (istream->GetC() != basic->GetTextTerminateCode()) {
+			file_size++;
+		}
+		istream->SeekI(curr_pos);
+	}
+	return file_size;
 }
 
 //

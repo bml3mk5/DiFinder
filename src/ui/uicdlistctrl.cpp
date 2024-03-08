@@ -220,11 +220,12 @@ void MyCDListCtrl::InsertListColumns()
 /// カラムを削除
 void MyCDListCtrl::DeleteAllListColumns()
 {
-	int count = (int)GetColumnCount();
-	for(int col = count - 1; col >= 0; col--) {
-		wxDataViewColumn *column = GetColumn((unsigned int)col);
-		DeleteColumn(column);
-	}
+//	int count = (int)GetColumnCount();
+//	for(int col = count - 1; col >= 0; col--) {
+//		wxDataViewColumn *column = GetColumn((unsigned int)col);
+//		DeleteColumn(column);
+//	}
+	ClearColumns();
 }
 
 /// 初期 カラムを設定
@@ -524,19 +525,25 @@ void MyCDListCtrl::CreateColumnPopupMenu(wxMenu* &menu, int menu_id, int menu_de
 	if (menu) delete menu;
 	menu = new wxMenu;
 
+	// 現在表示しているカラムの順序でカラム番号を再設定
 	ReorderColumns();
 
-	// 表示中のカラム
-	int cols = (int)GetColumnCount();
-	for(int col = 0; col < cols; col++) {
-		int idx = -1;
-		wxDataViewColumn *dcol = GetColumn(col);
-		MyCDListColumn *column = FindColumn(dcol, &idx);
-		if (column) {
-			wxMenuItem *mitem = menu->AppendCheckItem(menu_id + idx, column->GetText());
-			mitem->Check(true);
-			mitem->Enable(idx != 0);
+	// 表示しているカラムのソート
+	MyCDListColumns arr;
+	for(int idx = 0; idx < (int)m_columns.Count(); idx++) {
+		if (m_columns[idx]->GetColumn() >= 0) {
+			arr.Add(m_columns[idx]);
 		}
+	}
+	arr.Sort(SortByColumn);
+
+	// 表示しているカラム
+	for(int col = 0; col < (int)arr.Count(); col++) {
+		MyCDListColumn *column = arr[col];
+		int idx = column->GetIndex();
+		wxMenuItem *mitem = menu->AppendCheckItem(menu_id + idx, column->GetText());
+		mitem->Check(true);
+		mitem->Enable(idx != 0);
 	}
 	// 非表示のカラム
 	for(int idx = 0; idx < (int)m_columns.Count(); idx++) {
@@ -551,7 +558,7 @@ void MyCDListCtrl::CreateColumnPopupMenu(wxMenu* &menu, int menu_id, int menu_de
 	menu->Append(menu_detail_id, _("Detail..."));
 }
 
-/// カラムの表示位置を返す
+/// カラムの表示位置を返す 表示中のカラムを優先
 void MyCDListCtrl::GetListColumnsByCurrentOrder(MyCDListColumns &items) const
 {
 	// 表示中のカラム
@@ -575,19 +582,25 @@ void MyCDListCtrl::GetListColumnsByCurrentOrder(MyCDListColumns &items) const
 /// @return true: submitted  false: canceled
 bool MyCDListCtrl::ShowListColumnRearrangeBox()
 {
+	// 現在表示しているカラムの順序でカラム番号を再設定
+	ReorderColumns();
+
+	// カラムの表示位置を返す 表示中のカラムを優先
 	MyCDListColumns items;
 	GetListColumnsByCurrentOrder(items);
+
 	wxArrayInt order;
 	wxArrayString labels;
 	for(int i=0; i<(int)items.Count(); i++) {
 		order.Add((items[i]->GetColumn() >= 0 ? i : ~i));
 		labels.Add(items[i]->GetText());
 	}
+
 	MyCDListRearrangeBox dlg(this, order, labels);
 	int sts = dlg.ShowModal();
 	if (sts != wxID_OK) return false;
 
-	// カラムを作り直す
+	// カラム表示、非表示を更新
 	order = dlg.GetOrder();
 	for(int i=0; i<(int)order.Count(); i++) {
 		int ord = order[i];
@@ -620,28 +633,36 @@ int MyCDListCtrl::SortByColumn(MyCDListColumn **i1, MyCDListColumn **i2)
 /// 現在のカラム位置を再取得
 void MyCDListCtrl::ReorderColumns()
 {
-#if 0 //  defined(__WXMSW__)
-	wxWindowList *list = &GetChildren();
-	wxWindowListNode *node = list->GetFirst();
-	HWND hHeader = NULL;
-	while(node) {
-		wxObject *obj = (wxObject *)node->GetData();
-		wxClassInfo *info = obj->GetClassInfo();
-		wxString name = info->GetClassName();
-		if (name == wxT("wxControl")) {
-			hHeader = ((wxWindow *)obj)->GetHandle();
+	// 現在表示しているカラムの順序でカラム番号を再設定
+	int cols = (int)GetColumnCount();
+	for(int col = 0; col < cols; col++) {
+		wxDataViewColumn *datacol = GetColumn(col);
+		int idx = GetColumnPosition(datacol);
+		MyCDListColumn *column = FindColumn(datacol, NULL);
+		if (column) {
+			column->SetColumn(idx);
 		}
-
-		node = node->GetNext();
 	}
+}
 
-	if (hHeader) {
-		int cnt = Header_GetItemCount(hHeader);
-		int arr[20];
+/// 指定した座標に行アイテムがあるか
+bool MyCDListCtrl::HasItemAtPoint(int x, int y) const
+{
+	wxPoint pt(x, y);
+	MyCDListItem item;
+	wxDataViewColumn* column;
+	HitTest(pt, item, column);
+	return item.IsOk();
+}
 
-		Header_GetOrderArray(hHeader, cnt, &arr);
-	}
-#endif
+/// 指定した座標にある行アイテムを返す
+MyCDListItem MyCDListCtrl::GetItemAtPoint(int x, int y) const
+{
+	wxPoint pt(x, y);
+	MyCDListItem item;
+	wxDataViewColumn* column;
+	HitTest(pt, item, column);
+	return item;
 }
 
 //////////////////////////////////////////////////////////////////////

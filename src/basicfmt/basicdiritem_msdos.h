@@ -122,6 +122,8 @@ public:
 	virtual void	SetFileSize(int val);
 	/// @brief ファイルサイズを返す
 	virtual int		GetFileSize() const;
+	/// @brief ディレクトリサイズをセット
+	virtual void	SetDirectorySize(int val);
 	/// @brief ファイルサイズとグループ数を計算する
 	virtual void	CalcFileUnitSize(int fileunit_num);
 
@@ -169,6 +171,12 @@ public:
 
 	/// @brief ファイル名から属性を決定する
 	virtual int		ConvFileTypeFromFileName(const wxString &filename) const;
+
+	/// @brief ファイルの終端コードをチェックする必要があるか
+	virtual bool	NeedCheckEofCode();
+
+	/// @brief セーブ時にファイルサイズを再計算する ファイルの終端コードが必要な場合など
+	virtual int		RecalcFileSizeOnSave(wxInputStream *istream, int file_size);
 
 
 	/// @name プロパティダイアログ用

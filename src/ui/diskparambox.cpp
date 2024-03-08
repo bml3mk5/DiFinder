@@ -18,6 +18,7 @@
 #include <wx/valtext.h>
 #include <wx/msgdlg.h>
 #include "../main.h"
+#include "uimainframe.h"
 #include "../diskimg/bootparam.h"
 #include "../basicfmt/basicparam.h"
 #include "../diskimg/diskimage.h"
@@ -254,11 +255,10 @@ int DiskParamBox::ShowModal()
 void DiskParamBox::OnSelectFileButton(wxCommandEvent& event)
 {
 	UiDiskFrame *frame = (UiDiskFrame *)GetParent();
-	UiDiskFileDialog dlg(_("Save File"),
+	UiDiskSaveFileDialog dlg(_("Save File"),
 		frame->GetIniRecentPath(),
 		wxEmptyString,
-		gFileTypes.GetWildcardForSave(),
-		wxFD_SAVE);
+		gFileTypes.GetWildcardForSave());
 	int rc = dlg.ShowModal();
 	if (rc == wxID_OK) {
 		if (txtDiskName) {

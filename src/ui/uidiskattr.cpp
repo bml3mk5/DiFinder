@@ -12,6 +12,7 @@
 #include <wx/checkbox.h>
 #include <wx/sizer.h>
 #include "../main.h"
+#include "uimainframe.h"
 #include "../diskimg/diskimage.h"
 #include "diskparambox.h"
 #include "../utils.h"
@@ -120,7 +121,7 @@ void UiDiskDiskAttr::SetAttr(DiskImageFile *n_file)
 {
 	if (!n_file) return;
 
-	wxString desc = n_file->GetDescription();
+	wxString desc = n_file->GetDescriptionDetails();
 
 	SetAttrText(desc);
 	SetWriteProtect(n_file->IsWriteProtected());
@@ -131,7 +132,7 @@ void UiDiskDiskAttr::SetAttr(DiskImageDisk *n_disk)
 	p_disk = n_disk;
 	if (!p_disk) return;
 
-	wxString desc = p_disk->GetDescription();
+	wxString desc = p_disk->GetDescriptionDetails();
 
 	SetAttrText(desc);
 

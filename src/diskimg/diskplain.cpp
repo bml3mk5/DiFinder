@@ -651,6 +651,23 @@ void DiskPlainDisk::SetStartSectorNumber(wxUint32 val)
 	m_start_block = val;
 }
 
+/// 開始セクタ番号(文字列)を返す
+wxString DiskPlainDisk::GetStartSectorNumberStr(int show_type) const
+{
+	wxString str;
+	int trk_num, sid_num, sec_num;
+	switch(show_type) {
+	case 1:
+		parent->GetNumberFromSectorPos(m_start_block, trk_num, sid_num, sec_num);
+		str = wxString::Format(_("(C:%d H:%d R:%d)"), trk_num, sid_num, sec_num); 
+		break;
+	default:
+		str = wxNumberFormatter::ToString((long)m_start_block);
+		break;
+	}
+	return str;
+}
+
 /// セクタ数を返す
 wxUint32 DiskPlainDisk::GetNumberOfSectors() const
 {
@@ -661,6 +678,23 @@ wxUint32 DiskPlainDisk::GetNumberOfSectors() const
 void DiskPlainDisk::SetNumberOfSectors(wxUint32 val)
 {
 	m_block_size = val;
+}
+
+/// セクタ数(文字列)を返す
+wxString DiskPlainDisk::GetNumberOfSectorsStr(int show_type) const
+{
+	wxString str;
+	long size;
+	switch(show_type) {
+	case 1:
+		size = (long)m_block_size * GetSectorSize();
+		break;
+	default:
+		size = (long)m_block_size;
+		break;
+	}
+	str = wxNumberFormatter::ToString(size);
+	return str;
 }
 
 /// ディスクの内容を初期化する(0パディング)
@@ -679,18 +713,23 @@ bool DiskPlainDisk::Initialize()
 	return rc;
 }
 
-/// ディスクの説明
-wxString DiskPlainDisk::GetDescription() const
+/// ディスクの説明詳細
+wxString DiskPlainDisk::GetDescriptionDetails() const
 {
 	wxString str = m_desc;
 
-	int trk_num, sid_num, sec_num;
-	parent->GetNumberFromSectorPos(m_start_block, trk_num, sid_num, sec_num);
-	str += wxString::Format(_(" Start Sector Position:%d "), m_start_block);
-	str += wxString::Format(_("(C:%d H:%d R:%d)"), trk_num, sid_num, sec_num); 
-	str += wxString::Format(_(" Number of Sectors:%d ("), m_block_size);
-	long size = (long)m_block_size * GetSectorSize();
-	str += wxNumberFormatter::ToString(size);
+	str += wxT(" ");
+	str += _("Start Sector:");
+	str += wxT(" ");
+	str += GetStartSectorNumberStr(0);
+	str += wxT(" ");
+	str += GetStartSectorNumberStr(1);
+	str += wxT(" ");
+	str += _("Number of Sectors:");
+	str += wxT(" ");
+	str += GetNumberOfSectorsStr(0);
+	str += wxT(" (");
+	str += GetNumberOfSectorsStr(1);
 	str += _("bytes");
 	str += wxT(")");
 
@@ -1595,8 +1634,8 @@ void DiskPlainFile::SetWriteProtect(bool val)
 	m_write_protected = val;
 }
 
-/// ファイルの説明
-wxString DiskPlainFile::GetDescription() const
+/// ファイルの説明詳細
+wxString DiskPlainFile::GetDescriptionDetails() const
 {
 	wxString str = m_desc;
 	str += wxT(" [");

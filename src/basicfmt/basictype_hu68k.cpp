@@ -8,6 +8,7 @@
 #include "basictype_hu68k.h"
 #include "basicfmt.h"
 #include "basicdir.h"
+#include "basictemplate.h"
 
 
 //
@@ -264,7 +265,7 @@ bool DiskBasicTypeHU68K::AdditionalProcessOnFormatted(const DiskBasicIdentifiedD
 
 	// ボリュームラベルを設定
 	int dir_start = basic->GetReservedSectors() + basic->GetNumberOfFats() * basic->GetSectorsPerFat();
-	DiskImageSector *sec = basic->GetSector(dir_start);
+//	DiskImageSector *sec = basic->GetSector(dir_start);
 //	DiskBasicDirItem *ditem = dir->NewItem(dir_start, 0, sec->GetSectorBuffer());
 	DiskBasicDirItem *ditem = dir->NewItem(dir_start, 0);
 
@@ -435,7 +436,7 @@ void DiskBasicTypeHU68K::AdditionalProcessOnMadeDirectory(DiskBasicDirItem *item
 	// 親
 //	buf += newitem->GetDataSize();
 //	newitem->SetDataPtr(0, NULL, gitem->GetSectorStart(), 0, buf);
-	newitem->SetDataPtr(1, NULL, gitem->GetSectorStart(), newitem->GetDataSize());
+	newitem->SetDataPtr(1, NULL, gitem->GetSectorStart(), (int)newitem->GetDataSize());
 	if (parent_item) {
 		// 親がサブディレクトリ
 		newitem->CopyData(parent_item->GetData());

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<DiskBasicCategories version="1.0">
+	<DiskBasicCategory name="PC98X1">
+		<Description>NEC PC-98x1 MS-DOS</Description>
+	</DiskBasicCategory>
+	<DiskBasicCategory name="HU68K">
+		<Description>SHARP X68000 Human68k</Description>
+		<Description lang="ja">シャープ X68000 Human68k</Description>
+	</DiskBasicCategory>
+	<DiskBasicCategory name="OS9">
+		<Description>OS-9</Description>
+		<Description lang="ja">OS-9</Description>
+	</DiskBasicCategory>
+	<DiskBasicCategory name="MSDOS">
+		<Description>MS-DOS</Description>
+		<Description lang="ja">MS-DOS</Description>
+	</DiskBasicCategory>
+</DiskBasicCategories>

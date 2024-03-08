@@ -13,7 +13,6 @@
 #include <wx/panel.h>
 #include <wx/radiobut.h>
 #include <wx/sizer.h>
-#include <wx/stopwatch.h>
 #include <wx/msgdlg.h>
 #include "intnamebox.h"
 
@@ -53,7 +52,6 @@ enum en_disk_file_list_columns {
 	LISTCOL_START,
 	LISTCOL_BLOCK,
 	LISTCOL_SECTOR,
-//	LISTCOL_DIVISION,
 	LISTCOL_DATE,
 	LISTCOL_STADDR,
 	LISTCOL_EDADDR,
@@ -88,12 +86,20 @@ public:
 #define MyFileListItems		wxDataViewItemArray
 #define MyFileListEvent		wxDataViewEvent
 #define MyFileListValue		MyCDListValue
+
+#define MyFileListItem_IsOk(itm) itm.IsOk()
+#define MyFileListItem_Unset(itm) itm = MyFileListItem()
+
 #else
 #define MyFileListColumn	long
 #define MyFileListItem		long
 #define MyFileListItems		wxArrayLong
 #define MyFileListEvent		wxListEvent
 #define MyFileListValue		MyCListValue
+
+#define MyFileListItem_IsOk(itm) (itm != wxNOT_FOUND)
+#define MyFileListItem_Unset(itm) itm = wxNOT_FOUND
+
 #endif
 
 //////////////////////////////////////////////////////////////////////
@@ -144,48 +150,31 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 
-/// ストップウォッチ
-class MyStopWatch : public wxStopWatch
-{
-private:
-	bool m_now_wait_cursor;
-public:
-	MyStopWatch();
-	void Busy();
-	void Restart();
-	void Finish();
-};
-
-//////////////////////////////////////////////////////////////////////
-
 /// 右パネルのファイルリスト
 class UiDiskFileList : public wxPanel
 {
 private:
-	wxWindow *parent;
-	UiDiskFrame *frame;
+	wxWindow			*parent;
+	UiDiskFrame			*frame;
 
-	wxTextCtrl *textAttr;
-	wxButton *btnChange;
-	wxStaticText *lblCharCode;
-	wxChoice *comCharCode;
-	UiDiskFileListCtrl *list;
-	wxBoxSizer *szrButtons;
+	wxTextCtrl			*textAttr;
+	wxButton			*btnChange;
+	wxStaticText		*lblCharCode;
+	wxChoice			*comCharCode;
+	UiDiskFileListCtrl	*listCtrl;
+	wxBoxSizer			*szrButtons;
 
-	MyMenu *menuPopup;
-	wxMenu *menuColumnPopup;
+	MyMenu				*menuPopup;
+	wxMenu				*menuColumnPopup;
 
 	/// BASICフォーマットの情報 左パネルのディスクを選択すると設定される
-	DiskBasic *basic;
+	DiskBasic		*m_current_basic;
 
-	bool initialized;
+	bool			 m_initialized;
 
-	bool disk_selecting;
+	bool			 m_disk_selecting;
 
-	MyStopWatch m_sw_export;	///< エクスポート時のストップウォッチ
-	int m_sc_export;
-	MyStopWatch m_sw_import;	///< インポート時のストップウォッチ
-	int m_sc_import;
+	MyFileListItem	 m_dragging_item;
 
 	/// 現在選択している行のディレクトリアイテムを得る
 	DiskBasicDirItem *GetSelectedDirItem();
@@ -193,36 +182,16 @@ private:
 	DiskBasicDirItem *GetDirItem(const MyFileListItem &view_item, int *item_pos = NULL);
 	/// リストの指定行のディレクトリアイテムとそのファイル名を得る
 	DiskBasicDirItem *GetFileName(const MyFileListItem &view_item, wxString &name, int *item_pos = NULL);
-	/// ファイル名ダイアログ表示と同じファイル名が存在する際のメッセージダイアログ表示
-	int ShowIntNameBoxAndCheckSameFile(DiskBasicDirItem *temp_item, const wxString &file_name, int file_size, DiskBasicDirItemAttr &date_time, int style);
-	/// ファイル名ダイアログの内容を反映させる
-	bool SetDirItemFromIntNameDialog(DiskBasicDirItem *item, IntNameBox &dlg, DiskBasic *basic, bool rename);
-	/// ファイル名を反映させる
-	bool SetDirItemFromIntNameParam(DiskBasicDirItem *item, const wxString &file_path, const wxString &intname, DiskBasicDirItemAttr &date_time, DiskBasic *basic, bool rename);
 
 	/// ファイルリスト作成（DnD, クリップボード用）
 	bool CreateFileObject(wxString &tmp_dir_name, const wxString &start_msg, const wxString &end_msg, wxFileDataObject &file_object);
 	/// ファイルリストを解放（DnD, クリップボード用）
 	void ReleaseFileObject(const wxString &tmp_dir_name);
 
-	/// 指定したファイルにエクスポート
-	bool ExportDataFile(DiskBasicDirItem *item, const wxString &path, const wxString &start_msg, const wxString &end_msg);
 	/// 指定したフォルダにエクスポート
-	int  ExportDataFiles(DiskBasicDirItems *dir_items, const wxString &data_dir, const wxString &attr_dir, wxFileDataObject *file_object, int depth);
-
-	/// 指定したファイルをインポート
-	int  ImportDataFiles(const wxString &data_dir, const wxString &attr_dir, const wxArrayString &names, int depth);
-	/// 指定したファイルをインポート
-	bool ImportDataFile(const DiskBasicDirItem *item, const wxString &path, const wxString &start_msg, const wxString &end_msg);
-	/// 指定したファイルをインポート
-	int  ImportDataFile(const wxString &full_data_path, const wxString &full_attr_path, const wxString &file_name);
-
-	/// 指定したファイルを削除
-	int  DeleteDataFile(DiskBasic *tmp_basic, DiskBasicDirItem *dst_item);
+	int  ExportDataFiles(const MyFileListItems &selected_items, const wxString &data_dir, const wxString &attr_dir, const wxString &start_msg, const wxString &end_msg, wxFileDataObject *file_object = NULL);
 	/// 指定したファイルを一括削除
 	int  DeleteDataFiles(DiskBasic *tmp_basic, MyFileListItems &selected_items);
-	/// 指定したファイルを一括削除
-	int  DeleteDataFiles(DiskBasic *tmp_basic, DiskBasicDirItems &items, int depth, DiskBasicDirItems *dir_items);
 
 public:
 	UiDiskFileList(UiDiskFrame *parentframe, wxWindow *parent);
@@ -288,6 +257,8 @@ public:
 	void OnListColumnChange(wxCommandEvent& event);
 	/// リストのカラム詳細設定
 	void OnListColumnDetail(wxCommandEvent& event);
+	/// リストのカラム詳細設定
+	void OnListColumnDetail(MyFileListEvent& event);
 	//@}
 
 	/// ポップアップメニュー作成
@@ -312,7 +283,7 @@ public:
 	/// DISK BASICをデタッチ
 	void DetachDiskBasic();
 	/// DISK BASICを返す
-	DiskBasic *GetDiskBasic() const { return basic; }
+	DiskBasic *GetDiskBasic() const { return m_current_basic; }
 	/// ファイル名をリストに設定
 	void SetFiles();
 	/// ファイル名をリストに再設定
@@ -337,8 +308,6 @@ public:
 
 	/// エクスポートダイアログ
 	void ShowExportDataFileDialog();
-	/// 指定したフォルダにエクスポート
-	int  ExportDataFiles(const MyFileListItems &selected_items, const wxString &data_dir, const wxString &attr_dir, const wxString &start_msg, const wxString &end_msg, wxFileDataObject *file_object = NULL);
 
 	/// ファイルリストをドラッグ
 	bool DragDataSource();
@@ -350,14 +319,10 @@ public:
 	/// インポートダイアログ
 	void ShowImportDataFileDialog();
 	/// ファイルをドロップ
-	bool DropDataFiles(const wxArrayString &paths);
-	/// 指定したファイルをインポート
-	bool ImportDataFiles(const wxArrayString &paths, const wxString &start_msg, const wxString &end_msg);
+	bool DropDataFiles(wxWindow *base, int x, int y, const wxArrayString &paths, bool dir_included);
 
 	/// 指定したファイルを削除
 	bool DeleteDataFile();
-	/// ディレクトリを削除する
-	bool DeleteDirectory(DiskImageDisk *disk, int side_num, DiskBasicDirItem *dst_item);
 
 	/// 指定したファイルを編集
 	void EditDataFile(enEditorTypes editor_type);
@@ -371,11 +336,6 @@ public:
 
 	/// ダブルクリックしたとき
 	void DoubleClicked();
-
-	/// ディレクトリをアサインする
-	bool AssignDirectory(DiskImageDisk *disk, int side_num, DiskBasicDirItem *dst_item);
-	/// ディレクトリを移動する
-	bool ChangeDirectory(DiskImageDisk *disk, int side_num, DiskBasicDirItem *dst_item, bool refresh_list);
 
 	/// ファイル属性プロパティダイアログを表示
 	void ShowFileAttr();
@@ -394,12 +354,8 @@ public:
 	/// カラム変更ダイアログ
 	void ShowListColumnDialog();
 
-	/// ディレクトリを作成できるか
-	bool CanMakeDirectory() const;
 	/// ディレクトリ作成ダイアログ
 	void ShowMakeDirectoryDialog();
-	/// ディレクトリ作成
-	bool MakeDirectory(const wxString &name, const wxString &title, DiskBasicDirItem **nitem);
 
 	/// 選択している行数
 	int  GetListSelectedItemCount() const;
@@ -424,7 +380,7 @@ public:
 	void SetListFont(const wxFont &font);
 
 	/// リストコントロールを返す
-	UiDiskFileListCtrl *GetListCtrl() const { return list; }
+	UiDiskFileListCtrl *GetListCtrl() const { return listCtrl; }
 
 	enum {
 		IDM_EXPORT_FILE = 1,

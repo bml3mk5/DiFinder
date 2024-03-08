@@ -10,6 +10,7 @@
 
 #include "common.h"
 #include <wx/string.h>
+#include <wx/stopwatch.h>
 #include "charcodes.h"
 
 
@@ -107,6 +108,26 @@ public:
 	/// @brief テキストダンプ
 	int Text(const wxUint8 *buffer, size_t bufsize, const wxString &char_code, wxString &str, bool invert);
 };
+
+//////////////////////////////////////////////////////////////////////
+
+/// ストップウォッチ
+class StopWatch : public wxStopWatch
+{
+private:
+	int  m_id;
+	bool m_now_wait_cursor;
+
+public:
+	StopWatch();
+	void Busy();
+	void Restart();
+	void Finish();
+	int GetID() const { return m_id; }
+	void SetID(int id) { m_id = id; }
+};
+
+//////////////////////////////////////////////////////////////////////
 
 /// @brief 時間構造体を日時データに変換(MS-DOS)
 void	ConvTmToDateTime(const TM &tm, wxUint8 *date, wxUint8 *time);

@@ -13,6 +13,7 @@
 #include <wx/sizer.h>
 #include "intnamevalid.h"
 #include "../basicfmt/basicfmt.h"
+#include "../basicfmt/basictemplate.h"
 #include "../basicfmt/basicparam.h"
 #include "../diskimg/diskimage.h"
 #include "../utils.h"

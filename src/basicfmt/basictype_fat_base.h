@@ -74,4 +74,4 @@ public:
 	//@}
 };
 
-#endif /* _BASICTYPE_FAT_BASE_H_ */
+#endif /* BASICTYPE_FAT_BASE_H */

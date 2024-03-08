@@ -806,7 +806,7 @@ void DiskBasicTypeOS9::AdditionalProcessOnMadeDirectory(DiskBasicDirItem *item, 
 	// カレント
 //	buf += newitem->GetDataSize();
 //	newitem->SetDataPtr(0, NULL, gitem->GetSectorStart(), 0, buf);
-	newitem->SetDataPtr(1, NULL, gitem->GetSectorStart(), newitem->GetDataSize());
+	newitem->SetDataPtr(1, NULL, gitem->GetSectorStart(), (int)newitem->GetDataSize());
 
 	newitem->ClearData();
 	newitem->SetStartGroup(0, item->GetStartGroup(0));

@@ -1,5 +1,5 @@
 #
-# for Windows + MSYS2 + MinGW
+# for Windows + MSYS2 + MinGW64
 #
 CC=g++
 
@@ -10,11 +10,11 @@ DBG_CDEFS=-D_DEBUG -D_DEBUG_LOG
 #ARCH=-m32
 #ARCH=-m64
 
-WXDIR=/D/Devel/sources/wxWidgets-3.1.2
+WXDIR=/D/Devel/sources/wxWidgets-3.2.4
 WXCONFIG_SH=wx-config
 # WXCONFIG_ST=wx-config
-WXCONFIG_ST=$(WXDIR)/build_release_static_unicode_x64/wx-config
-WXCONFIG_DBG=$(WXDIR)/build_debug_static_unicode_x64/wx-config
+WXCONFIG_ST=$(WXDIR)/build_release_static_unicode_mingw64/wx-config
+WXCONFIG_DBG=$(WXDIR)/build_debug_static_unicode_mingw64/wx-config
 
 SH_INCLUDES=$(shell $(WXCONFIG_SH) --cppflags)
 ST_INCLUDES=$(shell $(WXCONFIG_ST) --cppflags)
@@ -59,8 +59,10 @@ OBJS=	$(SRCDIR)/utils.o \
 	$(SRCDIR)/logging.o \
 	$(SRCDIR)/result.o \
 	$(SRCDIR)/parambase.o \
+	$(SRCBASICFMTDIR)/basiccategory.o \
 	$(SRCBASICFMTDIR)/basiccommon.o \
 	$(SRCBASICFMTDIR)/basicparam.o \
+	$(SRCBASICFMTDIR)/basictemplate.o \
 	$(SRCBASICFMTDIR)/basicerror.o \
 	$(SRCBASICFMTDIR)/basictype.o \
 	$(SRCBASICFMTDIR)/basictype_fat_base.o \
@@ -100,6 +102,7 @@ OBJS=	$(SRCDIR)/utils.o \
 	$(SRCUIDIR)/fontminibox.o \
 	$(SRCUIDIR)/intnamebox.o \
 	$(SRCUIDIR)/intnamevalid.o \
+	$(SRCUIDIR)/partitionbox.o \
 	$(SRCUIDIR)/rawparambox.o \
 	$(SRCUIDIR)/rawexpbox.o \
 	$(SRCUIDIR)/rawsectorbox.o \
@@ -111,6 +114,8 @@ OBJS=	$(SRCDIR)/utils.o \
 	$(SRCUIDIR)/uidiskattr.o \
 	$(SRCUIDIR)/uidisklist.o \
 	$(SRCUIDIR)/uifilelist.o \
+	$(SRCUIDIR)/uimainframe.o \
+	$(SRCUIDIR)/uimainprocess.o \
 	$(SRCUIDIR)/uirawdisk.o \
 	$(SRCUIDIR)/uifatarea.o \
 	$(SRCUIDIR)/uirpanel.o \

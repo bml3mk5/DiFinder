@@ -116,4 +116,4 @@ public:
 	//@}
 };
 
-#endif /* _BASICTYPE_HU68K_H_ */
+#endif /* BASICTYPE_HU68K_H */

@@ -101,3 +101,23 @@ MyCDTreeItem MyCDTreeCtrl::GetNextChild(const MyCDTreeItem &parent, unsigned int
 	cookie++;
 	return (int)cookie < GetChildCount(parent) ? GetNthChild(parent, cookie) : MyCDTreeItem();
 }
+
+/// 指定した座標にノードがあるか
+bool MyCDTreeCtrl::HasNodeAtPoint(int x, int y) const
+{
+	wxPoint pt(x, y);
+	MyCDTreeItem item;
+	wxDataViewColumn* column;
+	HitTest(pt, item, column);
+	return item.IsOk();
+}
+
+/// 指定した座標にあるノードを返す
+MyCDTreeItem MyCDTreeCtrl::GetNodeAtPoint(int x, int y) const
+{
+	wxPoint pt(x, y);
+	MyCDTreeItem item;
+	wxDataViewColumn* column;
+	HitTest(pt, item, column);
+	return item;
+}

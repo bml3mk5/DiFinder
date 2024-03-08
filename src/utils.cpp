@@ -6,6 +6,7 @@
 ///
 
 #include "utils.h"
+#include <wx/app.h>
 #include <wx/translation.h>
 #include <wx/string.h>
 #include <wx/regex.h>
@@ -14,9 +15,8 @@
 namespace Utils
 {
 
-//
-//
-//
+//////////////////////////////////////////////////////////////////////
+
 TempData::TempData()
 {
 	alloc_size = TEMP_DATA_SIZE;
@@ -94,9 +94,7 @@ void TempData::InvertData(bool invert)
 	}
 }
 
-//
-//
-//
+//////////////////////////////////////////////////////////////////////
 
 FIFOBuffer::FIFOBuffer(size_t val)
 {
@@ -198,10 +196,7 @@ size_t FIFOBuffer::GetData(wxUint8 *buf, size_t size)
 	return size;
 }
 
-
-//
-//
-//
+//////////////////////////////////////////////////////////////////////
 
 /// バイナリダンプ
 /// @param[in]  buffer  元データ
@@ -359,6 +354,40 @@ int Dump::Text(const wxUint8 *buffer, size_t bufsize, const wxString &char_code,
 	}
 	return row;
 }
+
+//////////////////////////////////////////////////////////////////////
+//
+// ストップウォッチ
+//
+StopWatch::StopWatch()
+	: wxStopWatch()
+{
+	m_id = 0;
+	m_now_wait_cursor = false;
+}
+void StopWatch::Busy()
+{
+	if (!m_now_wait_cursor) {
+		wxBeginBusyCursor();
+		m_now_wait_cursor = true;
+	}
+	Restart();
+}
+void StopWatch::Restart()
+{
+	wxWakeUpIdle();
+	Start();
+}
+void StopWatch::Finish()
+{
+	if (m_now_wait_cursor) {
+		wxEndBusyCursor();
+		m_now_wait_cursor = false;
+	}
+	wxWakeUpIdle();
+}
+
+//////////////////////////////////////////////////////////////////////
 
 /// 時間構造体を日時データに変換(MS-DOS)
 /// @param[in]  tm   時間構造体

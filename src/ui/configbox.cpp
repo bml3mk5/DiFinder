@@ -21,6 +21,7 @@
 #include "../basicfmt/basictype.h"
 #include "../diskimg/diskimage.h"
 #include "../utils.h"
+#include "../version.h"
 
 
 // Attach Event
@@ -71,6 +72,16 @@ ConfigBox::ConfigBox(wxWindow* parent, wxWindowID id, Config *ini)
 	chkInterDirItem = new wxCheckBox(page, IDC_CHECK_INTER_DIR_ITEM, _("Show the internal directory information on the property dialog."));
 	chkInterDirItem->SetValue(ini->DoesShowInterDirItem());
 	szrH->Add(chkInterDirItem, flags);
+	szrPage->Add(szrH, flags);
+
+	// 一度に処理できるディレクトリの深さ
+
+	szrH = new wxBoxSizer(wxHORIZONTAL);
+	szrH->Add(new wxStaticText(page, wxID_ANY, _("The depth of subdirectories that can be processed per time:")), flags);
+	spnDirDepth = new wxSpinCtrl(page, IDC_SPIN_DIR_DEPTH);
+	spnDirDepth->SetRange(1, 100);
+	spnDirDepth->SetValue(ini->GetDirDepth());
+	szrH->Add(spnDirDepth, flags);
 	szrPage->Add(szrH, flags);
 
 	// キャッシュサイズ
@@ -305,7 +316,7 @@ void ConfigBox::OnClickTempFolder(wxCommandEvent& event)
 
 void ConfigBox::OnClickBinaryEditor(wxCommandEvent& event)
 {
-	UiDiskFileDialog dlg(_("Select the application for editing binary data."));
+	UiDiskOpenFileDialog dlg(_("Select the application for editing binary data."));
 	int sts = dlg.ShowModal();
 	if (sts == wxID_OK) {
 		// パスを設定
@@ -315,7 +326,7 @@ void ConfigBox::OnClickBinaryEditor(wxCommandEvent& event)
 
 void ConfigBox::OnClickTextEditor(wxCommandEvent& event)
 {
-	UiDiskFileDialog dlg(_("Select the application for editing text data."));
+	UiDiskOpenFileDialog dlg(_("Select the application for editing text data."));
 	int sts = dlg.ShowModal();
 	if (sts == wxID_OK) {
 		// パスを設定
@@ -333,6 +344,7 @@ void ConfigBox::CommitData()
 	ini->DecideAttrImport(chkDecAttrImport->GetValue());
 	ini->SetCurrentDateImport(chkDateImport->GetValue());
 	ini->IgnoreDateTime(chkIgnoreDate->GetValue());
+	ini->SetDirDepth(spnDirDepth->GetValue());
 	if (chkTempFolder->IsChecked()) {
 		ini->ClearTemporaryFolder();
 	} else {

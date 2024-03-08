@@ -1332,29 +1332,32 @@ int DiskBasicType::CalcDataSizeOnLastSector(DiskBasicDirItem *item, wxInputStrea
 /// @return >=0 : 処理したサイズ  -1:比較不一致  -2:セクタがおかしい  
 int DiskBasicType::AccessFile(int fileunit_num, DiskBasicDirItem *item, wxInputStream *istream, wxOutputStream *ostream, const wxUint8 *sector_buffer, int sector_size, int remain_size, int sector_num, int sector_end)
 {
+	int modified_size = sector_size;
 	if (remain_size <= sector_size) {
 		// ファイルの最終セクタ
-		sector_size = CalcDataSizeOnLastSector(item, istream, ostream, sector_buffer, sector_size, remain_size);
+		modified_size = CalcDataSizeOnLastSector(item, istream, ostream, sector_buffer, sector_size, remain_size);
 	}
-	if (sector_size < 0) {
+	if (modified_size < 0) {
 		// セクタなし
 		return -2;
 	}
 
-	if (ostream) {
-		// 書き出し
-		temp.SetData(sector_buffer, sector_size, false);
-		ostream->Write(temp.GetData(), temp.GetSize());
-	}
-	if (istream) {
-		// 読み込んで比較
-		temp.SetSize(sector_size);
-		istream->Read(temp.GetData(), temp.GetSize());
-		temp.InvertData(false);
-
-		if (memcmp(temp.GetData(), sector_buffer, temp.GetSize()) != 0) {
-			// データが異なる
-			return -1;
+	if (modified_size > 0) {
+		if (ostream) {
+			// 書き出し
+			temp.SetData(sector_buffer, modified_size, false);
+			ostream->Write(temp.GetData(), temp.GetSize());
+		}
+		if (istream) {
+			// 読み込んで比較
+			temp.SetSize(modified_size);
+			istream->Read(temp.GetData(), temp.GetSize());
+			temp.InvertData(false);
+	
+			if (memcmp(temp.GetData(), sector_buffer, temp.GetSize()) != 0) {
+				// データが異なる
+				return -1;
+			}
 		}
 	}
 	return sector_size;

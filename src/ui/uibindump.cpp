@@ -17,6 +17,7 @@
 #include <wx/numformatter.h>
 #include "mymenu.h"
 #include "../main.h"
+#include "uimainframe.h"
 #include "fontminibox.h"
 #include "../utils.h"
 #include "../logging.h"

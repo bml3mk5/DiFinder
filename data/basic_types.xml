@@ -66,7 +66,7 @@
 		<GroupUnusedCode>0x0000</GroupUnusedCode>
 		<FillCodeOnFormat>0x00</FillCodeOnFormat>
 		<FillCodeOnFAT>0x00</FillCodeOnFAT>
-		<DeleteCodeOnDir>0x00</DeleteCodeOnDir>
+		<DeleteCodeOnDir>0xe5</DeleteCodeOnDir>
 		<FileNameCharacters>
 			<InvalidCodeRange first="0x00" last="0x1f" />
 			<InvalidCode>0x7f</InvalidCode>
@@ -81,25 +81,17 @@
 			<InvalidCode>0x3c</InvalidCode>
 			<InvalidCode>0x3e</InvalidCode>
 		</VolumeNameCharacters>
+		<FileNameCompareCase>insensitive</FileNameCompareCase>
 		<RequireFileName>true</RequireFileName>
 		<VolumeNameMaxLength>18</VolumeNameMaxLength>
+		<AttributesByExtension>
+			<Ascii name="BAS" />
+			<Ascii name="TXT" />
+			<Ascii name="DOC" />
+			<Ascii name="BAT" />
+		</AttributesByExtension>
 	</DiskBasicFormat>
 </DiskBasicFormats>
-
-<DiskBasicCategories version="1.0">
-	<DiskBasicCategory name="HU68K">
-		<Description>SHARP X68000 Human68k</Description>
-		<Description lang="ja">シャープ X68000 Human68k</Description>
-	</DiskBasicCategory>
-	<DiskBasicCategory name="OS9">
-		<Description>OS-9</Description>
-		<Description lang="ja">OS-9</Description>
-	</DiskBasicCategory>
-	<DiskBasicCategory name="MSDOS">
-		<Description>MS-DOS</Description>
-		<Description lang="ja">MS-DOS</Description>
-	</DiskBasicCategory>
-</DiskBasicCategories>
 
 <DiskBasicTypes version="1.0">
 	<DiskBasicType name="MSD98-HDD" type="3" category="MSDOS">
@@ -111,6 +103,9 @@
 		<MediaID>0xf8</MediaID>
 		<JumpBoot type="string">\xeb\x1f\x90</JumpBoot>
 		<Description>MS-DOS for PC-9801 (HDD)</Description>
+		<Categories>
+			<Category>PC98X1</Category>
+		</Categories>
 	</DiskBasicType>
 	<DiskBasicType name="OS9-HDD" type="9" category="OS9">
 		<SidesPerDisk>2</SidesPerDisk>

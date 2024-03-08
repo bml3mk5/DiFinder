@@ -91,4 +91,4 @@ public:
 	//@}
 };
 
-#endif /* _BASICTYPE_FAT16_H_ */
+#endif /* BASICTYPE_FAT16_H */

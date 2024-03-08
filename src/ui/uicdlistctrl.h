@@ -193,6 +193,11 @@ public:
 
 	/// 現在のカラム位置を再取得
 	void ReorderColumns();
+
+	/// 指定した座標に行アイテムがあるか
+	bool HasItemAtPoint(int x, int y) const;
+	/// 指定した座標にある行アイテムを返す
+	MyCDListItem GetItemAtPoint(int x, int y) const;
 };
 
 //////////////////////////////////////////////////////////////////////

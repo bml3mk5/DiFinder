@@ -6,8 +6,9 @@
 ///
 
 #include "uifatarea.h"
+#include <wx/frame.h>
 #include <wx/dcclient.h>
-#include "../main.h"
+#include "uimainframe.h"
 #include "../basicfmt/basiccommon.h"
 
 

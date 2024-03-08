@@ -32,7 +32,6 @@ protected:
 	int			mListFontSize;		///< リストウィンドウのフォントサイズ
 	wxString	mDumpFontName;		///< ダンプウィンドウのフォント名
 	int			mDumpFontSize;		///< ダンプウィンドウのフォントサイズ
-//	bool		mTrimUnusedData;	///< 未使用データを切り落とすか
 	bool		mShowDeletedFile;	///< 削除したファイルを表示するか
 	bool		mAddExtExport;		///< エクスポート時に属性から拡張子を追加するか
 	bool		mCurrentDateExport;	///< エクスポート時に現在日時を設定するか
@@ -41,6 +40,7 @@ protected:
 	bool		mIgnoreDateTime;	///< インポートやプロパティ変更時に日時を無視するか
 	bool		mCurrentDateImport;	///< インポート時に現在日時を設定するか
 	bool		mShowInterDirItem;	///< プロパティで内部データをリストで表示するか
+	int			mDirDepth;			///< 一度に処理できるディレクトリの深さ
 	int			mWindowWidth;		///< ウィンドウ幅
 	int			mWindowHeight;		///< ウィンドウ高さ
 	wxString	mTemporaryFolder;	///< テンポラリフォルダのパス
@@ -75,8 +75,6 @@ public:
 	const wxString &GetDumpFontName() const { return mDumpFontName; }
 	void			SetDumpFontSize(int val) { mDumpFontSize = val; }
 	int				GetDumpFontSize() const { return mDumpFontSize; }
-//	void			TrimUnusedData(bool val) { mTrimUnusedData = val; }
-//	bool			IsTrimUnusedData() const { return mTrimUnusedData; }
 	void			ShowDeletedFile(bool val) { mShowDeletedFile = val; }
 	bool			IsShownDeletedFile() const { return mShowDeletedFile; }
 	void			AddExtensionExport(bool val) { mAddExtExport = val; }
@@ -93,6 +91,8 @@ public:
 	bool			IsSetCurrentDateImport() const { return mCurrentDateImport; }
 	void			ShowInterDirItem(bool val) { mShowInterDirItem = val; }
 	bool			DoesShowInterDirItem() const { return mShowInterDirItem; }
+	void			SetDirDepth(int val) { mDirDepth = val; }
+	int				GetDirDepth() const { return mDirDepth; }
 	void			SetWindowWidth(int val) { mWindowWidth = val; }
 	int				GetWindowWidth() const { return mWindowWidth; }
 	void			SetWindowHeight(int val) { mWindowHeight = val; }

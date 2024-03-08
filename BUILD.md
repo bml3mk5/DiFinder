@@ -1,26 +1,34 @@
 
 # Disk Image Finder
 
-#### Copyright(C) Sasaji 2015-2023 All Rights Reserved.
+#### Copyright(C) Sasaji 2015-2024 All Rights Reserved.
 
 ------------------------------------------------------------------------------
 
-## This is an alpha version.
+## This is a beta version.
 
 ------------------------------------------------------------------------------
 
 ## File Tree
 
-    README.md .............. This document
+    BUILD.md ............... This document
+    README.md .............. Notice
     Makefile.xxx ........... Makefile for each OS
     VC++2010/
-     l3diskex.vcxproj ...... Project file for VC++ 2010
-     l3diskex.props ........ Property file for VC++ 2010
+     difinder.vcxproj ...... Project file for VC++ 2010
      post_build.bat ........ Batch file for post build
-     wxwidgets.props ....... User defined macros
-    Xcode/
+     wxwidgets.props ....... Property file for VC++ 2010
+    VC++2013/
+     difinder.vcxproj ...... Project file for VC++ 2013
+     post_build.bat ........ Batch file for post build
+     wxwidgets.props ....... Property file for VC++ 2013
+    VC++2015/
+     difinder.vcxproj ...... Project file for VC++ 2015
+     post_build.bat ........ Batch file for post build
+     wxwidgets.props ....... Property file for VC++ 2015
+    Xcode/ ................. Project files to build on Xcode
      difinder/
-      difinder.xcodeproj ... Project file for MacOSX Xcode
+      difinder.xcodeproj ... Project file for MacOS Xcode
     Eclipse/
      linux/
       difinder/ ............ Project file for Eclipse-CDT Linux
@@ -32,6 +40,7 @@
      ja/ ................... For Japanese
       difinder.po .......... Translated file
       difinder.mo .......... Compailed translation file
+    patch/ ................. Patches for wxWidgets
     src/ ................... Source files
      res/ .................. Resource files
     cp_exefile.bat ......... Copy binary files to bin folder
@@ -251,25 +260,35 @@
 
   Sasaji (sasaji@s-sasaji.ddo.jp)
   http://s-sasaji.ddo.jp/bml3mk5/
-  (Twitter: http://twitter.com/bml3mk5)
+  (X(Twitter): https://twitter.com/bml3mk5)
 
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
 
-## これはアルファ版です。
+## これはベータ版です。
+
+------------------------------------------------------------------------------
 
 ## ファイル構成
 
-    README.md .............. このファイル
+    BUILD.md ............... このファイル
+    README.md .............. 概要
     Makefile.xxx ........... 各OSごとのmakeファイル
     VC++2010/
      difinder.vcxproj ...... VC++ 2010用プロジェクトファイル
-     difinder.props ........ VC++ 2010用プロパティファイル
      post_build.bat ........ ビルド後処理用バッチファイル
-     wxwidgets.props ....... ユーザーマクロ
-    Xcode/
+     wxwidgets.props ....... VC++ 2010用プロパティファイル
+    VC++2013/
+     difinder.vcxproj ...... VC++ 2013用プロジェクトファイル
+     post_build.bat ........ ビルド後処理用バッチファイル
+     wxwidgets.props ....... VC++ 2013用プロパティファイル
+    VC++2015/
+     difinder.vcxproj ...... VC++ 2015用プロジェクトファイル
+     post_build.bat ........ ビルド後処理用バッチファイル
+     wxwidgets.props ....... VC++ 2015用プロパティファイル
+    Xcode/ ................. Xcode用プロジェクトファイル
      difinder/
-      difinder.xcodeproj ... MacOSX Xcode用プロジェクト
+      difinder.xcodeproj ... MacOS Xcode用プロジェクト
     Eclipse/
      linux/
       difinder/ ............ Eclipse-CDT Linux用プロジェクト
@@ -281,6 +300,7 @@
      ja/ ................... 日本語用
       difinder.po .......... 翻訳ファイル
       difinder.mo .......... コンパイル済み翻訳ファイル
+    patch/ ................. wxWidgets用のパッチ
     src/ ................... ソースファイル
      res/ .................. リソースファイル
     cp_exefile.bat ......... binフォルダ下に実行ファイル＆リソースをコピー
@@ -524,7 +544,7 @@
 連絡先：
   Sasaji (sasaji@s-sasaji.ddo.jp)
   http://s-sasaji.ddo.jp/bml3mk5/
-  (Twitter: http://twitter.com/bml3mk5)
+  (X(Twitter): https://twitter.com/bml3mk5)
 
 ------------------------------------------------------------------------------
 

@@ -10,7 +10,7 @@
 
 #include <wx/defs.h>
 #include <time.h>
-#include "version.h"
+//#include "version.h"
 
 
 #ifndef _MAX_PATH
@@ -36,10 +36,14 @@ void to_upper(void *, size_t);
 //#pragma warning(disable:4996)
 #endif
 
+#define mysnprintf _snprintf
+
 #else
 
 //#include "tchar.h"
 //#include "typedef.h"
+
+#define mysnprintf snprintf
 
 #if defined(__WXOSX__)
 

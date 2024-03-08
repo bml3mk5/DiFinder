@@ -17,6 +17,7 @@
 #include <wx/dataobj.h>
 #include "mymenu.h"
 #include "../main.h"
+#include "uimainframe.h"
 #include "../config.h"
 #include "../basicfmt/basicfmt.h"
 #include "../basicfmt/basicdir.h"
@@ -184,9 +185,6 @@ void UiDiskFileListCtrl::SetListData(DiskBasic *basic, const DiskBasicDirItem *i
 	int icon = ChooseIconNumber(item);
 	int block_num = -1;
 	int sector_pos = -1;
-//	int div_num = 0;
-//	int div_nums = 1;
-//	if (!basic->CalcStartNumFromGroupNum((wxUint32)item->GetStartGroup(0), block_num, &sector_pos, &div_num, &div_nums)) {
 	if (!basic->CalcStartNumFromGroupNum((wxUint32)item->GetStartGroup(0), block_num, &sector_pos)) {
 		block_num = -1;
 		sector_pos = -1;
@@ -209,7 +207,6 @@ void UiDiskFileListCtrl::SetListData(DiskBasic *basic, const DiskBasicDirItem *i
 	values[LISTCOL_START].Set(row, wxString::Format(wxT("%02x"), start));
 	values[LISTCOL_BLOCK].Set(row, block_num >= 0 ? wxString::Format(wxT("%d"), block_num) : wxT("-"));
 	values[LISTCOL_SECTOR].Set(row, sector_pos >= 0 ? wxString::Format(wxT("%d"), sector_pos) : wxT("-"));
-//	values[LISTCOL_DIVISION].Set(row, div_nums > 0 ? wxString::Format(wxT("%d/%d"), div_num + 1, div_nums) : wxT("-"));
 	values[LISTCOL_DATE].Set(row, date);
 	values[LISTCOL_STADDR].Set(row, staddr >= 0 ? wxString::Format(wxT("%x"), staddr) : wxT("--"));
 	if (staddr >= 0 && edaddr < 0) edaddr = staddr + size - (size > 0 ? 1 : 0);
@@ -446,37 +443,6 @@ int UiDiskFileListCtrl::CompareNum(DiskBasicDirItems *items, int i1, int i2, int
 
 //////////////////////////////////////////////////////////////////////
 //
-// ストップウォッチ
-//
-MyStopWatch::MyStopWatch()
-	: wxStopWatch()
-{
-	m_now_wait_cursor = false;
-}
-void MyStopWatch::Busy()
-{
-	if (!m_now_wait_cursor) {
-		wxBeginBusyCursor();
-		m_now_wait_cursor = true;
-	}
-	Restart();
-}
-void MyStopWatch::Restart()
-{
-	wxWakeUpIdle();
-	Start();
-}
-void MyStopWatch::Finish()
-{
-	if (m_now_wait_cursor) {
-		wxEndBusyCursor();
-		m_now_wait_cursor = false;
-	}
-	wxWakeUpIdle();
-}
-
-//////////////////////////////////////////////////////////////////////
-//
 // 右パネルのファイルリスト
 //
 #define TEXT_ATTR_SIZE 440
@@ -497,7 +463,8 @@ wxBEGIN_EVENT_TABLE(UiDiskFileList, wxPanel)
 	EVT_DATAVIEW_ITEM_EDITING_STARTED(IDC_VIEW_LIST, UiDiskFileList::OnFileNameEditingStarted)
 	EVT_DATAVIEW_ITEM_EDITING_DONE(IDC_VIEW_LIST, UiDiskFileList::OnFileNameEditedDone)
 
-	EVT_DATAVIEW_COLUMN_HEADER_RIGHT_CLICK(IDC_VIEW_LIST, UiDiskFileList::OnListColumnContextMenu)
+//	EVT_DATAVIEW_COLUMN_HEADER_RIGHT_CLICK(IDC_VIEW_LIST, UiDiskFileList::OnListColumnContextMenu)
+	EVT_DATAVIEW_COLUMN_HEADER_RIGHT_CLICK(IDC_VIEW_LIST, UiDiskFileList::OnListColumnDetail)
 #else
 	EVT_LIST_ITEM_ACTIVATED(IDC_VIEW_LIST, UiDiskFileList::OnListActivated)
 
@@ -513,6 +480,9 @@ wxBEGIN_EVENT_TABLE(UiDiskFileList, wxPanel)
 	EVT_LIST_COL_RIGHT_CLICK(IDC_VIEW_LIST, UiDiskFileList::OnListColumnContextMenu)
 
 	EVT_CONTEXT_MENU(UiDiskFileList::OnContextMenu)
+
+	EVT_MENU_RANGE(IDM_COLUMN_0, IDM_COLUMN_0 + LISTCOL_END - 1, UiDiskFileList::OnListColumnChange)
+	EVT_MENU(IDM_COLUMN_DETAIL, UiDiskFileList::OnListColumnDetail)
 #endif
 
 	EVT_BUTTON(IDC_BTN_CHANGE, UiDiskFileList::OnButtonChange)
@@ -534,21 +504,19 @@ wxBEGIN_EVENT_TABLE(UiDiskFileList, wxPanel)
 
 	EVT_MENU(IDM_PROPERTY, UiDiskFileList::OnProperty)
 
-	EVT_MENU_RANGE(IDM_COLUMN_0, IDM_COLUMN_0 + LISTCOL_END - 1, UiDiskFileList::OnListColumnChange)
-	EVT_MENU(IDM_COLUMN_DETAIL, UiDiskFileList::OnListColumnDetail)
 wxEND_EVENT_TABLE()
 
 UiDiskFileList::UiDiskFileList(UiDiskFrame *parentframe, wxWindow *parentwindow)
        : wxPanel(parentwindow, wxID_ANY, wxDefaultPosition, wxDefaultSize)
 {
-	initialized = false;
-	parent   = parentwindow;
-	frame    = parentframe;
-	basic	 = NULL;
-	list	 = NULL;
-	disk_selecting = false;
-	m_sc_export = false;
-	m_sc_import = false;
+	m_initialized	 = false;
+	parent			 = parentwindow;
+	frame			 = parentframe;
+	m_current_basic	 = NULL;
+	listCtrl		 = NULL;
+	m_disk_selecting = false;
+
+	MyFileListItem_Unset(m_dragging_item);
 
 	wxBoxSizer *vbox = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer *hbox = new wxBoxSizer(wxHORIZONTAL);
@@ -582,10 +550,10 @@ UiDiskFileList::UiDiskFileList(UiDiskFrame *parentframe, wxWindow *parentwindow)
 	wxFont font;
 	frame->GetDefaultListFont(font);
 
-	list = new UiDiskFileListCtrl(parentframe, this, IDC_VIEW_LIST);
+	listCtrl = new UiDiskFileListCtrl(parentframe, this, IDC_VIEW_LIST);
 	textAttr->SetFont(font);
-	list->SetFont(font);
-	vbox->Add(list, wxSizerFlags().Expand().Border(wxALL, 1));
+	listCtrl->SetFont(font);
+	vbox->Add(listCtrl, wxSizerFlags().Expand().Border(wxALL, 1));
 
 	SetSizerAndFit(vbox);
 	Layout();
@@ -597,9 +565,9 @@ UiDiskFileList::UiDiskFileList(UiDiskFrame *parentframe, wxWindow *parentwindow)
 	menuColumnPopup = NULL;
 
 	// key
-	list->Bind(wxEVT_CHAR, &UiDiskFileList::OnChar, this);
+	listCtrl->Bind(wxEVT_CHAR, &UiDiskFileList::OnChar, this);
 
-	initialized = true;
+	m_initialized = true;
 }
 
 UiDiskFileList::~UiDiskFileList()
@@ -624,15 +592,30 @@ MyFileListItem UiDiskFileList::GetEventItem(const MyFileListEvent& event) const
 /// @param[in] event サイズイベント
 void UiDiskFileList::OnSize(wxSizeEvent& event)
 {
+	if (!m_initialized) {
+		event.Skip();
+		return;
+	}
+	if (event.GetEventObject() != this) {
+		event.Skip();
+		return;
+	}
+	
 	wxSize size = event.GetSize();
+	if (size.x < 32) return;
+
+	// BASIC情報の右側のボタン群のサイズ
 	wxSize sizz = szrButtons->GetSize();
 	if (sizz.x == 0) return;
 
-	wxPoint listpt = list->GetPosition();
-	list->SetSize(size.x - listpt.x, size.y - listpt.y);
+	// ファイルリストのサイズを変更
+	wxPoint listpt = listCtrl->GetPosition();
+	listCtrl->SetSize(size.x - listpt.x, size.y - listpt.y);
 
 	int pos_x = size.x - sizz.x;
 	if (pos_x < 0) return;
+
+	// BASIC情報の右側のボタン群をウィンドウ右づめで配置する
 
 	wxPoint bp;
 	bp = btnChange->GetPosition();
@@ -665,50 +648,50 @@ void UiDiskFileList::OnSize(wxSizeEvent& event)
 /// @param[in] event リストイベント
 void UiDiskFileList::OnSelect(MyFileListEvent& event)
 {
-	if (!initialized || !basic) return;
+	if (!m_initialized || !m_current_basic) return;
 
 	MyFileListItem selected_item = event.GetIndex();
 	if (selected_item == wxNOT_FOUND) return;
 
 	/// SelectItem()を呼ぶ
-	SelectItem(selected_item, list->GetListSelectedItemCount());
+	SelectItem(selected_item, listCtrl->GetListSelectedItemCount());
 }
 
 /// リストを非選択にした
 /// @param[in] event リストイベント
 void UiDiskFileList::OnDeselect(MyFileListEvent& event)
 {
-	if (!initialized || !basic) return;
+	if (!m_initialized || !m_current_basic) return;
 
 	MyFileListItem deselected_item = event.GetIndex();
 	if (deselected_item == wxNOT_FOUND) return;
 
 	/// UnselectItem()を呼ぶ
-	UnselectItem(deselected_item, list->GetListSelectedItemCount());
+	UnselectItem(deselected_item, listCtrl->GetListSelectedItemCount());
 }
 #else
 /// リスト選択行を変更
 /// @param[in] event リストイベント
 void UiDiskFileList::OnSelectionChanged(MyFileListEvent& event)
 {
-	if (!initialized || !basic) return;
+	if (!m_initialized || !m_current_basic) return;
 
 //	if (list->GetListSelectedRow() == wxNOT_FOUND) {
 //		return;
 //	}
 
-	int count = list->GetListSelectedItemCount();
+	int count = listCtrl->GetListSelectedItemCount();
 
-	for(int row=0; row<list->GetItemCount(); row++) {
-		bool sel = list->IsRowSelected(row);
-		int tog = list->GetListSelected(row);
-		MyFileListItem item = list->RowToItem(row);
+	for(int row=0; row<listCtrl->GetItemCount(); row++) {
+		bool sel = listCtrl->IsRowSelected(row);
+		int tog = listCtrl->GetListSelected(row);
+		MyFileListItem item = listCtrl->RowToItem(row);
 		if (sel && (tog == 0)) {
 			SelectItem(item, count);
 		} else if (!sel && (tog != 0)) {
 			UnselectItem(item, count);
 		}
-		list->SetListSelected(row, sel ? 1 : 0);
+		listCtrl->SetListSelected(row, sel ? 1 : 0);
 	}
 }
 #endif
@@ -717,11 +700,11 @@ void UiDiskFileList::OnSelectionChanged(MyFileListEvent& event)
 /// @param[in] event リストイベント
 void UiDiskFileList::OnFileNameStartEditing(MyFileListEvent& event)
 {
-	if (!basic) return;
+	if (!m_current_basic) return;
 
 	MyFileListItem listitem = GetEventItem(event);
-	int pos = (int)list->GetListItemData(listitem);
-	DiskBasicDirItem *ditem = basic->GetDirItem(pos);
+	int pos = (int)listCtrl->GetListItemData(listitem);
+	DiskBasicDirItem *ditem = m_current_basic->GetDirItem(pos);
 	if (!ditem || !ditem->IsFileNameEditable()) {
 		// 編集不可
 		event.Veto();
@@ -733,7 +716,7 @@ void UiDiskFileList::OnFileNameStartEditing(MyFileListEvent& event)
 void UiDiskFileList::OnFileNameEditingStarted(MyFileListEvent& event)
 {
 #ifndef USE_LIST_CTRL_ON_FILE_LIST
-	if (!basic) return;
+	if (!m_current_basic) return;
 
 	wxDataViewColumn *column = event.GetDataViewColumn();
 	wxDataViewRenderer *renderer = column->GetRenderer();
@@ -742,11 +725,11 @@ void UiDiskFileList::OnFileNameEditingStarted(MyFileListEvent& event)
 	if (!text) return;
 
 	wxDataViewItem listitem = event.GetItem();
-	int pos = (int)list->GetListItemData(listitem);
-	DiskBasicDirItem *ditem = basic->GetDirItem(pos);
+	int pos = (int)listCtrl->GetListItemData(listitem);
+	DiskBasicDirItem *ditem = m_current_basic->GetDirItem(pos);
 	if (ditem && ditem->IsFileNameEditable()) {
 		int max_len = ditem->GetFileNameStrSize();
-		IntNameValidator validate(basic, ditem);
+		IntNameValidator validate(ditem, _("file name"), m_current_basic->GetValidFileName());
 		text->SetMaxLength(max_len);
 		text->SetValidator(validate);
 	}
@@ -800,7 +783,7 @@ void UiDiskFileList::OnColumnClick(MyFileListEvent& event)
 {
 	int col = event.GetColumn();
 #ifdef USE_LIST_CTRL_ON_FILE_LIST
-	list->SortDataItems(basic, col);
+	listCtrl->SortDataItems(m_current_basic, col);
 #endif
 }
 
@@ -943,7 +926,7 @@ void UiDiskFileList::OnListColumnChange(wxCommandEvent& event)
 {
 	int id = event.GetId() - IDM_COLUMN_0;
 
-	if (list->ShowColumn(id, event.IsChecked())) {
+	if (listCtrl->ShowColumn(id, event.IsChecked())) {
 		// リストを更新
 		RefreshFiles();
 	}
@@ -952,6 +935,12 @@ void UiDiskFileList::OnListColumnChange(wxCommandEvent& event)
 /// リストのカラム詳細設定
 /// @param[in] event コマンドイベント
 void UiDiskFileList::OnListColumnDetail(wxCommandEvent& WXUNUSED(event))
+{
+	ShowListColumnDialog();
+}
+/// リストのカラム詳細設定
+/// @param[in] event コマンドイベント
+void UiDiskFileList::OnListColumnDetail(MyFileListEvent& WXUNUSED(event))
 {
 	ShowListColumnDialog();
 }
@@ -988,14 +977,14 @@ void UiDiskFileList::ShowPopupMenu()
 	menuPopup->Enable(IDM_IMPORT_FILE, opened);
 	menuPopup->Enable(IDM_PASTE_FILE, opened);
 
-	menuPopup->Enable(IDM_MAKE_DIRECTORY, opened && CanMakeDirectory());
+	menuPopup->Enable(IDM_MAKE_DIRECTORY, opened && frame->CanMakeDirectory(m_current_basic));
 
-	opened = (opened && (list->GetListSelectedItemCount() > 0));
+	opened = (opened && (listCtrl->GetListSelectedItemCount() > 0));
 	menuPopup->Enable(IDM_EXPORT_FILE, opened);
 	menuPopup->Enable(IDM_DELETE_FILE, opened);
 	menuPopup->Enable(IDM_COPY_FILE, opened);
 
-	opened = (opened && (list->GetListSelectedRow() != wxNOT_FOUND));
+	opened = (opened && (listCtrl->GetListSelectedRow() != wxNOT_FOUND));
 	menuPopup->Enable(IDM_RENAME_FILE, opened);
 	menuPopup->Enable(IDM_PROPERTY, opened);
 
@@ -1005,7 +994,7 @@ void UiDiskFileList::ShowPopupMenu()
 /// リストカラムのポップアップメニュー表示
 void UiDiskFileList::ShowColumnPopupMenu()
 {
-	list->CreateColumnPopupMenu(menuColumnPopup, IDM_COLUMN_0, IDM_COLUMN_DETAIL);
+	listCtrl->CreateColumnPopupMenu(menuColumnPopup, IDM_COLUMN_0, IDM_COLUMN_DETAIL);
 
 	PopupMenu(menuColumnPopup);
 }
@@ -1027,8 +1016,8 @@ void UiDiskFileList::ClearAttr()
 /// @param[in] name コード名
 void UiDiskFileList::ChangeCharCode(const wxString &name)
 {
-	if (basic) {
-		basic->SetCharCode(name);
+	if (m_current_basic) {
+		m_current_basic->SetCharCode(name);
 		RefreshFiles();
 	}
 	PushCharCode(name);
@@ -1047,17 +1036,17 @@ void UiDiskFileList::PushCharCode(const wxString &name)
 /// @param [in] newsidenum サイド番号 -1:両面 >0:裏表あり
 void UiDiskFileList::AttachDiskBasic(DiskImageDisk *newdisk, int newsidenum)
 {
-	basic = newdisk->GetDiskBasic(newsidenum);
+	m_current_basic = newdisk->GetDiskBasic(newsidenum);
 
-	disk_selecting = true;
+	m_disk_selecting = true;
 }
 
 /// DISK BASICをデタッチ
 void UiDiskFileList::DetachDiskBasic()
 {
-	disk_selecting = false;
+	m_disk_selecting = false;
 
-	basic = NULL;
+	m_current_basic = NULL;
 }
 
 /// ファイル名をリストに設定
@@ -1069,7 +1058,7 @@ void UiDiskFileList::SetFiles()
 	// ファイル名一覧を設定
 	RefreshFiles();
 	// リストを非選択
-	list->UnselectAllListItem();
+	listCtrl->UnselectAllListItem();
 
 	// メニューを更新
 	frame->UpdateMenuAndToolBarFileList(this);
@@ -1078,25 +1067,25 @@ void UiDiskFileList::SetFiles()
 /// ファイル名をリストに再設定
 void UiDiskFileList::RefreshFiles()
 {
-	if (!disk_selecting
-	 || !basic
-	 || basic->GetBasicTypeName().IsEmpty()) {
-		list->DeleteAllListItems();
+	if (!m_disk_selecting
+	 || !m_current_basic
+	 || m_current_basic->GetBasicTypeName().IsEmpty()) {
+		listCtrl->DeleteAllListItems();
 		btnChange->Enable(false);
 		return;
 	}
 
 	// 属性をセット
-	SetAttr(basic->GetDescriptionDetail());
+	SetAttr(m_current_basic->GetDescriptionDetails());
 	btnChange->Enable(true);
 
 	// キャラクターコードをセット
-	PushCharCode(basic->GetCharCode());
+	PushCharCode(m_current_basic->GetCharCode());
 
 	// ファイル名一覧を設定
-	list->Freeze();
-	list->SetListItems(basic);
-	list->Thaw();
+	listCtrl->Freeze();
+	listCtrl->SetListItems(m_current_basic);
+	listCtrl->Thaw();
 
 	// FAT空き状況を確認
 	if (frame->GetFatAreaFrame()) {
@@ -1120,7 +1109,7 @@ void UiDiskFileList::ClearFiles()
 {
 	btnChange->Enable(false);
 
-	list->DeleteAllListItems();
+	listCtrl->DeleteAllListItems();
 	ClearAttr();
 
 	// メニューを更新
@@ -1130,7 +1119,7 @@ void UiDiskFileList::ClearFiles()
 /// 全行を選択
 void UiDiskFileList::SelectAll()
 {
-	list->SelectAllListItem();
+	listCtrl->SelectAllListItem();
 }
 
 /// 行選択
@@ -1138,14 +1127,14 @@ void UiDiskFileList::SelectAll()
 /// @param[in] count         選択した行数
 bool UiDiskFileList::SelectItem(const MyFileListItem &selected_item, int count)
 {
-	DiskBasicDirItem *ditem = basic->GetDirItem(list->GetListItemData(selected_item));
+	DiskBasicDirItem *ditem = m_current_basic->GetDirItem(listCtrl->GetListItemData(selected_item));
 	if (!ditem) {
 		return false;
 	}
 
 	int sector_pos = -1;
-	basic->CalcStartNumFromGroupNum(ditem->GetStartGroup(0), sector_pos);
-	DiskImageSector *sector = basic->GetSector(sector_pos);
+	m_current_basic->CalcStartNumFromGroupNum(ditem->GetStartGroup(0), sector_pos);
+	DiskImageSector *sector = m_current_basic->GetSector(sector_pos);
 	if (!sector) {
 		return false;
 	}
@@ -1157,7 +1146,7 @@ bool UiDiskFileList::SelectItem(const MyFileListItem &selected_item, int count)
 
 	if (count == 1) {
 		// ダンプリストをセット
-		frame->SetBinDumpData(sector->GetNumber(), sector->GetSectorBuffer(), sector->GetSectorSize(), basic->GetCharCode(), false);
+		frame->SetBinDumpData(sector->GetNumber(), sector->GetSectorBuffer(), sector->GetSectorSize(), m_current_basic->GetCharCode(), false);
 
 		// メニューを更新
 		frame->UpdateMenuAndToolBarFileList(this);
@@ -1171,7 +1160,7 @@ bool UiDiskFileList::SelectItem(const MyFileListItem &selected_item, int count)
 /// @param[in] count           選択していた行数
 void UiDiskFileList::UnselectItem(const MyFileListItem &deselected_item, int count)
 {
-	DiskBasicDirItem *ditem = basic->GetDirItem(list->GetListItemData(deselected_item));
+	DiskBasicDirItem *ditem = m_current_basic->GetDirItem(listCtrl->GetListItemData(deselected_item));
 	if (!ditem) {
 		return;
 	}
@@ -1192,9 +1181,9 @@ void UiDiskFileList::UnselectItem(const MyFileListItem &deselected_item, int cou
 /// @return true:正常 false:トラックなし 
 bool UiDiskFileList::SetDumpData(DiskBasicGroupItem &group_item)
 {
-	if (!basic) return false;
+	if (!m_current_basic) return false;
 
-	DiskImageDisk *disk = basic->GetDisk();
+	DiskImageDisk *disk = m_current_basic->GetDisk();
 
 	for(int s=group_item.GetSectorStart(); s<=group_item.GetSectorEnd(); s++) {
 		DiskImageSector *sector = disk->GetSector(s);
@@ -1216,9 +1205,9 @@ bool UiDiskFileList::SetDumpData(DiskBasicGroupItem &group_item)
 /// @return true:正常 false:トラックなし 
 bool UiDiskFileList::SetDumpData(int sector_start, int sector_end)
 {
-	if (!basic) return false;
+	if (!m_current_basic) return false;
 
-	DiskImageDisk *disk = basic->GetDisk();
+	DiskImageDisk *disk = m_current_basic->GetDisk();
 
 	for(int s=sector_start; s<=sector_end; s++) {
 		DiskImageSector *sector = disk->GetSector(s);
@@ -1238,11 +1227,11 @@ bool UiDiskFileList::SetDumpData(int sector_start, int sector_end)
 /// @return ディレクトリアイテム or NULL
 DiskBasicDirItem *UiDiskFileList::GetSelectedDirItem()
 {
-	if (!basic) return NULL;
-	if (!list) return NULL;
-	int row = list->GetListSelectedRow();
+	if (!m_current_basic) return NULL;
+	if (!listCtrl) return NULL;
+	int row = listCtrl->GetListSelectedRow();
 	if (row == wxNOT_FOUND) return NULL;
-	MyFileListItem view_item = list->GetListSelection();
+	MyFileListItem view_item = listCtrl->GetListSelection();
 	return GetDirItem(view_item);
 }
 
@@ -1252,12 +1241,12 @@ DiskBasicDirItem *UiDiskFileList::GetSelectedDirItem()
 /// @return ディレクトリアイテム or NULL
 DiskBasicDirItem *UiDiskFileList::GetDirItem(const MyFileListItem &view_item, int *item_pos)
 {
-	if (!basic) return NULL;
-	if (!list) return NULL;
-	if (list->GetItemCount() <= 0) return NULL;
-	size_t dir_pos = list->GetListItemData(view_item);
+	if (!m_current_basic) return NULL;
+	if (!listCtrl) return NULL;
+	if (listCtrl->GetItemCount() <= 0) return NULL;
+	size_t dir_pos = listCtrl->GetListItemData(view_item);
 	if (item_pos) *item_pos = (int)dir_pos;
-	DiskBasicDirItem *dir_item = basic->GetDirItem(dir_pos);
+	DiskBasicDirItem *dir_item = m_current_basic->GetDirItem(dir_pos);
 	return dir_item;
 }
 
@@ -1279,12 +1268,12 @@ DiskBasicDirItem *UiDiskFileList::GetFileName(const MyFileListItem &view_item, w
 /// エクスポートダイアログ
 void UiDiskFileList::ShowExportDataFileDialog()
 {
-	if (!basic) return;
+	if (!m_current_basic) return;
 
-	basic->ClearErrorMessage();
+	m_current_basic->ClearErrorMessage();
 
 	MyFileListItems selected_items;
-	int selcount = list->GetListSelections(selected_items);
+	int selcount = listCtrl->GetListSelections(selected_items);
 	if (selcount <= 0) return;
 
 	wxString filename;
@@ -1296,8 +1285,8 @@ void UiDiskFileList::ShowExportDataFileDialog()
 			return;
 		}
 		// エクスポートできるか
-		if (!basic->IsLoadableFile(item)) {
-			basic->ShowErrorMessage();
+		if (!m_current_basic->IsLoadableFile(item)) {
+			m_current_basic->ShowErrorMessage();
 			return;
 		}
 		// エクスポートする前の処理（ファイル名を変更するか）
@@ -1312,12 +1301,11 @@ void UiDiskFileList::ShowExportDataFileDialog()
 		// ファイル名を変換
 		filename = Utils::EncodeFileName(filename);
 
-		UiDiskFileDialog dlg(
+		UiDiskSaveFileDialog dlg(
 			_("Export a file"),
 			frame->GetIniExportFilePath(),
 			filename,
-			_("All files (*.*)|*.*"),
-			wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+			_("All files (*.*)|*.*"));
 
 		int dlgsts = dlg.ShowModal();
 		if (dlgsts != wxID_OK) {
@@ -1329,7 +1317,7 @@ void UiDiskFileList::ShowExportDataFileDialog()
 		// エクスポート元パスを覚えておく
 		frame->SetIniExportFilePath(path);
 
-		ExportDataFile(item, path, _("exporting..."), _("exported."));
+		frame->ExportDataFile(m_current_basic, item, path, _("exporting..."), _("exported."));
 
 	} else {
 		// 複数選択時やディレクトリ選択時
@@ -1355,31 +1343,6 @@ void UiDiskFileList::ShowExportDataFileDialog()
 	}
 }
 
-/// 指定したファイルにエクスポート
-/// @param[in] item         ディレクトリアイテム
-/// @param[in] path         ファイルパス
-/// @param[in] start_msg    開始メッセージ
-/// @param[in] end_msg      終了メッセージ
-/// @return true:OK false:Error
-bool UiDiskFileList::ExportDataFile(DiskBasicDirItem *item, const wxString &path, const wxString &start_msg, const wxString &end_msg)
-{
-	if (!basic) return false;
-
-	m_sc_export = frame->StartStatusCounter(1, start_msg);
-	// ロード
-	bool valid = basic->LoadFile(item, path);
-	// 日付を反映
-	if (valid) {
-		item->WriteFileDateTime(path);
-	}
-	frame->IncreaseStatusCounter(m_sc_export);
-	frame->FinishStatusCounter(m_sc_export, end_msg);
-	if (!valid) {
-		basic->ShowErrorMessage();
-	}
-	return valid;
-}
-
 /// 指定したフォルダにエクスポート
 /// @param [in]     selected_items 選択したリスト
 /// @param [in]     data_dir       データファイル出力先フォルダ
@@ -1390,7 +1353,9 @@ bool UiDiskFileList::ExportDataFile(DiskBasicDirItem *item, const wxString &path
 /// @return 0:OK >0:Warning <0:Error
 int UiDiskFileList::ExportDataFiles(const MyFileListItems &selected_items, const wxString &data_dir, const wxString &attr_dir, const wxString &start_msg, const wxString &end_msg, wxFileDataObject *file_object)
 {
-	m_sw_export.Start();
+	frame->StartExportCounter(0, start_msg);
+
+	// 選択したファイルをリストにする。
 	int selcount = (int)selected_items.Count();
 	DiskBasicDirItems dir_items;
 	for(int i=0; i<selcount; i++) {
@@ -1398,137 +1363,15 @@ int UiDiskFileList::ExportDataFiles(const MyFileListItems &selected_items, const
 		if (!item) {
 			continue;
 		}
-		if (!basic->IsLoadableFile(item)) {
-			continue;
-		}
 		dir_items.Add(item);
 	}
-	m_sc_export = frame->StartStatusCounter(0, start_msg);
-	int sts = ExportDataFiles(&dir_items, data_dir, attr_dir, file_object, 0);
-	frame->FinishStatusCounter(m_sc_export, end_msg);
-	m_sw_export.Finish();
+	int sts = frame->ExportDataFiles(m_current_basic, &dir_items, data_dir, attr_dir, file_object, 0);
 	if (sts != 0) {
-		basic->ShowErrorMessage();
-	}
-	return sts;
-}
-
-/// 指定したフォルダにエクスポート
-/// @attention 再帰的に呼ばれる。 This function is called recursively.
-/// @param [in]     dir_items   選択したリスト
-/// @param [in]     data_dir    データファイル出力先フォルダ
-/// @param [in]     attr_dir    属性ファイル出力先フォルダ
-/// @param [in,out] file_object ファイルオブジェクト
-/// @param [in]     depth       深さ
-/// @retval  1 警告あり
-/// @retval  0 正常
-/// @retval -1 エラー
-int UiDiskFileList::ExportDataFiles(DiskBasicDirItems *dir_items, const wxString &data_dir, const wxString &attr_dir, wxFileDataObject *file_object, int depth)
-{
-	if (!dir_items) return 0;
-	if (depth > 20) return -1;
-
-	int sts = 0;
-	size_t count = dir_items->Count();
-	DiskBasicDirItems valid_items;
-	for(size_t n = 0; n < count && sts >= 0; n++) {
-		DiskBasicDirItem *item = dir_items->Item(n);
-		if (!item) {
-			continue;
-		}
-		if (!item->IsUsed()) {
-			continue;
-		}
-		if (!item->IsLoadable()) {
-			continue;
-		}
-		valid_items.Add(item);
+		m_current_basic->ShowErrorMessage();
 	}
 
-	count = valid_items.Count();
-	frame->AppendStatusCounter(m_sc_export, (int)count);
+	frame->FinishExportCounter(end_msg);
 
-	bool attr_exists = !attr_dir.IsEmpty();
-	for(size_t n = 0; n < count && sts >= 0; n++) {
-		frame->IncreaseStatusCounter(m_sc_export);
-		if (m_sw_export.Time() > 3000) {
-			m_sw_export.Busy();
-		}
-		DiskBasicDirItem *item = valid_items.Item(n);
-
-		wxString native_name = item->GetFileNameStrForExport();
-		// エクスポートする前の処理（ファイル名を変更するか）
-		if (!item->PreExportDataFile(native_name)) {
-			sts = -1;
-			break;
-		}
-		if (native_name.IsEmpty()) {
-			continue;
-		}
-		// ファイル名に設定できない文字をエスケープ
-		wxString file_name = Utils::EncodeFileName(native_name);
-		// フルパスを作成
-		wxString full_data_name = wxFileName(data_dir, file_name).GetFullPath();
-		wxString full_attr_name = attr_exists ? wxFileName(attr_dir, file_name, wxT("xml")).GetFullPath() : attr_dir;
-		if (full_data_name.Length() > 255 || full_attr_name.Length() > 255) {
-			// パスが長すぎる
-			sts = 1;
-			basic->GetErrinfo().SetError(DiskBasicError::ERRV_CANNOT_EXPORT, native_name.wc_str());
-			basic->GetErrinfo().SetError(DiskBasicError::ERR_PATH_TOO_DEEP);
-			continue;
-		}
-		if (item->IsDirectory()) {
-			// ディレクトリの場合
-			// ディレクトリをアサイン
-			bool valid = basic->AssignDirectory(item);
-			if (!valid) {
-				sts = 1;
-				basic->GetErrinfo().SetError(DiskBasicError::ERRV_CANNOT_EXPORT, native_name.wc_str());
-				continue;
-			}
-			// データサブフォルダを作成
-			if (wxFileName::FileExists(full_data_name) || wxFileName::DirExists(full_data_name)) {
-				// 既にある
-				sts = 1;
-				basic->GetErrinfo().SetError(DiskBasicError::ERRV_CANNOT_EXPORT, native_name.wc_str());
-				basic->GetErrinfo().SetError(DiskBasicError::ERR_FILE_ALREADY_EXIST);
-				continue;
-			}
-			if (!wxMkdir(full_data_name)) {
-				sts = 1;
-				basic->GetErrinfo().SetError(DiskBasicError::ERRV_CANNOT_EXPORT, native_name.wc_str());
-				continue;
-			}
-			if (attr_exists) {
-				// 属性サブフォルダを作成
-				if (!wxMkdir(full_attr_name)) {
-					sts = 1;
-					basic->GetErrinfo().SetError(DiskBasicError::ERRV_CANNOT_EXPORT, native_name.wc_str());
-					continue;
-				}
-			}
-			// 再帰的にエクスポート
-			sts |= ExportDataFiles(item->GetChildren(), full_data_name, full_attr_name, file_object, depth + 1);
-		} else {
-			// ファイルの場合
-			bool rc = basic->LoadFile(item, full_data_name);
-			sts |= (rc ? 0 : -1);
-			// 日付を反映
-			if (rc) {
-				item->WriteFileDateTime(full_data_name);
-			}
-			// 属性情報をXMLで出力
-			if (attr_exists) {
-				item->WriteFileAttrToXml(full_attr_name);
-			}
-		}
-
-		// ファイルオブジェクトを追加(DnD用)
-		// トップレベルのみ追加
-		if (depth == 0 && file_object != NULL && sts >= 0) {
-			file_object->AddFile(full_data_name);
-		}
-	}
 	return sts;
 }
 
@@ -1536,6 +1379,8 @@ int UiDiskFileList::ExportDataFiles(DiskBasicDirItems *dir_items, const wxString
 bool UiDiskFileList::DragDataSource()
 {
 	wxString tmp_dir_name;
+
+#ifdef USE_DATA_OBJECT_COMPOSITE
 	wxDataObjectComposite compo;
 
 	wxFileDataObject *file_object = NULL;
@@ -1549,6 +1394,13 @@ bool UiDiskFileList::DragDataSource()
 		delete file_object;
 		return false;
 	}
+	// １つだけ選択時ドラッグしたアイテムを覚えておく
+	if (listCtrl->GetListSelectedItemCount() == 1) {
+		m_dragging_item = listCtrl->GetListSelection();
+	} else {
+		MyFileListItem_Unset(m_dragging_item);
+	}
+
 	// ファイルデータは外部用
 	if (file_object) compo.Add(file_object);
 
@@ -1557,6 +1409,31 @@ bool UiDiskFileList::DragDataSource()
 #else
 	wxDropSource dragSource(compo, frame);
 #endif
+#else
+
+	wxFileDataObject file_object;
+
+	bool sts = true;
+	if (sts) {
+		sts = CreateFileObject(tmp_dir_name, _("dragging..."), _("dragged."), file_object);
+	}
+	if (!sts) {
+		return false;
+	}
+	// １つだけ選択時ドラッグしたアイテムを覚えておく
+	if (listCtrl->GetListSelectedItemCount() == 1) {
+		m_dragging_item = listCtrl->GetListSelection();
+	} else {
+		MyFileListItem_Unset(m_dragging_item);
+	}
+
+#ifdef __WXMSW__
+	wxDropSource dragSource(file_object);
+#else
+	wxDropSource dragSource(file_object, frame);
+#endif
+#endif
+
 	dragSource.DoDragDrop();
 
 	return true;
@@ -1589,28 +1466,16 @@ bool UiDiskFileList::CopyToClipboard()
 /// @return true:OK false:Error
 bool UiDiskFileList::CreateFileObject(wxString &tmp_dir_name, const wxString &start_msg, const wxString &end_msg, wxFileDataObject &file_object)
 {
-	if (!basic) return false;
+	if (!m_current_basic) return false;
 
-	if (!list) return false;
+	if (!listCtrl) return false;
 
 	MyFileListItems selected_items;
-	int selcount = list->GetListSelections(selected_items);
+	int selcount = listCtrl->GetListSelections(selected_items);
 	if (selcount <= 0) return false;
 
-	UiDiskApp *app = &wxGetApp();
-
-	// テンポラリディレクトリを作成
-	if (!app->MakeTempDir(tmp_dir_name)) {
-		return false;
-	}
-	// データディレクトリを作成
-	wxString tmp_data_path = wxFileName(tmp_dir_name, wxT("Datas")).GetFullPath();
-	if (!wxMkdir(tmp_data_path)) {
-		return false;
-	}
-	// 属性ディレクトリを作成
-	wxString tmp_attr_path = wxFileName(tmp_dir_name, wxT("Attrs")).GetFullPath();
-	if (!wxMkdir(tmp_attr_path)) {
+	wxString tmp_data_path, tmp_attr_path;
+	if (!frame->CreateTemporaryFolder(tmp_dir_name, tmp_data_path, tmp_attr_path)) {
 		return false;
 	}
 
@@ -1632,7 +1497,25 @@ void UiDiskFileList::ReleaseFileObject(const wxString &tmp_dir_name)
 /// クリップボードからペースト
 bool UiDiskFileList::PasteFromClipboard()
 {
-	if (!basic) return false;
+	if (!m_current_basic) return false;
+
+	if (!m_current_basic->IsFormatted()) {
+		return false;
+	}
+	if (!m_current_basic->IsWritableIntoDisk()) {
+		m_current_basic->ShowErrorMessage();
+		return false;
+	}
+
+	// ディレクトリを選択しているときはそこにペースト
+	DiskBasicDirItem *dir_item = m_current_basic->GetCurrentDirectory();
+	MyFileListItem item = listCtrl->GetListSelection();
+	if (MyFileListItem_IsOk(item)) {
+		DiskBasicDirItem *tmp_dir_item = GetDirItem(item);
+		if (tmp_dir_item && tmp_dir_item->IsDirectory()) {
+			dir_item = tmp_dir_item;
+		}
+	}
 
 	// Read some text
 	wxFileDataObject file_object;
@@ -1644,32 +1527,24 @@ bool UiDiskFileList::PasteFromClipboard()
 		wxTheClipboard->Close();
 	}
 
-	if (!basic->IsFormatted()) {
-		return false;
-	}
-	if (!basic->IsWritableIntoDisk()) {
-		basic->ShowErrorMessage();
-		return false;
-	}
-
 	// インポート
-	return ImportDataFiles(file_object.GetFilenames(), _("pasting..."), _("pasted."));
+	return frame->ImportDataFiles(file_object.GetFilenames(), m_current_basic, dir_item, false, _("pasting..."), _("pasted."));
 }
 
 /// インポートダイアログ
 void UiDiskFileList::ShowImportDataFileDialog()
 {
-	if (!basic) return;
+	if (!m_current_basic) return;
 
-	if (!basic->IsFormatted()) {
+	if (!m_current_basic->IsFormatted()) {
 		return;
 	}
-	if (!basic->IsWritableIntoDisk()) {
-		basic->ShowErrorMessage();
+	if (!m_current_basic->IsWritableIntoDisk()) {
+		m_current_basic->ShowErrorMessage();
 		return;
 	}
 
-	UiDiskFileDialog dlg(
+	UiDiskOpenFileDialog dlg(
 		_("Import file"),
 		frame->GetIniExportFilePath(),
 		wxEmptyString,
@@ -1687,440 +1562,78 @@ void UiDiskFileList::ShowImportDataFileDialog()
 
 	wxArrayString paths;
 	dlg.GetPaths(paths);
-	ImportDataFiles(paths, _("importing..."), _("imported."));
+	frame->ImportDataFiles(paths, m_current_basic, m_current_basic->GetCurrentDirectory(), false, _("importing..."), _("imported."));
 }
 
 /// ファイルをドロップ
-/// @param[in] paths ファイルパスのリスト
+/// @param[in] base         座標の基準となるウィンドウ
+/// @param[in] x            ドロップした位置X
+/// @param[in] y            ドロップした位置Y
+/// @param[in] paths        ファイルパスのリスト
+/// @param[in] dir_included ディレクトリを含むか
 /// @return true:OK false:Error
-bool UiDiskFileList::DropDataFiles(const wxArrayString &paths)
+bool UiDiskFileList::DropDataFiles(wxWindow *base, int x, int y, const wxArrayString &paths, bool dir_included)
 {
-	return ImportDataFiles(paths, _("dropping..."), _("dropped."));
-}
-
-/// 指定したファイルをインポート
-/// @param [in] paths     ファイルパスのリスト
-/// @param [in] start_msg 開始メッセージ
-/// @param [in] end_msg   終了メッセージ
-/// @return true:OK false:Error
-bool UiDiskFileList::ImportDataFiles(const wxArrayString &paths, const wxString &start_msg, const wxString &end_msg)
-{
-	if (!basic) return false;
-
-	m_sc_import = frame->StartStatusCounter(0, start_msg);
-	m_sw_import.Start();
-	int sts = 0;
-	for(size_t n = 0; n < paths.Count() && sts >= 0; n++) {
-		wxFileName file_path(paths.Item(n));
-		wxString data_dir = file_path.GetPath();
-		wxArrayString names;
-		names.Add(file_path.GetFullName());
-		file_path.RemoveLastDir();
-		file_path.AppendDir(wxT("Attrs"));
-		wxString attr_dir = file_path.GetPath();
-		sts |= ImportDataFiles(data_dir, attr_dir, names, 0);
-	}
-	m_sw_import.Finish();
-	frame->FinishStatusCounter(m_sc_import, end_msg);
-
-	// リストを更新
-	RefreshFiles();
-	// 左パネルのツリーを更新
-	frame->RefreshAllDirectoryNodesOnDiskList(basic->GetDisk(), basic->GetSelectedSide());
-	if (sts != 0) {
-		basic->ShowErrorMessage();
-	}
-	return (sts >= 0);
-}
-
-/// 指定したファイルをインポート
-/// @attention 再帰的に呼ばれる。 This function is called recursively.
-/// @param [in] data_dir データフォルダ
-/// @param [in] attr_dir 属性フォルダ
-/// @param [in] names    ファイル名のリスト
-/// @param [in] depth    深さ
-/// @retval  1 警告あり
-/// @retval  0 正常
-/// @retval -1 エラー
-int UiDiskFileList::ImportDataFiles(const wxString &data_dir, const wxString &attr_dir, const wxArrayString &names, int depth)
-{
-	if (depth > 20) return false;
-
-	int sts = 0;
-	size_t count = names.Count();
-	frame->AppendStatusCounter(m_sc_import, (int)count);
-	for(size_t n = 0; n < count && sts >= 0; n++) {
-		if (m_sw_import.Time() > 3000) {
-			// マウスアイコンを変更
-			m_sw_import.Busy();
-		}
-		frame->IncreaseStatusCounter(m_sc_import);
-		wxString name = names.Item(n);
-		wxString full_data_path = wxFileName(data_dir, name).GetFullPath();
-		wxString full_attr_path = wxFileName(attr_dir, name, wxT("xml")).GetFullPath();
-		// ファイル名を変換
-		name = Utils::DecodeFileName(name);
-
-		if (wxFileName::DirExists(full_data_path)) {
-			// フォルダの場合
-
-			// ディレクトリ作成
-			DiskBasicDirItem *dir_item = NULL;
-			if (!MakeDirectory(name, _("Import Directory"), &dir_item)) {
-				sts = -1;
-				break;
-			}
-
-			// フォルダ内のファイルリスト
-			wxArrayString sub_names;
-			wxDir dir(full_data_path);
-			wxString sub_name;
-			bool valid = dir.GetFirst(&sub_name, wxEmptyString);
-			while(valid) {
-				sub_names.Add(sub_name);
-				valid = dir.GetNext(&sub_name);
-			}
-			if (sub_names.Count() == 0) {
-				continue;
-			}
-
-			// サブディレクトリに移動してインポート
-			DiskBasicDirItem *cur_item = basic->GetCurrentDirectory();
-			if (!basic->ChangeDirectory(dir_item)) {
-				sts = -1;
-				break;
-			}
-			// 再帰的にインポート
-			sts |= ImportDataFiles(full_data_path, full_attr_path, sub_names, depth + 1);
-			basic->ChangeDirectory(cur_item);
-		} else {
-			// ファイルの場合
-			sts |= ImportDataFile(full_data_path, full_attr_path, name);
-		}
+	if (paths.Count() == 0) {
+		return false;
 	}
 
-	return sts;
-}
-
-/// 指定したファイルを上書きでインポート
-/// @param [in] item ディレクトリアイテム
-/// @param [in] path データファイルパス
-/// @param [in] start_msg 開始メッセージ
-/// @param [in] end_msg   終了メッセージ
-/// @return true:OK false:Error
-bool UiDiskFileList::ImportDataFile(const DiskBasicDirItem *item, const wxString &path, const wxString &start_msg, const wxString &end_msg)
-{
-	DiskBasicDirItem *pitem = basic->CreateDirItem();
-	pitem->CopyItem(*item);
-
-	m_sc_import = frame->StartStatusCounter(1, start_msg);
-
-	bool valid = basic->SaveFile(path, pitem);
-
-	frame->IncreaseStatusCounter(m_sc_import);
-	frame->FinishStatusCounter(m_sc_import, end_msg);
-
-	// リストを更新
-	RefreshFiles();
-	// 左パネルのツリーを更新
-	frame->RefreshAllDirectoryNodesOnDiskList(basic->GetDisk(), basic->GetSelectedSide());
-
-	delete pitem;
-	return valid;
-}
-
-/// 指定したファイルをインポート
-/// @param [in] full_data_path データファイルパス
-/// @param [in] full_attr_path 属性ファイルパス
-/// @param [in] file_name      ファイル名
-/// @retval  1 警告あり処理継続
-/// @retval  0 正常
-/// @retval -1 エラー継続不可
-int UiDiskFileList::ImportDataFile(const wxString &full_data_path, const wxString &full_attr_path, const wxString &file_name)
-{
-	if (!basic) return -1;
-
-	if (!basic->IsFormatted()) {
-		return -1;
+	if (!m_current_basic->IsFormatted()) {
+		return false;
+	}
+	if (!m_current_basic->IsWritableIntoDisk()) {
+		m_current_basic->ShowErrorMessage();
+		return false;
 	}
 
-	// ディスクの残りサイズのチェックと入力ファイルのサイズを得る
-	int file_size = 0;
-	if (!basic->CheckFile(full_data_path, &file_size)) {
-		return -1;
-	}
-
-	// 外部からインポートのスタイル
-	int style = INTNAME_NEW_FILE | INTNAME_SHOW_TEXT | INTNAME_SHOW_ATTR | INTNAME_SPECIFY_FILE_NAME | INTNAME_SHOW_SKIP_DIALOG;
-
-	int sts = 0;
-	DiskBasicDirItem *temp_item = basic->CreateDirItem();
-
-	// ファイル情報があれば読み込む
-	wxString filename = file_name;
-	DiskBasicDirItemAttr date_time;
-	if (temp_item->ReadFileAttrFromXml(full_attr_path, &date_time)) {
-		// ファイル名
-		filename = temp_item->GetFileNameStr();
-		// 内部からインポートに変更
-		style = INTNAME_IMPORT_INTERNAL | INTNAME_SHOW_TEXT | INTNAME_SHOW_ATTR
-			| INTNAME_SPECIFY_CDATE_TIME | INTNAME_SPECIFY_MDATE_TIME | INTNAME_SPECIFY_ADATE_TIME
-			| INTNAME_SHOW_SKIP_DIALOG;
-		// コピーできるか
-		if (!temp_item->IsCopyable()) {
-			// エラーにはしない
-			sts = 1;
-		}
-	} else {
-		// ファイルから日付を得る
-		temp_item->ReadFileDateTime(full_data_path, date_time);
-		style |= INTNAME_SPECIFY_CDATE_TIME | INTNAME_SPECIFY_MDATE_TIME | INTNAME_SPECIFY_ADATE_TIME;
-	}
-	if (sts == 0) {
-		// ダイアログ表示
-		int ans = ShowIntNameBoxAndCheckSameFile(temp_item, filename, file_size, date_time, style);
-		if (ans == wxYES) {
-			// ディスク内にセーブする
-			DiskBasicDirItem *madeitem = NULL;
-			bool valid = basic->SaveFile(full_data_path, temp_item, &madeitem);
-			if (!valid) {
-				sts = -1;
-			}
-		} else {
-			sts = -1;
-		}
-	}
-	delete temp_item;
-	return sts;
-}
-
-/// ファイル名ダイアログ表示と同じファイル名が存在する際のメッセージダイアログ表示
-/// @param [in] temp_item ディレクトリアイテム
-/// @param [in] file_name ファイルパス
-/// @param [in] file_size ファイルサイズ
-/// @param [in] date_time 日時
-/// @param [in] style     スタイル(IntNameBoxShowFlags)
-/// @retval wxYES
-/// @retval wxCANCEL
-int UiDiskFileList::ShowIntNameBoxAndCheckSameFile(DiskBasicDirItem *temp_item, const wxString &file_name, int file_size, DiskBasicDirItemAttr &date_time, int style)
-{
-	int ans = wxNO;
-	bool skip_dlg = gConfig.IsSkipImportDialog();
-	IntNameBox *dlg = NULL;
-	wxString int_name = file_name;
-
-	// ファイルパスからファイル名を生成
-	if (style & INTNAME_NEW_FILE) {
-		// 外部からインポート時
-		if (!temp_item->PreImportDataFile(int_name)) {
-			// エラー
-			ans = wxCANCEL;
-		}
-	}
-	while (ans != wxYES && ans != wxCANCEL) {
-		if (!skip_dlg) {
-			// ファイル名ダイアログを表示
-			if (!dlg) dlg = new IntNameBox(frame, this, wxID_ANY, _("Import File"), wxT(""), basic, temp_item, file_name, int_name, file_size, &date_time, style);
-			int dlgsts = dlg->ShowModal();
-			m_sw_import.Restart();
-			if (dlgsts == wxID_OK) {
-				dlg->GetInternalName(int_name);
-				// ダイアログで指定したファイル名や属性値をアイテムに反映
-				if (!SetDirItemFromIntNameDialog(temp_item, *dlg, basic, true)) {
-					ans = wxCANCEL;
-					break;
-				}
-				// ファイルサイズのチェック
-				int limit = 0;
-				if (!temp_item->IsFileValidSize(dlg, file_size, &limit)) {
-					wxString msg = wxString::Format(_("File size is larger than %d bytes, do you want to continue?"), limit);
-					ans = wxMessageBox(msg, _("File is too large"), wxYES_NO | wxCANCEL);
-					if (ans == wxNO) continue;
-					else if (ans == wxCANCEL) break;
-				} else {
-					ans = wxYES;
-				}
-			} else {
-				ans = wxCANCEL;
-				break;
-			}
-		} else {
-			// ダイアログを表示しないとき
-			if (style & INTNAME_NEW_FILE) {
-				// 外部からインポート時でダイアログなし
-				// ファイル名が適正か
-				IntNameValidator vali(temp_item, _("file name"), basic->GetValidFileName());
-				if (!vali.Validate(this, int_name)) {
-					// ファイル名が不適切
-					skip_dlg = false;
-					ans = wxNO;
-					continue;
-				}
-				// 属性をファイル名から判定してアイテムに反映
-				if (!SetDirItemFromIntNameParam(temp_item, file_name, int_name, date_time, basic, true)) {
-					ans = wxCANCEL;
-					break;
-				}
-			} else {
-				// 内部からインポート時
-				bool ignore_datetime = gConfig.DoesIgnoreDateTime();
-				DiskBasicDirItem::enDateTime ignore_type = temp_item->CanIgnoreDateTime();
-				if (!(ignore_datetime && (ignore_type & DiskBasicDirItem::DATETIME_CREATE) != 0)) {
-					temp_item->SetFileCreateDateTime(date_time.GetCreateDateTime());
-				}
-				if (!(ignore_datetime && (ignore_type & DiskBasicDirItem::DATETIME_MODIFY) != 0)) {
-					temp_item->SetFileModifyDateTime(date_time.GetModifyDateTime());
-				}
-				if (!(ignore_datetime && (ignore_type & DiskBasicDirItem::DATETIME_ACCESS) != 0)) {
-					temp_item->SetFileAccessDateTime(date_time.GetAccessDateTime());
-				}
-			}
-			ans = wxYES;
-		}
-
-		if (ans == wxYES) {
-			// ファイル名重複チェック
-			int sts = basic->IsFileNameDuplicated(temp_item);
-			if (sts < 0) {
-				// 既に存在します 上書き不可
-				skip_dlg = false;
-				wxString msg = wxString::Format(_("File '%s' already exists and cannot overwrite, please rename it."), temp_item->GetFileNameStr());
-				ans = wxMessageBox(msg, _("File exists"), wxOK | wxCANCEL);
-				if (ans == wxOK) continue;
-				else break;
-			} else if (sts == 1) {
-				// 上書き確認ダイアログ
-				skip_dlg = false;
-				wxString msg = wxString::Format(_("File '%s' already exists, do you really want to overwrite it?"), temp_item->GetFileNameStr());
-				ans = wxMessageBox(msg, _("File exists"), wxYES_NO | wxCANCEL);
-				if (ans == wxNO) continue;
-				else if (ans == wxCANCEL) break;
-			} else {
-				ans = wxYES;
-			}
-		} else {
-			ans = wxCANCEL;
-			break;
-		}
-	}
-
-	delete dlg;
-	return ans;
-}
-
-/// ファイル名ダイアログの内容を反映させる
-/// @param [in] item   ディレクトリアイテム
-/// @param [in] dlg    ファイル名ダイアログ
-/// @param [in] basic  BASIC
-/// @param [in] rename ファイル名を変更できるか
-/// @return true:OK false:Error
-bool UiDiskFileList::SetDirItemFromIntNameDialog(DiskBasicDirItem *item, IntNameBox &dlg, DiskBasic *basic, bool rename)
-{
-	DiskBasicDirItemAttr attr;
-
-	// パラメータを設定に反映
-	gConfig.SkipImportDialog(dlg.IsSkipDialog(gConfig.IsSkipImportDialog()));
-	if (item->CanIgnoreDateTime()) {
-		gConfig.IgnoreDateTime(dlg.DoesIgnoreDateTime(gConfig.DoesIgnoreDateTime()));
-	}
-
-	// 属性をアイテムに反映
-	wxString newname;
-
-	dlg.GetInternalName(newname);
-	attr.Renameable(rename);
-	attr.SetFileName(newname, item->GetOptionalNameInAttrDialog(&dlg));
-
-	attr.IgnoreDateTime(gConfig.DoesIgnoreDateTime());
-	
-	attr.SetCreateDateTime(dlg.GetCreateDateTime());
-	attr.SetModifyDateTime(dlg.GetModifyDateTime());
-	attr.SetAccessDateTime(dlg.GetAccessDateTime());
-
-	attr.SetStartAddress(dlg.GetStartAddress());
-	attr.SetEndAddress(dlg.GetEndAddress());
-	attr.SetExecuteAddress(dlg.GetExecuteAddress());
-
-	// 機種依存の属性をアイテムに反映
-	bool sts = item->SetAttrInAttrDialog(&dlg, attr, basic->GetErrinfo());
-
+	int bx = 0;
+	int by = 0;
+	// リストコントロールの親との相対位置
+	UiDiskFrame::GetPositionFromBaseWindow(base, listCtrl, bx, by);
+	MyFileListItem item = listCtrl->GetItemAtPoint(x - bx, y - by);
+	// ドラッグしたアイテムと同じならドロップしない
+	bool sts = (MyFileListItem_IsOk(item) && item == m_dragging_item);
+	MyFileListItem_Unset(m_dragging_item);
 	if (sts) {
-		// 必要なら属性値を加工する
-		sts = item->ProcessAttr(attr, basic->GetErrinfo());
-	}
-	if (sts) {
-		// 属性を更新
-		sts = basic->ChangeAttr(item, attr);
+		return true;
 	}
 
-	return sts;
-}
-
-/// ファイル名を反映させる
-/// @param [in] item      ディレクトリアイテム
-/// @param [in] file_path ファイルパス
-/// @param [in] intname   内部ファイル名
-/// @param [in] date_time 日時
-/// @param [in] basic     BASIC
-/// @param [in] rename    ファイル名を変更できるか
-/// @return true:OK false:Error
-bool UiDiskFileList::SetDirItemFromIntNameParam(DiskBasicDirItem *item, const wxString &file_path, const wxString &intname, DiskBasicDirItemAttr &date_time, DiskBasic *basic, bool rename)
-{
-	DiskBasicDirItemAttr attr;
-
-	// 属性をアイテムに反映
-	wxString newname;
-
-	attr.Renameable(rename);
-	attr.SetFileName(intname, item->ConvOptionalNameFromFileName(file_path));
-
-	attr.IgnoreDateTime(gConfig.DoesIgnoreDateTime());
-	attr.SetCreateDateTime(date_time.GetCreateDateTime());
-	attr.SetModifyDateTime(date_time.GetModifyDateTime());
-	attr.SetAccessDateTime(date_time.GetAccessDateTime());
-
-	// ファイル名から属性を設定
-	attr.SetFileAttr(basic->GetFormatTypeNumber(), item->ConvFileTypeFromFileName(file_path), item->ConvOriginalTypeFromFileName(file_path));
-
-	bool sts = true;
-	if (sts) {
-		// 必要なら属性値を加工する
-		sts = item->ProcessAttr(attr, basic->GetErrinfo());
+	// 指定先がディレクトリならそこにドロップ
+	// そうでないなら現在のディレクトリにドロップ
+	DiskBasicDirItem *dir_item = m_current_basic->GetCurrentDirectory();
+	if (MyFileListItem_IsOk(item)) {
+		DiskBasicDirItem *tmp_dir_item = GetDirItem(item);
+		if (tmp_dir_item && tmp_dir_item->IsDirectory()) {
+			dir_item = tmp_dir_item;
+			dir_included = true;	// 確認ダイアログ表示を指示
+		}
 	}
-	if (sts) {
-		// 属性を更新
-		sts = basic->ChangeAttr(item, attr);
-	}
-	return sts;
+
+	return frame->ImportDataFiles(paths, m_current_basic, dir_item, dir_included, _("dropping..."), _("dropped."));
 }
 
 /// 指定したファイルを削除
-/// @param[in]     tmp_basic BASIC
-/// @param[in,out] dst_item  削除対象アイテム
-/// @return 0:OK >0:Warning <0:Error
-int UiDiskFileList::DeleteDataFile(DiskBasic *tmp_basic, DiskBasicDirItem *dst_item)
+bool UiDiskFileList::DeleteDataFile()
 {
-	if (!dst_item) return -1;
+	if (!m_current_basic) return false;
 
-	int sts = tmp_basic->IsDeletableFile(dst_item);
-	if (sts == 0) {
-		bool is_directory = dst_item->IsDirectory();
-		wxString filename = dst_item->GetFileNameStr();
-		wxString msg = wxString::Format(_("Do you really want to delete '%s'?"), filename);
-		int ans = wxMessageBox(msg, is_directory ? _("Delete a directory") : _("Delete a file"), wxYES_NO);
-		if (ans != wxYES) {
-			return -1;
-		}
-		DiskBasicDirItems dst_items;
-		dst_items.Add(dst_item);
-		sts = DeleteDataFiles(tmp_basic, dst_items, 0, NULL);
+	bool sts = true;
+	MyFileListItems selected_items;
+	int selcount = listCtrl->GetListSelections(selected_items);
+	if (selcount < 0) return false;
 
-		// リスト更新
-		frame->DeleteDirectoryNodeOnDiskList(tmp_basic->GetDisk(), dst_item);
-		RefreshFiles();
+	if (!m_current_basic->IsDeletableFiles()) {
+		m_current_basic->ShowErrorMessage();
+		return false;
 	}
-	if (sts != 0) {
-		tmp_basic->ShowErrorMessage();
+
+	if (selcount == 1) {
+		// 1ファイル選択時
+		DiskBasicDirItem *item = GetDirItem(selected_items.Item(0));
+		sts = (frame->DeleteDataFile(m_current_basic, item) != 0);
+	} else {
+		// 複数ファイル選択時
+		sts = (DeleteDataFiles(m_current_basic, selected_items) != 0);
 	}
 	return sts;
 }
@@ -2148,10 +1661,10 @@ int UiDiskFileList::DeleteDataFiles(DiskBasic *tmp_basic, MyFileListItems &selec
 
 	int sts = 0;
 	DiskBasicDirItems dir_items;
-	sts = DeleteDataFiles(tmp_basic, items, 0, &dir_items);
+	sts = frame->DeleteDataFiles(tmp_basic, items, 0, &dir_items);
 
 	// リスト更新
-	frame->DeleteDirectoryNodesOnDiskList(basic->GetDisk(), dir_items);
+	frame->DeleteDirectoryNodesOnDiskList(m_current_basic->GetDisk(), dir_items);
 	RefreshFiles();
 
 	if (sts != 0) {
@@ -2161,96 +1674,20 @@ int UiDiskFileList::DeleteDataFiles(DiskBasic *tmp_basic, MyFileListItems &selec
 	return sts;
 }
 
-/// 指定したファイルを一括削除（再帰的）
-/// @attention 再帰的に呼ばれる。 This function is called recursively.
-/// @param[in]     tmp_basic       BASIC
-/// @param[in,out] items           削除対象アイテムリスト
-/// @param[in]     depth           深さ
-/// @param[in,out] dir_items       サブディレクトリアイテムリスト
-/// @return 0:OK >0:Warning <0:Error
-int UiDiskFileList::DeleteDataFiles(DiskBasic *tmp_basic, DiskBasicDirItems &items, int depth, DiskBasicDirItems *dir_items)
-{
-	if (depth > 20) return 1;
-
-	int sts = 0;
-	// 機種によってはアイテムをリストから削除するので予めリストをコピー
-	DiskBasicDirItems tmp_items = items;
-	size_t tmp_count = (int)items.Count();
-	for(size_t n = 0; n < tmp_count && sts >= 0; n++) {
-		DiskBasicDirItem *item = tmp_items.Item(n);
-		if (!item) {
-			continue;
-		}
-		if (!item->IsUsed()) {
-			continue;
-		}
-		// 削除できるか
-		if (!item->IsDeletable()) {
-			continue;
-		}
-		bool is_directory = item->IsDirectory();
-		if (is_directory) {
-			// アサイン
-			tmp_basic->AssignDirectory(item);
-			// ディレクトリのときは先にディレクトリ内ファイルを削除
-			DiskBasicDirItems *sitems = item->GetChildren();
-			if (sitems) {
-				int ssts = DeleteDataFiles(tmp_basic, *sitems, depth + 1, NULL);
-				if (ssts == 0 && dir_items) {
-					dir_items->Add(item);
-				}
-				sts |= (ssts != 0 ? -1 : 0);
-			}
-		}
-		if (sts >= 0) {
-			// 削除
-			bool ssts = tmp_basic->DeleteFile(item, false);
-			sts |= (ssts ? 0 : -1);
-		}
-	}
-	return sts;
-}
-
-/// 指定したファイルを削除
-bool UiDiskFileList::DeleteDataFile()
-{
-	if (!basic) return false;
-
-	bool sts = true;
-	MyFileListItems selected_items;
-	int selcount = list->GetListSelections(selected_items);
-	if (selcount < 0) return false;
-
-	if (!basic->IsDeletableFiles()) {
-		basic->ShowErrorMessage();
-		return false;
-	}
-
-	if (selcount == 1) {
-		// 1ファイル選択時
-		DiskBasicDirItem *item = GetDirItem(selected_items.Item(0));
-		sts = (DeleteDataFile(basic, item) != 0);
-	} else {
-		// 複数ファイル選択時
-		sts = (DeleteDataFiles(basic, selected_items) != 0);
-	}
-	return sts;
-}
-
 /// ファイル名の編集開始
 void UiDiskFileList::StartEditingFileName()
 {
-	if (!basic) return;
+	if (!m_current_basic) return;
 
-	if (list->GetListSelectedRow() == wxNOT_FOUND) return;
+	if (listCtrl->GetListSelectedRow() == wxNOT_FOUND) return;
 
-	MyFileListItem selected_item = list->GetListSelection();
+	MyFileListItem selected_item = listCtrl->GetListSelection();
 
-	int pos = (int)list->GetListItemData(selected_item);
-	DiskBasicDirItem *ditem = basic->GetDirItem(pos);
+	int pos = (int)listCtrl->GetListItemData(selected_item);
+	DiskBasicDirItem *ditem = m_current_basic->GetDirItem(pos);
 
-	if (!basic->CanRenameFile(ditem)) {
-		basic->ShowErrorMessage();
+	if (!m_current_basic->CanRenameFile(ditem)) {
+		m_current_basic->ShowErrorMessage();
 		return;
 	}
 
@@ -2262,7 +1699,7 @@ void UiDiskFileList::StartEditingFileName()
 void UiDiskFileList::StartEditingFileName(const MyFileListItem &selected_item)
 {
 	// 編集可能にする
-	list->EditListItem(selected_item);
+	listCtrl->EditListItem(selected_item);
 }
 
 /// 指定したファイル名を変更
@@ -2271,13 +1708,13 @@ void UiDiskFileList::StartEditingFileName(const MyFileListItem &selected_item)
 /// @return true:OK false:Error
 bool UiDiskFileList::RenameDataFile(const MyFileListItem &view_item, const wxString &newname)
 {
-	if (!basic) return false;
+	if (!m_current_basic) return false;
 
 	DiskBasicDirItem *item = GetDirItem(view_item);
 	if (!item) return false;
 
-	if (!basic->CanRenameFile(item)) {
-		basic->ShowErrorMessage();
+	if (!m_current_basic->CanRenameFile(item)) {
+		m_current_basic->ShowErrorMessage();
 		return false;
 	}
 
@@ -2285,7 +1722,7 @@ bool UiDiskFileList::RenameDataFile(const MyFileListItem &view_item, const wxStr
 	filename.SetName(newname);
 
 	// ダイアログ入力後のファイル名文字列を大文字に変換
-	if (basic->ToUpperAfterRenamed()) {
+	if (m_current_basic->ToUpperAfterRenamed()) {
 		filename.GetName().MakeUpper();
 	}
 	// 拡張属性を得る
@@ -2293,25 +1730,25 @@ bool UiDiskFileList::RenameDataFile(const MyFileListItem &view_item, const wxStr
 
 	bool sts = true;
 	wxString errmsg;
-	IntNameValidator validator(item, _("file name"), basic->GetValidFileName());
+	IntNameValidator validator(item, _("file name"), m_current_basic->GetValidFileName());
 	if (sts && !validator.Validate(frame, filename.GetName())) {
 		sts = false;
 	}
-	if (sts && basic->IsFileNameDuplicated(filename, item) != 0) {
+	if (sts && m_current_basic->IsFileNameDuplicated(m_current_basic->GetCurrentDirectory(), filename, item) != 0) {
 		errmsg = wxString::Format(_("File '%s' already exists."), filename.GetName());
 		wxMessageBox(errmsg, _("File exists"), wxOK | wxICON_EXCLAMATION, parent);
 		sts = false;
 	}
 	if (sts) {
-		sts = basic->RenameFile(item, filename.GetName());
+		sts = m_current_basic->RenameFile(item, filename.GetName());
 		if (!sts) {
-			basic->ShowErrorMessage();
+			m_current_basic->ShowErrorMessage();
 		}
 		// リストのファイル名を更新
-		list->SetListText(view_item, LISTCOL_NAME, item->GetFileNameStr());
+		listCtrl->SetListText(view_item, LISTCOL_NAME, item->GetFileNameStr());
 		// ディレクトリのときはツリー側も更新
 		if (item->IsDirectory()) {
-			frame->RefreshDiskListDirectoryName(basic->GetDisk());
+			frame->RefreshDiskListDirectoryName(m_current_basic->GetDisk());
 		}
 	}
 	return sts;
@@ -2325,82 +1762,21 @@ void UiDiskFileList::DoubleClicked()
 	if (!item) return;
 
 	if (item->GetFileAttr().IsDirectory()) {
-		ChangeDirectory(NULL, 0, item, true);
+		frame->ChangeDirectory(m_current_basic, item, true);
 	} else {
 		ShowFileAttr(item);
 	}
 }
 
-/// ディレクトリをアサインする
-/// @param [in] disk     選択したディスク NULLの時、現在のディスク
-/// @param [in] side_num AB面ありの時サイド番号 両面なら-1
-/// @param [in] dst_item ディレクトリのアイテム
-/// @return true:OK false:Error
-bool UiDiskFileList::AssignDirectory(DiskImageDisk *disk, int side_num, DiskBasicDirItem *dst_item)
-{
-	if (disk) {
-		// ディスクを指定した時は、そのディスクのBASICに切り替える
-		basic = disk->GetDiskBasic(side_num);
-	}
-	if (!basic) return false;
-
-	bool sts = basic->AssignDirectory(dst_item);
-	if (sts) {
-		// リスト更新
-		frame->RefreshDirectoryNodeOnDiskList(basic->GetDisk(), dst_item);
-	}
-	return sts;
-}
-
-/// ディレクトリを移動する
-/// @param [in] disk     選択したディスク NULLの時、現在のディスク
-/// @param [in] side_num AB面ありの時サイド番号 両面なら-1
-/// @param [in] dst_item 移動先ディレクトリのアイテム
-/// @param [in] refresh_list ファイルリストを更新するか
-/// @return true:OK false:Error
-bool UiDiskFileList::ChangeDirectory(DiskImageDisk *disk, int side_num, DiskBasicDirItem *dst_item, bool refresh_list)
-{
-	if (disk) {
-		// ディスクを指定した時は、そのディスクのBASICに切り替える
-		basic = disk->GetDiskBasic(side_num);
-	}
-	if (!basic) return false;
-
-	bool sts = basic->ChangeDirectory(dst_item);
-	if (sts) {
-		// リスト更新
-		if (refresh_list) SetFiles();
-		frame->SelectDirectoryNodeOnDiskList(basic->GetDisk(), dst_item);
-	}
-	return sts;
-}
-
-/// ディレクトリを削除する
-/// @param [in] disk     選択したディスク NULLの時、現在のディスク
-/// @param [in] side_num AB面ありの時サイド番号 両面なら-1
-/// @param [in] dst_item 削除するディレクトリのアイテム
-/// @return true:OK false:Error
-bool UiDiskFileList::DeleteDirectory(DiskImageDisk *disk, int side_num, DiskBasicDirItem *dst_item)
-{
-	DiskBasic *tmp_basic = basic;
-	if (disk) {
-		// ディスクを指定した時は、そのディスクのBASICに切り替える
-		tmp_basic = disk->GetDiskBasic(side_num);
-	}
-	if (!tmp_basic) return false;
-
-	return (DeleteDataFile(tmp_basic, dst_item) != 0);
-}
-
 /// 指定したファイルを編集
 void UiDiskFileList::EditDataFile(enEditorTypes editor_type)
 {
-	if (!basic) return;
+	if (!m_current_basic) return;
 
-	if (!list) return;
+	if (!listCtrl) return;
 
 	MyFileListItems selected_items;
-	int selcount = list->GetListSelections(selected_items);
+	int selcount = listCtrl->GetListSelections(selected_items);
 	if (selcount <= 0) return;
 
 	UiDiskApp *app = &wxGetApp();
@@ -2411,7 +1787,7 @@ void UiDiskFileList::EditDataFile(enEditorTypes editor_type)
 		return;
 	}
 
-	basic->ClearErrorMessage();
+	m_current_basic->ClearErrorMessage();
 
 	bool sts = true;
 	do {
@@ -2425,7 +1801,7 @@ void UiDiskFileList::EditDataFile(enEditorTypes editor_type)
 			break;
 		}
 		// エクスポートできるか
-		if (!basic->IsLoadableFile(item)) {
+		if (!m_current_basic->IsLoadableFile(item)) {
 			sts = false;
 			break;
 		}
@@ -2439,7 +1815,7 @@ void UiDiskFileList::EditDataFile(enEditorTypes editor_type)
 		// フルパスを作成
 		wxFileName path = wxFileName(tmp_dir_name, filename);
 
-		if (!ExportDataFile(item, path.GetFullPath(), _("exporting..."), _("exported."))) {
+		if (!frame->ExportDataFile(m_current_basic, item, path.GetFullPath(), _("exporting..."), _("exported."))) {
 			sts = false;
 			break;
 		}
@@ -2462,7 +1838,7 @@ void UiDiskFileList::EditDataFile(enEditorTypes editor_type)
 
 		if (in_file_size == out_file_size) {
 			// ファイルを変更しているか
-			int sts = basic->VerifyFile(item, path.GetFullPath());
+			int sts = m_current_basic->VerifyFile(item, path.GetFullPath());
 			if (sts < 0) {
 				// エラーあり
 				sts = false;
@@ -2474,12 +1850,12 @@ void UiDiskFileList::EditDataFile(enEditorTypes editor_type)
 		}
 
 		// ディスク内にセーブする
-		sts = ImportDataFile(item, path.GetFullPath(), _("importing..."), _("imported."));
+		sts = frame->ImportDataFile(item, path.GetFullPath(), m_current_basic, m_current_basic->GetCurrentDirectory(), _("importing..."), _("imported."));
 
 	} while(0);
 
 	if (!sts) {
-		basic->ShowErrorMessage();
+		m_current_basic->ShowErrorMessage();
 	}
 }
 
@@ -2502,7 +1878,7 @@ bool UiDiskFileList::ShowFileAttr(DiskBasicDirItem *item)
 	item->GetAllGroups(group_items);
 	item->SetGroups(group_items);
 
-	IntNameBox *dlg = new IntNameBox(frame, this, wxID_ANY, _("File Attribute"), wxT(""), basic, item,
+	IntNameBox *dlg = new IntNameBox(frame, this, wxID_ANY, _("File Attribute"), wxT(""), m_current_basic, item,
 		wxEmptyString, wxEmptyString, 0, NULL,
 		INTNAME_SHOW_TEXT | INTNAME_SHOW_ATTR | INTNAME_SHOW_PROPERTY);
 
@@ -2551,7 +1927,7 @@ void UiDiskFileList::AcceptSubmittedFileAttr(IntNameBox *dlg)
 	DiskBasicError *err_info = &dlg_basic->GetErrinfo();
 
 	// 書き込み禁止か
-	sts = basic->IsWritableIntoDisk();
+	sts = m_current_basic->IsWritableIntoDisk();
 
 	wxString newname;
 	if (sts) {
@@ -2565,7 +1941,7 @@ void UiDiskFileList::AcceptSubmittedFileAttr(IntNameBox *dlg)
 	if (sts) {
 		if (item->IsFileNameEditable()) {
 			// 同じファイル名があるか
-			if (dlg_basic->IsFileNameDuplicated(newname, item) != 0) {
+			if (dlg_basic->IsFileNameDuplicated(item->GetParent(), newname, item) != 0) {
 				err_info->SetError(DiskBasicError::ERRV_ALREADY_EXISTS, newname.wc_str());
 				sts = false;
 			}
@@ -2573,13 +1949,13 @@ void UiDiskFileList::AcceptSubmittedFileAttr(IntNameBox *dlg)
 	}
 	if (sts) {
 		// ダイアログで指定した値をアイテムに反映
-		sts = SetDirItemFromIntNameDialog(item, *dlg, dlg_basic, dlg_basic->CanRenameFile(item, false));
+		sts = frame->SetDirItemFromIntNameDialog(item, *dlg, dlg_basic, dlg_basic->CanRenameFile(item, false));
 	}
 	if (!sts) {
 		dlg_basic->ShowErrorMessage();
 	}
 
-	if (basic == dlg_basic) {
+	if (m_current_basic == dlg_basic) {
 		// ファイルリストを更新
 		RefreshFiles();
 		// ディレクトリのときはツリーも更新
@@ -2610,18 +1986,18 @@ void UiDiskFileList::CloseAllFileAttr()
 /// @return true:OKボタン押下
 bool UiDiskFileList::ChangeBasicType()
 {
-	if (!basic) return false;
+	if (!m_current_basic) return false;
 
-	DiskImageDisk *disk = basic->GetDisk();
+	DiskImageDisk *disk = m_current_basic->GetDisk();
 	if (!disk) return false;
 
-	BasicParamBox dlg(this, wxID_ANY, _("Select BASIC Type"), disk, basic, BasicParamBox::BASIC_SELECTABLE);
+	BasicParamBox dlg(this, wxID_ANY, _("Select BASIC Type"), disk, m_current_basic, BasicParamBox::BASIC_SELECTABLE);
 	int sts = dlg.ShowModal();
 
 	if (sts == wxID_OK) {
 		if (dlg.IsChangedBasic()) {
 			ClearFiles();
-			basic->ClearParseAndAssign();
+			m_current_basic->ClearParseAndAssign();
 			frame->RefreshDiskListOnSelectedSide(dlg.GetBasicParam());
 		} else {
 			dlg.CommitData();
@@ -2634,12 +2010,12 @@ bool UiDiskFileList::ChangeBasicType()
 /// BASIC情報ダイアログ
 void UiDiskFileList::ShowBasicAttr()
 {
-	if (!basic) return;
+	if (!m_current_basic) return;
 
-	DiskImageDisk *disk = basic->GetDisk();
+	DiskImageDisk *disk = m_current_basic->GetDisk();
 	if (!disk) return;
 
-	BasicParamBox dlg(this, wxID_ANY, _("BASIC Information"), disk, basic, 0);
+	BasicParamBox dlg(this, wxID_ANY, _("BASIC Information"), disk, m_current_basic, 0);
 	int sts = dlg.ShowModal();
 	if (sts == wxID_OK) {
 		dlg.CommitData();
@@ -2650,35 +2026,28 @@ void UiDiskFileList::ShowBasicAttr()
 /// カラム変更ダイアログ
 void UiDiskFileList::ShowListColumnDialog()
 {
-	if (list->ShowListColumnRearrangeBox()) {
+	if (listCtrl->ShowListColumnRearrangeBox()) {
 		// リストを更新
 		RefreshFiles();
 	}
 }
 
-/// ディレクトリを作成できるか
-/// @return true:できる false:できない
-bool UiDiskFileList::CanMakeDirectory() const
-{
-	return basic ? basic->CanMakeDirectory() : false;
-}
-
 /// ディレクトリ作成ダイアログ
 void UiDiskFileList::ShowMakeDirectoryDialog()
 {
-	if (!basic) return;
+	if (!m_current_basic) return;
 
-	if (!basic->IsWritableIntoDisk()) {
-		basic->ShowErrorMessage();
+	if (!m_current_basic->IsWritableIntoDisk()) {
+		m_current_basic->ShowErrorMessage();
 		return;
 	}
 
-	DiskImageDisk *disk = basic->GetDisk();
+	DiskImageDisk *disk = m_current_basic->GetDisk();
 	if (!disk) return;
 
 	// 名前の入力
-	DiskBasicDirItem *temp_item = basic->CreateDirItem();
-	IntNameBox dlg(frame, this, wxID_ANY, _("New Directory Name"), wxT(""), basic, temp_item, wxEmptyString, wxEmptyString, 0, NULL
+	DiskBasicDirItem *temp_item = m_current_basic->CreateDirItem();
+	IntNameBox dlg(frame, this, wxID_ANY, _("New Directory Name"), wxT(""), m_current_basic, temp_item, wxEmptyString, wxEmptyString, 0, NULL
 		, INTNAME_NEW_FILE | INTNAME_SHOW_TEXT | INTNAME_SPECIFY_FILE_NAME);
 
 	int ans = dlg.ShowModal();
@@ -2690,112 +2059,65 @@ void UiDiskFileList::ShowMakeDirectoryDialog()
 		if (temp_item->CanIgnoreDateTime()) {
 			gConfig.IgnoreDateTime(dlg.DoesIgnoreDateTime(gConfig.DoesIgnoreDateTime()));
 		}
-		sts = basic->MakeDirectory(dirname, gConfig.DoesIgnoreDateTime());
+		sts = m_current_basic->MakeDirectory(m_current_basic->GetCurrentDirectory(), dirname, gConfig.DoesIgnoreDateTime());
 		if (sts != 0) {
-			basic->ShowErrorMessage();
+			m_current_basic->ShowErrorMessage();
 		} else {
 			// リスト更新
 			RefreshFiles();
 			// 左パネルのツリーを更新
-			frame->RefreshAllDirectoryNodesOnDiskList(disk, basic->GetSelectedSide());
+			frame->RefreshAllDirectoryNodesOnDiskList(disk, m_current_basic->GetSelectedSide(), m_current_basic->GetCurrentDirectory());
 		}
 	}
 
 	delete temp_item;
 }
 
-/// ディレクトリ作成
-/// ディレクトリ名が重複する時にダイアログを表示
-/// @param[in]  name  ディレクトリ名
-/// @param[in]  title ダイアログのタイトル
-/// @param[out] nitem 作成したディレクトリアイテム
-/// @return true:OK
-bool UiDiskFileList::MakeDirectory(const wxString &name, const wxString &title, DiskBasicDirItem **nitem)
-{
-	int sts = 1;
-	wxString dir_name = name;
-	{
-		// 必要なら名前を変更
-		DiskBasicDirItem *pre_item = basic->CreateDirItem();
-		if (!pre_item->PreImportDataFile(dir_name)) {
-			sts = -1;
-		}
-		delete pre_item;
-	}
-	while (sts > 0) {
-		sts = basic->MakeDirectory(dir_name, gConfig.DoesIgnoreDateTime(), nitem);
-		if (sts == 1) {
-			// 同じ名前があるのでダイアログ表示
-			basic->ClearErrorMessage();
-			wxString msgs = _("The same file name or directory already exists.");
-			msgs += wxT("\n");
-			msgs += _("Please rename this.");
-			DiskBasicDirItem *temp_item = basic->CreateDirItem();
-			IntNameBox dlg(frame, this, wxID_ANY, title
-				, msgs
-				, basic, temp_item, dir_name, dir_name, 0, NULL
-				, INTNAME_NEW_FILE | INTNAME_SHOW_TEXT | INTNAME_SPECIFY_FILE_NAME);
-			int ans = dlg.ShowModal();
-			if (ans != wxID_OK) {
-				sts = -1;
-			} else {
-				dlg.GetInternalName(dir_name);
-				if (temp_item->CanIgnoreDateTime()) {
-					gConfig.IgnoreDateTime(dlg.DoesIgnoreDateTime(gConfig.DoesIgnoreDateTime()));
-				}
-			}
-			delete temp_item;
-		}
-	}
-
-	return (sts >= 0);
-}
-
 /// 選択している行数
 int UiDiskFileList::GetListSelectedItemCount() const
 {
-	return list->GetListSelectedItemCount();
+	return listCtrl->GetListSelectedItemCount();
 }
 
 /// BASICディスクとして使用できるか
 bool UiDiskFileList::CanUseBasicDisk() const
 {
-	return basic ? basic->CanUse() : false;
+	return m_current_basic ? m_current_basic->CanUse() : false;
 }
 /// BASICディスクを解析したか
 bool UiDiskFileList::IsAssignedBasicDisk() const
 {
-	return basic? basic->IsAssigned() : false;
+	return m_current_basic? m_current_basic->IsAssigned() : false;
 }
 /// BASICディスク＆フォーマットできるか
 bool UiDiskFileList::IsFormattableBasicDisk() const
 {
-	return basic? basic->IsFormattable() : false;
+	return m_current_basic? m_current_basic->IsFormattable() : false;
 }
 /// BASICディスク＆フォーマットされているか
 bool UiDiskFileList::IsFormattedBasicDisk() const
 {
-	return basic ? basic->IsFormatted() : false;
+	return m_current_basic ? m_current_basic->IsFormatted() : false;
 }
 /// ファイルの書き込み可能か
 bool UiDiskFileList::IsWritableBasicFile()
 {
-	return basic ? basic->IsWritableIntoDisk() : false;
+	return m_current_basic ? m_current_basic->IsWritableIntoDisk() : false;
 }
 /// ファイルの削除可能か
 bool UiDiskFileList::IsDeletableBasicFile()
 {
-	return basic ? basic->IsDeletableFiles() : false;
+	return m_current_basic ? m_current_basic->IsDeletableFiles() : false;
 }
 /// FATエリアの空き状況を取得
 void UiDiskFileList::GetFatAvailability(wxUint32 *offset, const wxArrayInt **arr) const
 {
-	if (basic) basic->GetFatAvailability(offset, arr);
+	if (m_current_basic) m_current_basic->GetFatAvailability(offset, arr);
 }
 /// フォントをセット
 void UiDiskFileList::SetListFont(const wxFont &font)
 {
 	textAttr->SetFont(font);
-	list->SetFont(font);
+	listCtrl->SetFont(font);
 	Refresh();
 }

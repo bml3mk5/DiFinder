@@ -19,6 +19,8 @@
 #endif
 
 
+class wxCustomDataObject;
+class wxFileDataObject;
 class MyMenu;
 class UiDiskFrame;
 class DiskImageFile;
@@ -92,12 +94,20 @@ public:
 #define UiDiskListItem  wxDataViewItem
 #define UiDiskListEvent wxDataViewEvent
 #define UiDiskTreeIdVal	unsigned int
+#define UiDiskListItems wxDataViewItemArray
+
+#define UiDiskListItem_IsOk(itm) itm.IsOk()
+#define UiDiskListItem_Unset(itm) itm = UiDiskListItem()
 
 #else
 
 #define UiDiskListItem  wxTreeItemId
 #define UiDiskListEvent wxTreeEvent
 #define UiDiskTreeIdVal	wxTreeItemIdValue
+#define UiDiskListItems wxArrayTreeItemIds
+
+#define UiDiskListItem_IsOk(itm) itm.IsOk()
+#define UiDiskListItem_Unset(itm) itm.Unset()
 
 #endif
 
@@ -120,17 +130,19 @@ public:
 class UiDiskList: public UiDiskTreeCtrl
 {
 private:
-	wxWindow *parent;
-	UiDiskFrame *frame;
+	wxWindow		*parent;
+	UiDiskFrame		*frame;
 
-	wxMenu *menuPopup;
+	MyMenu			*menuPopup;
 
-	DiskImageDisk *selected_disk;
-	bool disk_selecting;
+	DiskImageDisk	*m_selected_disk;
+	bool			 m_disk_selecting;
 
-	bool initialized;
+	bool			 m_initialized;
 
-	UiDiskListItem root_node;
+	UiDiskListItem	 m_root_node;
+
+	UiDiskListItem	 m_dragging_node;
 
 	/// ディレクトリを更新
 	void RefreshDirectorySub(DiskImageDisk *disk, const UiDiskListItem &node, UiDiskPositionData *cd, DiskBasicDirItem *dir_item);
@@ -138,6 +150,8 @@ private:
 	UiDiskListItem SetSelectedItemAtDiskImage();
 	/// サブキャプション
 	void SubCaption(int type, int side_number, wxString &caption) const;
+	/// ファイルリスト作成（DnD, クリップボード用）
+	bool CreateFileObject(const UiDiskListItem &sel_node, wxString &tmp_dir_name, const wxString &start_msg, const wxString &end_msg, wxFileDataObject &file_object);
 
 public:
 	UiDiskList(UiDiskFrame *parentframe, wxWindow *parent);
@@ -150,6 +164,12 @@ public:
 
 	/// @name event procedures
 	//@{
+	/// コピー選択
+	void OnCopyFile(wxCommandEvent& event);
+	/// ペースト選択
+	void OnPasteFile(wxCommandEvent& event);
+	/// ツリー上でドラッグ開始
+	void OnBeginDrag(UiDiskListEvent& event);
 	/// 右クリック選択
 	void OnContextMenu(UiDiskListEvent& event);
 	/// ツリーアイテム選択
@@ -160,24 +180,8 @@ public:
 	void OnStartEditing(UiDiskListEvent& event);
 	/// アイテム編集終了
 	void OnEditingDone(UiDiskListEvent& event);
-//	/// ディスクを保存選択
-//	void OnSaveDisk(wxCommandEvent& event);
-//	/// ディスクを新規に追加選択
-//	void OnAddNewDisk(wxCommandEvent& event);
-//	/// ディスクをファイルから追加選択
-//	void OnAddDiskFromFile(wxCommandEvent& event);
-//	/// ディスクイメージを置換選択
-//	void OnReplaceDisk(wxCommandEvent& event);
-//	/// ディスクを削除選択
-//	void OnDeleteDisk(wxCommandEvent& event);
-//	/// ディスク名を変更選択
-//	void OnRenameDisk(wxCommandEvent& event);
 	/// ディレクトリを削除選択
 	void OnDeleteDirectory(wxCommandEvent& event);
-//	/// 初期化選択
-//	void OnInitializeDisk(wxCommandEvent& event);
-//	/// フォーマット選択
-//	void OnFormatDisk(wxCommandEvent& event);
 	/// ディスクイメージプロパティ選択
 	void OnPropertyFile(wxCommandEvent& event);
 	/// パーティションプロパティ選択
@@ -243,7 +247,7 @@ public:
 	/// ディレクトリを更新
 	void RefreshDirectoryNode(DiskImageDisk *disk, DiskBasicDirItem *dir_item);
 	/// 全てのディレクトリを更新
-	void RefreshAllDirectoryNodes(DiskImageDisk *disk, int side_number);
+	void RefreshAllDirectoryNodes(DiskImageDisk *disk, int side_number, DiskBasicDirItem *dir_item);
 	/// ディレクトリを選択
 	void SelectDirectoryNode(DiskImageDisk *disk, DiskBasicDirItem *dir_item);
 	/// ディレクトリノードを削除
@@ -259,17 +263,6 @@ public:
 	/// ツリービューのディレクトリ名を再設定
 	void RefreshDirectoryName(const UiDiskListItem &node, int disk_number, int depth = 0);
 
-//	/// ディスクの初期化
-//	bool InitializeDisk();
-//	/// ディスクを論理フォーマット
-//	bool FormatDisk();
-
-//	/// ディスクをファイルに保存ダイアログ
-//	void ShowSaveDiskDialog();
-//	/// ディスクを置換
-//	void ReplaceDisk();
-//	/// ディスクをファイルから削除
-//	bool DeleteDisk();
 	/// ディスク名を変更
 	void RenameDisk();
 	/// パーティション情報ダイアログ
@@ -280,6 +273,17 @@ public:
 	void ChangeCharCode(const wxString &name);
 	/// フォントをセット
 	void SetListFont(const wxFont &font);
+
+	/// ファイルリストをドラッグ
+	bool DragDataSource(const UiDiskListItem &sel_node);
+	/// 指定したフォルダにエクスポート
+	int  ExportDataFiles(const UiDiskListItems &selected_items, const wxString &data_dir, const wxString &attr_dir, const wxString &start_msg, const wxString &end_msg, wxFileDataObject *file_object = NULL);
+	/// ファイルをドロップ
+	bool DropDataFiles(wxWindow *base, int x, int y, const wxArrayString &paths, bool dir_included);
+	/// クリップボードへコピー
+	bool CopyToClipboard();
+	/// クリップボードからペースト
+	bool PasteFromClipboard();
 	//@}
 
 	/// @name properties
@@ -308,6 +312,8 @@ public:
 		IDM_DELETE_DIRECTORY,
 		IDM_INITIALIZE_DISK,
 		IDM_FORMAT_DISK,
+		IDM_COPY_FILE,
+		IDM_PASTE_FILE,
 		IDM_PROPERTY_FILE,
 		IDM_PROPERTY_DISK,
 		IDM_PROPERTY_BASIC,

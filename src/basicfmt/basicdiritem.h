@@ -436,6 +436,8 @@ public:
 	virtual void	SetFileSize(int val);
 	/// @brief ファイルサイズを返す
 	virtual int		GetFileSize() const;
+	/// @brief ディレクトリサイズをセット
+	virtual void	SetDirectorySize(int val);
 	/// @brief ファイルサイズとグループ数を計算する
 	virtual void	CalcFileUnitSize(int fileunit_num) {}
 	/// @brief ファイルサイズとグループ数を計算する
@@ -886,4 +888,4 @@ public:
 	void CopyFrom(const directory_t *src_item);
 };
 
-#endif /* _BASICDIRITEM_H_ */
+#endif /* BASICDIRITEM_H */

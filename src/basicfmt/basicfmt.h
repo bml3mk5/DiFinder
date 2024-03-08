@@ -117,8 +117,6 @@ private:
 	wxString	char_code;				///< ファイルなどの文字コード体系
 	CharCodes	codes;					///< 文字コード変換
 
-	wxString	desc_size;				///< 空きサイズを文字列に成形したもの
-
 	DiskBasicError errinfo;				///< エラー情報保存用
 
 	/// BASIC種類を設定
@@ -135,7 +133,7 @@ public:
 	/// @name 解析
 	//@{
 	/// 指定したディスクがDISK BASICかを解析する
-	int				ParseDisk(DiskImageDisk *newdisk, int newside, const DiskBasicParam *match, bool is_formatting);
+	int				ParseBasic(DiskImageDisk *newdisk, int newside, const DiskBasicParam *match, bool is_formatting);
 	/// パラメータをクリア
 	void			Clear();
 
@@ -181,9 +179,9 @@ public:
 	/// @name 比較・チェック
 	//@{
 	/// 同じファイル名が既に存在して上書き可能か
-	int				IsFileNameDuplicated(const DiskBasicFileName &filename, DiskBasicDirItem *exclude_item = NULL, DiskBasicDirItem **next_item = NULL);
+	int				IsFileNameDuplicated(const DiskBasicDirItem *dir_item, const DiskBasicFileName &filename, DiskBasicDirItem *exclude_item = NULL, DiskBasicDirItem **next_item = NULL);
 	/// 同じファイル名が既に存在して上書き可能か
-	int				IsFileNameDuplicated(const DiskBasicDirItem *target_item, DiskBasicDirItem *exclude_item = NULL, DiskBasicDirItem **next_item = NULL);
+	int				IsFileNameDuplicated(const DiskBasicDirItem *dir_item, const DiskBasicDirItem *target_item, DiskBasicDirItem *exclude_item = NULL, DiskBasicDirItem **next_item = NULL);
 
 	/// 指定ファイルのサイズをチェック
 	bool			CheckFile(const wxString &srcpath, int *file_size);
@@ -201,11 +199,11 @@ public:
 	/// 書き込みできるか
 	bool			IsWritableIntoDisk();
 	/// 指定ファイルをディスクイメージにセーブ
-	bool			SaveFile(const wxString &srcpath, DiskBasicDirItem *pitem, DiskBasicDirItem **nitem = NULL);
+	bool			SaveFile(const wxString &srcpath, DiskBasicDirItem *dir_item, DiskBasicDirItem *pitem, DiskBasicDirItem **nitem = NULL);
 	/// バッファデータをディスクイメージにセーブ
-	bool			SaveFile(const wxUint8 *buffer, size_t buflen, DiskBasicDirItem *pitem, DiskBasicDirItem **nitem = NULL);
+	bool			SaveFile(const wxUint8 *buffer, size_t buflen, DiskBasicDirItem *dir_item, DiskBasicDirItem *pitem, DiskBasicDirItem **nitem = NULL);
 	/// ストリームデータをディスクイメージにセーブ
-	bool			SaveFile(wxInputStream &istream, DiskBasicDirItem *pitem, DiskBasicDirItem **nitem = NULL);
+	bool			SaveFile(wxInputStream &istream, DiskBasicDirItem *dir_item, DiskBasicDirItem *pitem, DiskBasicDirItem **nitem = NULL);
 	/// ストリームデータをディスクイメージにセーブ
 	bool			SaveData(wxInputStream &istream, DiskBasicDirItem *pitem, DiskBasicDirItem *item, DiskBasicGroups &group_items, int &file_size);
 	/// ストリームデータをディスクイメージにセーブ
@@ -254,12 +252,14 @@ public:
 	DiskBasicDirItems *GetCurrentDirectoryItems(DiskBasicDirItem **dir_item = NULL);
 	/// ディレクトリをアサイン
 	bool			AssignDirectory(DiskBasicDirItem *dir_item);
+	/// ディレクトリを読み直す
+	bool			ReassignDirectory(DiskBasicDirItem *dir_item);
 	/// ディレクトリを変更
 	bool			ChangeDirectory(DiskBasicDirItem * &dst_item);
 	/// サブディレクトリの作成できるか
 	bool			CanMakeDirectory() const;
 	/// サブディレクトリの作成
-	int				MakeDirectory(const wxString &filename, bool ignore_datetime, DiskBasicDirItem **nitem = NULL);
+	int				MakeDirectory(DiskBasicDirItem *dir_item, const wxString &filename, bool ignore_datetime, DiskBasicDirItem **nitem = NULL);
 	/// ディレクトリのサイズを拡張
 	bool			ExpandDirectory(DiskBasicDirItem *dir_item);
 	//@}
@@ -326,7 +326,7 @@ public:
 	/// 選択中のサイド文字列を返す
 	wxString		GetSelectedSideStr() const;
 	/// DISK BASICの説明を取得
-	const wxString &GetDescriptionDetail();
+	wxString		GetDescriptionDetails() const;
 	/// FATクラス
 	DiskBasicFat	*GetFat() { return fat; }
 	/// DIRクラス

@@ -10,6 +10,7 @@
 #include <wx/mstream.h>
 #include <wx/numformatter.h>
 #include <wx/datetime.h>
+#include "basictemplate.h"
 #include "basicfat.h"
 #include "basicdir.h"
 #include "basictype.h"
@@ -207,7 +208,7 @@ int DiskBasic::MaxRatio(wxArrayDouble &values)
 /// @retval >0:ワーニング
 /// @retval  0:正常
 /// @retval <0:エラーあり
-int DiskBasic::ParseDisk(DiskImageDisk *newdisk, int newside, const DiskBasicParam *match, bool is_formatting)
+int DiskBasic::ParseBasic(DiskImageDisk *newdisk, int newside, const DiskBasicParam *match, bool is_formatting)
 {
 	errinfo.Clear();
 
@@ -369,7 +370,7 @@ wxString DiskBasic::GetSelectedSideStr() const
 }
 
 /// DISK BASICの説明を取得
-const wxString &DiskBasic::GetDescriptionDetail()
+wxString DiskBasic::GetDescriptionDetails() const
 {
 	wxString desc = DiskBasicParam::GetBasicDescription();
 	int free_size = type ? (int)type->GetFreeDiskSize() : -1;
@@ -381,8 +382,7 @@ const wxString &DiskBasic::GetDescriptionDetail()
 		, free_size >= 0 ? wxNumberFormatter::ToString((long)free_size) : wxT("---")
 		, free_groups >= 0 ? wxNumberFormatter::ToString((long)free_groups) : wxT("---")
 	);
-	desc_size = desc;
-	return desc_size;
+	return desc;
 }
 
 /// FATエリアの空き状況を取得
@@ -706,15 +706,16 @@ int DiskBasic::AccessUnitData(int fileunit_num, DiskBasicDirItem *item, wxInputS
 }
 
 /// 同じファイル名が既に存在して上書き可能か
+/// @param [in]  dir_item     検索するディレクトリ
 /// @param [in]  filename     ファイル名
 /// @param [in]  exclude_item 検索対象から除くアイテム
 /// @param [out] next_item    一致したアイテムの次位置にあるアイテム
 /// @retval  0  なし
 /// @retval  1  あり 通常ファイル
 /// @retval  -1 あり 上書き不可（ディレクトリ or ボリュームラベル）
-int DiskBasic::IsFileNameDuplicated(const DiskBasicFileName &filename, DiskBasicDirItem *exclude_item, DiskBasicDirItem **next_item)
+int DiskBasic::IsFileNameDuplicated(const DiskBasicDirItem *dir_item, const DiskBasicFileName &filename, DiskBasicDirItem *exclude_item, DiskBasicDirItem **next_item)
 {
-	DiskBasicDirItem *item = dir->FindFile(filename, IsCompareCaseInsense(), exclude_item, next_item);
+	DiskBasicDirItem *item = dir->FindFile(dir_item, filename, IsCompareCaseInsense(), exclude_item, next_item);
 	if (item == NULL) {
 		return 0;
 	}
@@ -722,15 +723,16 @@ int DiskBasic::IsFileNameDuplicated(const DiskBasicFileName &filename, DiskBasic
 }
 
 /// 同じファイル名が既に存在して上書き可能か
+/// @param [in]  dir_item     検索するディレクトリ
 /// @param [in]  target_item  アイテム
 /// @param [in]  exclude_item 検索対象から除くアイテム
 /// @param [out] next_item    一致したアイテムの次位置にあるアイテム
 /// @retval  0  なし
 /// @retval  1  あり 通常ファイル
 /// @retval  -1 あり 上書き不可（ディレクトリ or ボリュームラベル）
-int DiskBasic::IsFileNameDuplicated(const DiskBasicDirItem *target_item, DiskBasicDirItem *exclude_item, DiskBasicDirItem **next_item)
+int DiskBasic::IsFileNameDuplicated(const DiskBasicDirItem *dir_item, const DiskBasicDirItem *target_item, DiskBasicDirItem *exclude_item, DiskBasicDirItem **next_item)
 {
-	DiskBasicDirItem *item = dir->FindFile(target_item, IsCompareCaseInsense(), exclude_item, next_item);
+	DiskBasicDirItem *item = dir->FindFile(dir_item, target_item, IsCompareCaseInsense(), exclude_item, next_item);
 	if (item == NULL) {
 		return 0;
 	}
@@ -797,10 +799,11 @@ bool DiskBasic::CheckFile(const wxString &srcpath, int *file_size)
 
 /// 指定ファイルをディスクイメージにセーブ
 /// @param [in]     srcpath  元ファイルのあるパス
-/// @param [in,out] pitem    ファイル名、属性を持っているディレクトリアイテム
+/// @param [in,out] dir_item セーブ先ディレクトリアイテム
+/// @param [in,out] pitem    セーブ用のファイル名、属性を持っているディレクトリアイテム
 /// @param [out]    nitem    確保したディレクトリアイテム
 /// @return false:エラーあり
-bool DiskBasic::SaveFile(const wxString &srcpath, DiskBasicDirItem *pitem, DiskBasicDirItem **nitem)
+bool DiskBasic::SaveFile(const wxString &srcpath, DiskBasicDirItem *dir_item, DiskBasicDirItem *pitem, DiskBasicDirItem **nitem)
 {
 	if (!IsWritableIntoDisk()) return false;
 
@@ -812,16 +815,17 @@ bool DiskBasic::SaveFile(const wxString &srcpath, DiskBasicDirItem *pitem, DiskB
 	}
 
 	// セーブ
-	return SaveFile(infile, pitem, nitem);
+	return SaveFile(infile, dir_item, pitem, nitem);
 }
 
 /// バッファデータをディスクイメージにセーブ
 /// @param [in]     buffer   データ
 /// @param [in]     buflen   データサイズ
-/// @param [in,out] pitem    ファイル名、属性を持っているディレクトリアイテム
+/// @param [in,out] dir_item セーブ先ディレクトリアイテム
+/// @param [in,out] pitem    セーブ用のファイル名、属性を持っているディレクトリアイテム
 /// @param [out]    nitem    確保したディレクトリアイテム
 /// @return false:エラーあり
-bool DiskBasic::SaveFile(const wxUint8 *buffer, size_t buflen, DiskBasicDirItem *pitem, DiskBasicDirItem **nitem)
+bool DiskBasic::SaveFile(const wxUint8 *buffer, size_t buflen, DiskBasicDirItem *dir_item, DiskBasicDirItem *pitem, DiskBasicDirItem **nitem)
 {
 	if (!IsWritableIntoDisk()) return false;
 
@@ -833,29 +837,30 @@ bool DiskBasic::SaveFile(const wxUint8 *buffer, size_t buflen, DiskBasicDirItem 
 	}
 
 	// セーブ
-	return SaveFile(indata, pitem, nitem);
+	return SaveFile(indata, dir_item, pitem, nitem);
 }
 
 /// ストリームデータをディスクイメージにセーブ
 /// @param [in]     istream  ストリームバッファ
-/// @param [in,out] pitem    ファイル名、属性を持っている仮ディレクトリアイテム
+/// @param [in,out] dir_item セーブ先ディレクトリアイテム
+/// @param [in,out] pitem    セーブ用のファイル名、属性を持っている仮ディレクトリアイテム
 /// @param [out]    nitem    確保したディレクトリアイテム
 /// @return false:エラーあり
-bool DiskBasic::SaveFile(wxInputStream &istream, DiskBasicDirItem *pitem, DiskBasicDirItem **nitem)
+bool DiskBasic::SaveFile(wxInputStream &istream, DiskBasicDirItem *dir_item, DiskBasicDirItem *pitem, DiskBasicDirItem **nitem)
 {
 	DiskBasicDirItem *next_item = NULL;
-	DiskBasicDirItem *item = dir->FindFile(pitem, IsCompareCaseInsense(), NULL, &next_item);
+	DiskBasicDirItem *item = dir->FindFile(dir_item, pitem, IsCompareCaseInsense(), NULL, &next_item);
 
 	bool valid = true;
 
 	if (item == NULL) {
 		// 追加の場合
 		// 新しいディレクトリアイテムを確保
-		while((item = dir->GetEmptyItemOnCurrent(pitem, &next_item)) == NULL) {
+		while((item = dir->GetEmptyItem(dir_item, pitem, &next_item)) == NULL) {
 			// 確保できない時
 			// ディレクトリエリアを拡張する
-			if (dir->CanExpand()) {
-				valid = dir->Expand();
+			if (dir->CanExpand(dir_item)) {
+				valid = dir->Expand(dir_item);
 			} else {
 				valid = false;
 			}
@@ -1356,11 +1361,12 @@ bool DiskBasic::CanMakeDirectory() const
 }
 
 /// サブディレクトリの作成
-/// @param [in] filename  ディレクトリ名
-/// @param [in] ignore_datetime 日時は設定しないか
-/// @param [out] nitem    作成したディレクトリアイテム
+/// @param [in,out] dir_item        作成先のディレクトリ(親ディレクトリ)
+/// @param [in]     filename        ディレクトリ名
+/// @param [in]     ignore_datetime 日時は設定しないか
+/// @param [out]    nitem           作成したディレクトリアイテム
 /// @return 1:同じ名前がある -1:その他エラー
-int DiskBasic::MakeDirectory(const wxString &filename, bool ignore_datetime, DiskBasicDirItem **nitem)
+int DiskBasic::MakeDirectory(DiskBasicDirItem *dir_item, const wxString &filename, bool ignore_datetime, DiskBasicDirItem **nitem)
 {
 	if (!IsWritableIntoDisk()) {
 		return -1;
@@ -1381,7 +1387,7 @@ int DiskBasic::MakeDirectory(const wxString &filename, bool ignore_datetime, Dis
 
 	/// 同じファイル名があるか
 	DiskBasicDirItem *next_item;
-	DiskBasicDirItem *item = dir->FindFile(dir_name, IsCompareCaseInsense(), NULL, &next_item);
+	DiskBasicDirItem *item = dir->FindFile(dir_item, dir_name, IsCompareCaseInsense(), NULL, &next_item);
 	if (item) {
 		errinfo.SetError(DiskBasicError::ERR_FILE_ALREADY_EXIST);
 		return 1;
@@ -1409,12 +1415,12 @@ int DiskBasic::MakeDirectory(const wxString &filename, bool ignore_datetime, Dis
 	}
 
 	// 新しいディレクトリアイテムを確保
-	while((item = dir->GetEmptyItemOnCurrent(pitem, &next_item)) == NULL) {
+	while((item = dir->GetEmptyItem(dir_item, pitem, &next_item)) == NULL) {
 		// 確保できない時
 		bool valid = false;
 		// ディレクトリエリアを拡張する
-		if (dir->CanExpand()) {
-			valid = dir->Expand();
+		if (dir->CanExpand(dir_item)) {
+			valid = dir->Expand(dir_item);
 		}
 		if (!valid) {
 			// 拡張できない
@@ -1469,8 +1475,8 @@ int DiskBasic::MakeDirectory(const wxString &filename, bool ignore_datetime, Dis
 	// セクタに書き込む
 	rc = type->InitializeSectorsAsDirectory(group_items, file_size, sizeremain, errinfo);
 
-	// ファイルサイズ
-	item->SetFileSize(file_size);
+	// ディレクトリサイズ
+	item->SetDirectorySize(file_size);
 
 	if (rc < 0) {
 		// エラーの場合は消す
@@ -1483,7 +1489,7 @@ int DiskBasic::MakeDirectory(const wxString &filename, bool ignore_datetime, Dis
 	item->SetModify();
 
 	// ディレクトリ作成後の個別処理
-	type->AdditionalProcessOnMadeDirectory(item, group_items, dir->GetCurrentItem());
+	type->AdditionalProcessOnMadeDirectory(item, group_items, dir_item);
 
 	// グループ数を計算
 	item->CalcFileSize();
@@ -1517,15 +1523,15 @@ bool DiskBasic::ExpandDirectory(DiskBasicDirItem *dir_item)
 		return false;
 	}
 
-	// ファイルサイズを設定
-	dir_item->SetFileSize(file_size);
-	DiskBasicDirItem *cur_item = dir->FindName(wxT("."), IsCompareCaseInsense(), NULL, NULL);
+	// ディレクトリサイズを設定
+	dir_item->SetDirectorySize(file_size);
+	DiskBasicDirItem *cur_item = dir->FindName(dir_item, wxT("."), IsCompareCaseInsense(), NULL, NULL);
 	if (cur_item) {
-		cur_item->SetFileSize(file_size);
+		cur_item->SetDirectorySize(file_size);
 	}
 
 	// ディレクトリ拡張後の個別処理
-	if (!type->AdditionalProcessOnExpandedDirectory(dir_item, group_items, dir->GetParentItem())) {
+	if (!type->AdditionalProcessOnExpandedDirectory(dir_item, group_items, dir->GetParentItem(dir_item))) {
 		// 空きが足りない
 		errinfo.SetError(DiskBasicError::ERR_DIRECTORY_FULL);
 		return false;

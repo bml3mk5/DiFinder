@@ -52,6 +52,11 @@ public:
 	MyCDTreeItem GetFirstChild(const MyCDTreeItem &parent, unsigned int &cookie);
 	/// 次の子ノードを返す
 	MyCDTreeItem GetNextChild(const MyCDTreeItem &parent, unsigned int &cookie);
+
+	/// 指定した座標にノードがあるか
+	bool HasNodeAtPoint(int x, int y) const;
+	/// 指定した座標にあるノードを返す
+	MyCDTreeItem GetNodeAtPoint(int x, int y) const;
 };
 
 #endif /* _UICDTREECTRL_H_ */

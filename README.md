@@ -1,11 +1,10 @@
-
-# Disk Image Finder
+# ![](difinder_icon.png) Disk Image Finder
 
 #### Copyright(C) Sasaji 2015-2024 All Rights Reserved.
 
 ------------------------------------------------------------------------------
 
-## This is an alpha version. これはアルファバージョンです。
+### This is a beta version. これはベータバージョンです。
 
 ------------------------------------------------------------------------------
 
@@ -14,8 +13,11 @@
 * これはレトロコンピュータのハードディスクイメージ内部のファイルにアクセスする
   ためのアプリケーションです。
 
-* For details, please see Readme.txt in the docs folder (written in Japanese).
-* 詳細はdocsフォルダにあるReadme.txtをご覧ください(日本語)。
+
+### [Downloads ダウンロード](https://github.com/bml3mk5/DiFinder/releases)
+
+
+### [Documents(Japanese) ドキュメント](../../tree/master/docs)
 
 
 ## Disclaimer 免責事項
@@ -30,7 +32,9 @@
 ------------------------------------------------------------------------------
 
   Sasaji (sasaji@s-sasaji.ddo.jp)
+
   http://s-sasaji.ddo.jp/bml3mk5/
-  (Twitter: http://twitter.com/bml3mk5)
+
+  (X(Twitter): https://twitter.com/bml3mk5)
 
 ------------------------------------------------------------------------------

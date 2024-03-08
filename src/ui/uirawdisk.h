@@ -194,6 +194,9 @@ private:
 	MySliderText *txtSide;
 	wxButton *btnSubmit;
 
+	MySliderText *txtSector;
+	wxButton *btnSearch;
+
 	MyMenu *menuPopup;
 
 	/// ファイルリスト作成（DnD, クリップボード用）
@@ -219,6 +222,8 @@ public:
 //	void OnColumnClick(MyRawTrackListEvent &event);
 	/// Submitボタン押下
 	void OnButtonSubmit(wxCommandEvent& event);
+	/// Searchボタン押下
+	void OnButtonSearch(wxCommandEvent& event);
 //	/// トラックをエクスポート選択
 //	void OnExportTrack(wxCommandEvent& event);
 //	/// トラックにインポート選択
@@ -253,6 +258,8 @@ public:
 
 	/// 選択
 	void SelectData();
+	/// セクタ番号で検索
+	void SearchDataBySector();
 	/// トラックリストをセット
 	void SetTracks(DiskImageFile *newfile);
 	/// トラックリストをセット
@@ -260,7 +267,7 @@ public:
 	/// トラックリストをセット
 	void SetTracks(int start_sector);
 	/// トラックリストをセット
-	void SetTracks(int track_num, int side_num);
+	void SetTracks(int track_num, int side_num, int sector_num);
 	/// トラックリストを再セット
 	void RefreshTracks();
 	/// トラックリストをクリア
@@ -348,6 +355,8 @@ public:
 		IDC_TXT_TRACK,
 		IDC_TXT_SIDE,
 		IDC_BTN_SUBMIT,
+		IDC_TXT_SECTOR,
+		IDC_BTN_SEARCH
 	};
 
 	wxDECLARE_EVENT_TABLE();

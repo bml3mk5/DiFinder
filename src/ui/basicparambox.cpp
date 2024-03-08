@@ -14,6 +14,7 @@
 #include <wx/sizer.h>
 #include <wx/numformatter.h>
 #include "intnamevalid.h"
+#include "../basicfmt/basictemplate.h"
 #include "../basicfmt/basicfmt.h"
 #include "../basicfmt/basictype.h"
 #include "../diskimg/diskimage.h"

@@ -33,6 +33,7 @@ private:
 	wxCheckBox *chkDecAttrImport;
 	wxCheckBox *chkDateImport;
 	wxCheckBox *chkIgnoreDate;
+	wxSpinCtrl *spnDirDepth;
 	wxTextCtrl *txtTempFolder;
 	wxCheckBox *chkTempFolder;
 	wxButton   *btnTempFolder;
@@ -55,6 +56,7 @@ public:
 		IDC_CHECK_DEC_ATTR_IMPORT,
 		IDC_CHECK_DATE_IMPORT,
 		IDC_CHECK_IGNORE_DATE,
+		IDC_SPIN_DIR_DEPTH,
 		IDC_TEXT_TEMP_FOLDER,
 		IDC_BUTTON_TEMP_FOLDER,
 		IDC_CHECK_TEMP_FOLDER,

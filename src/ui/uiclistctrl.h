@@ -235,6 +235,11 @@ public:
 	/// ソートカラムを選択
 	int  SelectColumnSortDir(int &col, int &idx, bool &match_col);
 
+	/// 指定した座標に行アイテムがあるか
+	bool HasItemAtPoint(int x, int y) const;
+	/// 指定した座標にある行アイテムを返す
+	MyCListItem GetItemAtPoint(int x, int y) const;
+
 #ifdef USE_VIRTUAL_ON_LIST_CTRL
 	// ソート
 	bool SortItems(wxListCtrlCompare fnSortCallBack, wxIntPtr sortData);

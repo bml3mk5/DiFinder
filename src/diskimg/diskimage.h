@@ -215,16 +215,22 @@ public:
 	virtual wxUint32 GetStartSectorNumber() const { return 0; }
 	/// 開始セクタ番号を設定
 	virtual void	SetStartSectorNumber(wxUint32 val) {}
+	/// 開始セクタ番号(文字列)を返す
+	virtual wxString GetStartSectorNumberStr(int show_type) const { return wxT(""); }
 	/// セクタ数を返す
 	virtual wxUint32 GetNumberOfSectors() const { return 0; }
 	/// セクタ数を設定
 	virtual void	SetNumberOfSectors(wxUint32 val) {}
+	/// セクタ数(文字列)を返す
+	virtual wxString GetNumberOfSectorsStr(int show_type) const { return wxT(""); }
 
 	/// ディスクの内容を初期化する(0パディング)
 	virtual bool	Initialize() { return false; }
 
 	/// ディスクの説明
 	virtual wxString GetDescription() const { return wxT(""); }
+	/// ファイルの説明詳細
+	virtual wxString GetDescriptionDetails() const { return wxT(""); }
 	/// ディスクの説明
 	virtual void	SetDescription(const wxString &desc) {}
 	/// ディスクの説明
@@ -303,6 +309,7 @@ public:
 	virtual bool Delete(size_t idx);
 
 	virtual DiskImageDisks *GetDisks() { return NULL; }
+	virtual const DiskImageDisks *GetDisks() const { return NULL; }
 	virtual DiskImageDisk  *GetDisk(size_t idx) = 0;
 
 	virtual void SetStartOffset(wxUint32 val) {}
@@ -343,6 +350,8 @@ public:
 
 	/// ファイルの説明
 	virtual wxString GetDescription() const { return wxT(""); }
+	/// ファイルの説明詳細
+	virtual wxString GetDescriptionDetails() const { return wxT(""); }
 	/// ファイルの説明
 	virtual void	SetDescription(const wxString &desc) {}
 

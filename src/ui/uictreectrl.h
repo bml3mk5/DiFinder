@@ -47,6 +47,10 @@ public:
 	MyCTreeItem AddTreeContainer(const MyCTreeItem &parent, const wxString &text, int def_icon = -1, int sel_icon = -1, wxTreeItemData *n_data = NULL);
 	/// ノードを追加する
 	MyCTreeItem AddTreeNode(const MyCTreeItem &parent, const wxString &text, int def_icon = -1, int sel_icon = -1, wxTreeItemData *n_data = NULL);
+	/// 指定した座標にノードがあるか
+	bool HasNodeAtPoint(int x, int y) const;
+	/// 指定した座標にあるノードを返す
+	MyCTreeItem GetNodeAtPoint(int x, int y) const;
 };
 
 #endif /* UICTREECTRL_H */

@@ -8,6 +8,7 @@
 #include "intnamebox.h"
 #include "intnamevalid.h"
 #include "../main.h"
+#include "uimainprocess.h"
 #include <wx/listctrl.h>
 #include <wx/stattext.h>
 #include <wx/checkbox.h>
@@ -45,7 +46,7 @@ END_EVENT_TABLE()
 /// @param [in] file_size  ファイルサイズ(show_flagsが #INTNAME_SPECIFY_FILE_NAME のとき指定)
 /// @param [in] date_time  日時(show_flagsが #INTNAME_SPECIFY_CDATE_TIME,#INTNAME_SPECIFY_MDATE_TIME のとき指定)
 /// @param [in] show_flags 表示フラグ
-IntNameBox::IntNameBox(UiDiskFrame *frame, wxWindow* parent, wxWindowID id, const wxString &caption, const wxString &message,
+IntNameBox::IntNameBox(UiDiskProcess *frame, wxWindow* parent, wxWindowID id, const wxString &caption, const wxString &message,
 	DiskBasic *basic, DiskBasicDirItem *item, const wxString &file_path, const wxString &file_name, int file_size, DiskBasicDirItemAttr *date_time, int show_flags)
 	: wxDialog(parent, id, caption, wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER, wxT(INTNAMEBOX_CLASSNAME))
 {
@@ -65,7 +66,7 @@ IntNameBox::IntNameBox(UiDiskFrame *frame, wxWindow* parent, wxWindowID id, cons
 /// @param [in] file_size  ファイルサイズ(show_flagsが #INTNAME_SPECIFY_FILE_NAME のとき指定)
 /// @param [in] date_time  日時(show_flagsが #INTNAME_SPECIFY_CDATE_TIME,#INTNAME_SPECIFY_MDATE_TIME のとき指定)
 /// @param [in] show_flags 表示フラグ
-void IntNameBox::CreateBox(UiDiskFrame *frame, wxWindow* parent, wxWindowID id, const wxString &caption, const wxString &message,
+void IntNameBox::CreateBox(UiDiskProcess *frame, wxWindow* parent, wxWindowID id, const wxString &caption, const wxString &message,
 	DiskBasic *basic, DiskBasicDirItem *item, const wxString &file_path, const wxString &file_name, int file_size, DiskBasicDirItemAttr *date_time, int show_flags)
 {
 	this->frame = frame;

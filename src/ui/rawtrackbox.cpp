@@ -1,4 +1,4 @@
-/// @file rawtrackbox.cpp
+﻿/// @file rawtrackbox.cpp
 ///
 /// @brief Rawトラックダイアログ
 ///
