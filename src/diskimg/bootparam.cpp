@@ -38,12 +38,39 @@ WX_DEFINE_OBJARRAY(BasicParamNames);
 //
 BootKeyword::BootKeyword()
 {
-	m_pos = 0;
+	m_start_pos = -1;
+	m_last_pos = -1;
+	m_weight = 1.0;
 }
-BootKeyword::BootKeyword(int pos, const wxString &keyword)
+
+BootKeyword::enKeywordTypes BootKeyword::GetKeywordType() const
 {
-	m_pos = pos;
-	m_key = keyword;
+	return m_type;
+}
+
+void BootKeyword::Set(int start_pos, int last_pos, double weight)
+{
+	m_start_pos = start_pos;
+	m_last_pos = last_pos;
+	m_weight = weight;
+}
+
+void BootKeyword::SetKeywordString(const wxString &val)
+{
+	m_type = KString;
+	m_key = val;
+}
+
+void BootKeyword::SetKeywordRegex(const wxString &val)
+{
+	m_type = KRegex;
+	m_key = val;
+}
+
+void BootKeyword::SetKeywordArrayString(const wxArrayString &val)
+{
+	m_type = KArrayString;
+	m_key = val;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -192,13 +219,12 @@ bool BootTemplates::Load(const wxString &data_path, const wxString &locale_name,
 /// @return true
 bool BootTemplates::LoadBootTypes(const wxXmlNode *node, const wxString &locale_name, wxString &errmsgs)
 {
-	wxString desc, desc_locale;
-
 	wxXmlNode *itemnode = node->GetChildren();
 	while(itemnode) {
 		wxString str = itemnode->GetNodeContent();
 		if (itemnode->GetName() == "BootType") {
 			BootParam p;
+			wxString desc, desc_locale;
 
 			wxString type_name = itemnode->GetAttribute("name");
 			p.SetBootTypeName(type_name);
@@ -223,13 +249,14 @@ bool BootTemplates::LoadBootTypes(const wxXmlNode *node, const wxString &locale_
 					p.SetBasicTypes(basic_types);
 				} else if (citemnode->GetName() == "Description") {
 					LoadDescription(citemnode, locale_name, desc, desc_locale);
-					p.SetDescription(desc);
 				}
 				citemnode = citemnode->GetNext();
 			}
 			if (!desc_locale.IsEmpty()) {
 				desc = desc_locale;
 			}
+			p.SetDescription(desc);
+
 			if (FindType(type_name) == NULL) {
 				params.Add(p);
 			} else {
@@ -296,22 +323,92 @@ bool BootTemplates::LoadKeywords(const wxXmlNode *node, BootKeywords &keywords, 
 {
 	wxXmlNode *citemnode = node->GetChildren();
 	while(citemnode) {
-		wxString str = citemnode->GetNodeContent();
 		if (citemnode->GetName() == "String") {
-			wxString spos;
-			int pos = -1;
-			if (citemnode->GetAttribute("pos", &spos)) {
-				pos = Utils::ToInt(spos);
-			}
+			LoadKeywordString(citemnode, keywords);
+		} else if (citemnode->GetName() == "ArrayString") {
+			LoadKeywordArrayString(citemnode, keywords);
+		}
+		citemnode = citemnode->GetNext();
+	}
+	return true;
+}
+
+/// CompareKeywordsエレメントの属性をロード
+bool BootTemplates::LoadKeywordAttrs(const wxXmlNode *node, BootKeyword &keyword)
+{
+	wxString sattr;
+	int start_pos = -1;
+	int last_pos = -1;
+	double weight = 1.0;
+	if (node->GetAttribute("pos", &sattr)) {
+		start_pos = Utils::ToInt(sattr);
+		last_pos = start_pos;
+	}
+	if (node->GetAttribute("start", &sattr)) {
+		start_pos = Utils::ToInt(sattr);
+	}
+	if (node->GetAttribute("last", &sattr)) {
+		last_pos = Utils::ToInt(sattr);
+	}
+	if (node->GetAttribute("weight", &sattr)) {
+		sattr.ToDouble(&weight);
+	}
+	keyword.Set(start_pos, last_pos, weight);
+	return true;
+}
+
+/// CompareKeywordsエレメントのStringエレメントをロード
+bool BootTemplates::LoadKeywordString(const wxXmlNode *node, BootKeywords &keywords)
+{
+	wxString str = node->GetNodeContent();
+	str = str.Trim(false).Trim(true);
+	if (!str.IsEmpty()) {
+		BootKeyword p;
+		LoadKeywordAttrs(node, p);
+		wxString key;
+		Utils::DecodeEscape(str, key);
+		p.SetKeywordString(key);
+		keywords.Add(p);
+	}
+	return true;
+}
+
+/// CompareKeywordsエレメントのRegexエレメントをロード
+bool BootTemplates::LoadKeywordRegex(const wxXmlNode *node, BootKeywords &keywords)
+{
+	wxString str = node->GetNodeContent();
+	str = str.Trim(false).Trim(true);
+	if (!str.IsEmpty()) {
+		BootKeyword p;
+		LoadKeywordAttrs(node, p);
+		p.SetKeywordRegex(str);
+		keywords.Add(p);
+	}
+	return true;
+}
+
+/// CompareKeywordsエレメントのArrayStringエレメントをロード
+bool BootTemplates::LoadKeywordArrayString(const wxXmlNode *node, BootKeywords &keywords)
+{
+	wxArrayString arr;
+	wxXmlNode *citemnode = node->GetChildren();
+	while(citemnode) {
+		if (citemnode->GetName() == "String") {
+			wxString str = node->GetNodeContent();
 			str = str.Trim(false).Trim(true);
-			wxString key;
-			Utils::DecodeEscape(str, key);
-			BootKeyword p(pos, key);
-			if (pos >= 0 && !str.IsEmpty()) {
-				keywords.Add(p);
+			if (!str.IsEmpty()) {
+				wxString key;
+				Utils::DecodeEscape(str, key);
+				arr.Add(key);
 			}
 		}
 		citemnode = citemnode->GetNext();
+	}
+	if (!arr.IsEmpty()) {
+		BootKeyword p;
+		LoadKeywordAttrs(node, p);
+		p.SetKeywordArrayString(arr);
+		keywords.Add(p);
 	}
 	return true;
 }
@@ -345,6 +442,20 @@ bool BootTemplates::LoadDiskBasicTypes(const wxXmlNode *node, BasicParamNames &b
 	return true;
 }
 
+/// 一致するテンプレートの番号を返す
+int BootTemplates::IndexOf(const BootParam *n_boot_param) const
+{
+	int match = -1;
+	for(size_t i=0; i<params.Count(); i++) {
+		const BootParam *item = &params[i];
+		if (item == n_boot_param) {
+			match = (int)i;
+			break;
+		}
+	}
+	return match;
+}
+
 /// タイプ名に一致するテンプレートの番号を返す
 /// @param[in] n_type_name タイプ名
 /// @return ディスクテンプレートの位置 / ないとき-1
@@ -352,7 +463,7 @@ int BootTemplates::IndexOf(const wxString &n_type_name) const
 {
 	int match = -1;
 	for(size_t i=0; i<params.Count(); i++) {
-		BootParam *item = &params[i];
+		const BootParam *item = &params[i];
 		if (n_type_name == item->GetBootTypeName()) {
 			match = (int)i;
 			break;

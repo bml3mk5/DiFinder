@@ -31,11 +31,11 @@ private:
 	UiDiskFrame *frame;
 
 	wxTextCtrl *txtAttr;
-//	wxButton   *btnChange;
-//	wxChoice   *comDensity;
+	wxButton   *btnChange;
 	wxCheckBox *chkWprotect;
 	wxBoxSizer *szrButtons;
 
+	DiskImageFile *p_file;
 	DiskImageDisk *p_disk;
 
 public:
@@ -43,17 +43,14 @@ public:
 	~UiDiskDiskAttr();
 
 	void OnSize(wxSizeEvent& event);
-//	void OnButtonChange(wxCommandEvent& event);
-//	void OnComboDensity(wxCommandEvent& event);
+	void OnButtonChange(wxCommandEvent& event);
 	void OnCheckWriteProtect(wxCommandEvent& event);
 
-//	void ShowChangeDisk();
+	void ShowChangeBootParam();
 	void SetAttr(DiskImageFile *n_file);
 	void SetAttr(DiskImageDisk *n_disk);
 
 	void SetAttrText(const wxString &val);
-//	void SetDiskDensity(const wxString &val);
-//	void SetDiskDensity(int val);
 	int  GetDiskDensity() const;
 	void SetWriteProtect(bool val, bool enable = true);
 	bool GetWriteProtect() const;

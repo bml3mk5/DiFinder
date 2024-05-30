@@ -308,10 +308,10 @@ void MyCListCtrl::AssignListIcons(const char ***icons)
 /// カラムをソート
 void MyCListCtrl::OnColumnSorted(MyCListEvent& event)
 {
-	int col = event.GetColumn();
-	MyCListColumn *column = FindColumn(col, NULL);
-	if (column) {
-	}
+//	int col = event.GetColumn();
+//	MyCListColumn *column = FindColumn(col, NULL);
+//	if (column) {
+//	}
 }
 
 /// リストにカラムを設定する
@@ -673,6 +673,7 @@ MyCListColumn *MyCListCtrl::FindColumn(int col, int *n_idx) const
 	return match;
 }
 
+#if 0
 /// カラム用のポップアップメニューを作成する
 void MyCListCtrl::CreateColumnPopupMenu(wxMenu* &menu, int menu_id, int menu_detail_id)
 {
@@ -711,6 +712,7 @@ void MyCListCtrl::CreateColumnPopupMenu(wxMenu* &menu, int menu_id, int menu_det
 	menu->AppendSeparator();
 	menu->Append(menu_detail_id, _("Detail..."));
 }
+#endif
 
 /// カラムの表示位置を返す
 void MyCListCtrl::GetListColumnsByCurrentOrder(MyCListColumns &items) const
@@ -753,6 +755,7 @@ bool MyCListCtrl::ShowListColumnRearrangeBox()
 		order.Add((items[i]->GetColumn() >= 0 ? i : ~i));
 		labels.Add(items[i]->GetText());
 	}
+
 	MyCListRearrangeBox dlg(this, order, labels);
 	int sts = dlg.ShowModal();
 	if (sts != wxID_OK) return false;
@@ -840,7 +843,7 @@ void MyCListCtrl::SetColumnSortIcon(int idx)
 //	item.SetMask(wxLIST_MASK_IMAGE);
 //	item.SetImage(dir > 0 ? m_icon_sort_up : (dir < 0 ? m_icon_sort_down : -1));
 	item.SetMask(wxLIST_MASK_TEXT);
-	item.SetText(m_columns[idx]->GetText() + (dir > 0 ? wxT("˄") : (dir < 0 ? wxT("˅") : wxT(""))));
+	item.SetText(m_columns[idx]->GetText() + (dir > 0 ? wxT(" ˄") : (dir < 0 ? wxT(" ˅") : wxT(""))));
 	SetColumn(col, item);
 #endif
 }
@@ -972,6 +975,12 @@ wxString MyCListCtrl::OnGetItemText(long item, long column) const
 //
 //
 MyCListRearrangeBox::MyCListRearrangeBox(MyCListCtrl *parent, const wxArrayInt &order, const wxArrayString &items)
-	: wxRearrangeDialog(parent, _("Configure the columns shown:"), _("Arrange Column Order"), order, items) 
+	: wxRearrangeDialog(parent, _("Configure the columns shown:"), _("Arrange Column Order"), order, items)
 {
+	wxSize sz = GetSize();
+	
+	if (sz.GetWidth() < 360) {
+		sz.SetWidth(360);
+	}
+	SetSize(sz);
 }

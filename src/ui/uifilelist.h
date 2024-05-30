@@ -255,10 +255,10 @@ public:
 	void OnChangeCharCode(wxCommandEvent& event);
 	/// リストのカラムを変更
 	void OnListColumnChange(wxCommandEvent& event);
-	/// リストのカラム詳細設定
-	void OnListColumnDetail(wxCommandEvent& event);
-	/// リストのカラム詳細設定
-	void OnListColumnDetail(MyFileListEvent& event);
+//	/// リストのカラム詳細設定
+//	void OnListColumnDetail(wxCommandEvent& event);
+//	/// リストのカラム詳細設定
+//	void OnListColumnDetail(MyFileListEvent& event);
 	//@}
 
 	/// ポップアップメニュー作成

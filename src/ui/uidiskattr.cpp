@@ -14,7 +14,7 @@
 #include "../main.h"
 #include "uimainframe.h"
 #include "../diskimg/diskimage.h"
-#include "diskparambox.h"
+#include "bootselbox.h"
 #include "../utils.h"
 
 
@@ -26,6 +26,7 @@
 // Attach Event
 wxBEGIN_EVENT_TABLE(UiDiskDiskAttr, wxPanel)
 	EVT_SIZE(UiDiskDiskAttr::OnSize)
+	EVT_BUTTON(IDC_BTN_CHANGE, UiDiskDiskAttr::OnButtonChange)
 	EVT_CHECKBOX(IDC_CHK_WPROTECT, UiDiskDiskAttr::OnCheckWriteProtect)
 wxEND_EVENT_TABLE()
 
@@ -35,6 +36,7 @@ UiDiskDiskAttr::UiDiskDiskAttr(UiDiskFrame *parentframe, wxWindow *parentwindow)
 	parent   = parentwindow;
 	frame    = parentframe;
 
+	p_file   = NULL;
 	p_disk	 = NULL;
 
 	wxSizerFlags flagsW = wxSizerFlags().Expand().Border(wxALL, 2);
@@ -45,6 +47,11 @@ UiDiskDiskAttr::UiDiskDiskAttr(UiDiskFrame *parentframe, wxWindow *parentwindow)
 
 	txtAttr = new wxTextCtrl(this, IDC_TXT_ATTR, wxT(""), wxDefaultPosition, size, wxTE_READONLY | wxTE_LEFT);
 	hbox->Add(txtAttr, flagsW);
+
+	size.x = 60;
+	btnChange = new wxButton(this, IDC_BTN_CHANGE, _("Change"), wxDefaultPosition, size);
+	btnChange->Enable(false);
+	szrButtons->Add(btnChange, flagsW);
 
 	chkWprotect = new wxCheckBox(this, IDC_CHK_WPROTECT, _("Write Protect"));
 	szrButtons->Add(chkWprotect, flagsW);
@@ -77,7 +84,7 @@ void UiDiskDiskAttr::OnSize(wxSizeEvent& event)
 	if (pos_x < 0) return;
 
 	wxPoint bp;
-	bp = chkWprotect->GetPosition();
+	bp = btnChange->GetPosition();
 
 	pos_x -= bp.x;
 
@@ -100,10 +107,17 @@ void UiDiskDiskAttr::OnSize(wxSizeEvent& event)
 	}
 }
 
+/// 変更ボタンを押した
+void UiDiskDiskAttr::OnButtonChange(wxCommandEvent& event)
+{
+	// パラメータを選択するダイアログを表示
+	ShowChangeBootParam();
+}
+
 /// 書き込み禁止チェックボックスを押した
 void UiDiskDiskAttr::OnCheckWriteProtect(wxCommandEvent& event)
 {
-	if (!p_disk) return;
+//	if (!p_disk) return;
 	bool checked = event.IsChecked();
 	DiskImage *image = &frame->GetDiskImage();
 	if (checked && image->IsModified()) {
@@ -116,15 +130,33 @@ void UiDiskDiskAttr::OnCheckWriteProtect(wxCommandEvent& event)
 	image->GetFile()->SetWriteProtect(checked);
 }
 
+/// パラメータを選択するダイアログを表示
+void UiDiskDiskAttr::ShowChangeBootParam()
+{
+	if (!p_file) return;
+
+	BootSelBox dlg(this, wxID_ANY, p_file, 0);
+	int sts = dlg.ShowModal();
+	if (sts == wxID_OK) {
+		// ファイルを開きなおす
+		const BootParam *param = dlg.GetBootParam();
+		if (!param) return;
+
+		frame->ReOpenDataFile(*param);
+	}
+}
+
 /// ディスクイメージ選択時の情報を設定
 void UiDiskDiskAttr::SetAttr(DiskImageFile *n_file)
 {
-	if (!n_file) return;
+	p_file = n_file;
+	if (!p_file) return;
 
-	wxString desc = n_file->GetDescriptionDetails();
+	wxString desc = p_file->GetDescriptionDetails();
 
 	SetAttrText(desc);
-	SetWriteProtect(n_file->IsWriteProtected());
+	btnChange->Enable(true);
+	SetWriteProtect(p_file->IsWriteProtected());
 }
 /// パーティション選択時の情報を設定
 void UiDiskDiskAttr::SetAttr(DiskImageDisk *n_disk)
@@ -132,12 +164,12 @@ void UiDiskDiskAttr::SetAttr(DiskImageDisk *n_disk)
 	p_disk = n_disk;
 	if (!p_disk) return;
 
-	wxString desc = p_disk->GetDescriptionDetails();
+//	wxString desc = p_disk->GetDescriptionDetails();
 
-	SetAttrText(desc);
+//	SetAttrText(desc);
 
-	DiskImageFile *file = p_disk->GetFile();
-	SetWriteProtect(file->IsWriteProtected());
+//	DiskImageFile *file = p_disk->GetFile();
+//	SetWriteProtect(file->IsWriteProtected());
 }
 /// 情報を設定
 void UiDiskDiskAttr::SetAttrText(const wxString &val)
@@ -159,8 +191,7 @@ bool UiDiskDiskAttr::GetWriteProtect() const
 void UiDiskDiskAttr::ClearData()
 {
 	SetAttrText(wxEmptyString);
-//	btnChange->Enable(false);
-//	SetDiskDensity(-1);
+	btnChange->Enable(false);
 	SetWriteProtect(false, false);
 }
 /// フォントを設定

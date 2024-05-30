@@ -12,8 +12,8 @@
 #include "../utils.h"
 
 
-/// (0:128bytes 1:256bytes 2:512bytes 3:1024bytes)
-const int gSectorSizes[5] = { 128,256,512,1024,0 };
+/// (0:128bytes 1:256bytes 2:512bytes 3:1024bytes 4:2048bytes)
+const int gSectorSizes[6] = { 128,256,512,1024,2048,0 };
 
 DiskTemplates gDiskTemplates;
 
@@ -406,6 +406,7 @@ DiskParam &DiskParam::operator=(const DiskParam &src)
 /// 全パラメータを設定
 /// @param[in] n_type_name             ディスク種類名 "2D" "2HD" など
 /// @param[in] n_boot_types            ブートストラップ名
+/// @param[in] n_number_of_blocks      ブロック数
 /// @param[in] n_sides_per_disk        サイド数
 /// @param[in] n_tracks_per_side       トラック数
 /// @param[in] n_sectors_per_track     セクタ数
@@ -424,6 +425,7 @@ DiskParam &DiskParam::operator=(const DiskParam &src)
 void DiskParam::SetDiskParam(const wxString &n_type_name
 	, const BootParamNames &n_boot_types
 //	, bool n_reversible
+	, int n_number_of_blocks
 	, int n_sides_per_disk
 	, int n_tracks_per_side
 	, int n_sectors_per_track
@@ -443,6 +445,7 @@ void DiskParam::SetDiskParam(const wxString &n_type_name
 	disk_type_name = n_type_name;
 	boot_types = n_boot_types;
 //	reversible = n_reversible;
+	number_of_blocks = n_number_of_blocks;
 	sides_per_disk = n_sides_per_disk;
 	tracks_per_side = n_tracks_per_side;
 	sectors_per_track = n_sectors_per_track;
@@ -461,6 +464,7 @@ void DiskParam::SetDiskParam(const wxString &n_type_name
 	description = n_desc;
 }
 /// 主要パラメータだけ設定
+/// @param[in] n_number_of_blocks      ブロック数
 /// @param[in] n_sides_per_disk        サイド数
 /// @param[in] n_tracks_per_side       トラック数
 /// @param[in] n_sectors_per_track     セクタ数
@@ -469,7 +473,8 @@ void DiskParam::SetDiskParam(const wxString &n_type_name
 /// @param[in] n_interleave            セクタの間隔
 /// @param[in] n_singles               単密度にするトラック
 /// @param[in] n_ptracks               特殊なトラックを定義 セクタ数がトラックごとに異なる場合
-void DiskParam::SetDiskParam(int n_sides_per_disk
+void DiskParam::SetDiskParam(int n_number_of_blocks
+	, int n_sides_per_disk
 	, int n_tracks_per_side
 	, int n_sectors_per_track
 	, int n_sector_size
@@ -478,6 +483,7 @@ void DiskParam::SetDiskParam(int n_sides_per_disk
 	, const DiskParticulars &n_singles
 	, const DiskParticulars &n_ptracks
 ) {
+	number_of_blocks = n_number_of_blocks;
 	sides_per_disk = n_sides_per_disk;
 	tracks_per_side = n_tracks_per_side;
 	sectors_per_track = n_sectors_per_track;
@@ -496,6 +502,7 @@ void DiskParam::SetDiskParam(const DiskParam &src)
 	disk_type_name = src.disk_type_name;
 	boot_types = src.boot_types;
 //	reversible = src.reversible;
+	number_of_blocks = src.number_of_blocks;
 	sides_per_disk = src.sides_per_disk;
 	tracks_per_side = src.tracks_per_side;
 	sectors_per_track = src.sectors_per_track;
@@ -518,6 +525,7 @@ void DiskParam::ClearDiskParam()
 	disk_type_name.Empty();
 	boot_types.Empty();
 //	reversible			 = false;
+	number_of_blocks	 = 0;
 	sides_per_disk		 = 0;
 	tracks_per_side		 = 0;
 	sectors_per_track	 = 0;
@@ -758,9 +766,61 @@ int DiskParam::HasSingleDensity(int *sectors_per_track, int *sector_size) const
 	return val;
 }
 
+/// ブロック数を計算する（ベタディスク用）
+int DiskParam::CalcNumberOfBlocks() const
+{
+	if (number_of_blocks > 0) {
+		return number_of_blocks;
+	}
+
+	bool valid = true;
+	int blocks = 0;
+	int trk = GetTrackNumberBaseOnDisk();
+	int trks = GetTracksPerSide() + trk;
+	for(; trk < trks && valid; trk++) {
+		for(int sid = 0; sid < GetSidesPerDisk() && valid; sid++) {
+			int sec_nums = GetSectorsPerTrack();
+			int sec_size = GetSectorSize();
+			// 特殊トラックか
+			if (FindParticularTrack(trk, sid, sec_nums, sec_size)) {
+				if (sec_size != GetSectorSize()) {
+					// セクタサイズが異なるので計算不可
+					valid = false;
+					break;
+				}
+			}
+			// 単密度か
+			if (FindSingleDensity(trk, sid, &sec_nums, &sec_size)) {
+				if (sec_size != GetSectorSize()) {
+					// セクタサイズが異なるので計算不可
+					valid = false;
+					break;
+				}
+			}
+
+			for(int sec = 0; sec < sec_nums && valid; sec++) {
+				// 特殊セクタか
+				if (FindParticularSector(trk, sid, sec, sec_size)) {
+					if (sec_size != GetSectorSize()) {
+						// セクタサイズが異なるので計算不可
+						valid = false;
+						break;
+					}
+				}
+				blocks++;
+			}
+		}
+	}
+	return valid ? blocks : 0;
+}
+
 /// ディスクサイズを計算する（ベタディスク用）
 int DiskParam::CalcDiskSize() const
 {
+	if (number_of_blocks > 0) {
+		return number_of_blocks * GetSectorSize();
+	}
+
 	int disk_size = 0;
 	int trk = GetTrackNumberBaseOnDisk();
 	int trks = GetTracksPerSide() + trk;
@@ -863,38 +923,50 @@ wxString DiskParam::GetDiskParamDetails() const
 		str += density_name;
 		str += wxT("  ");
 	}
-	wxString fmt = wxT("%d");
-	fmt += tracks_per_side <= 1 ? _("track") : _("tracks");
-	fmt += wxT(" ");
-	fmt += wxT("%d");
-	fmt += sides_per_disk <= 1 ? _("side") : _("sides");
-	fmt += wxT(" ");
-	if (variable_secs_per_trk) {
-		fmt += wxT("%d-%d");
-		fmt += _("sectors");
-	} else {
+	if (number_of_blocks > 0) {
+		// number of blocks
+		wxString fmt = _("Number of Sectors:"); 
 		fmt += wxT("%d");
-		fmt += sectors_per_track <= 1 ? _("sector") : _("sectors");
-	}
-	fmt += wxT(" ");
-	fmt += wxT("%d");
-	fmt += _("bytes/sector");
-	fmt += wxT(" ");
-	fmt += _("Interleave:");
-	fmt += wxT("%d");
-
-	if (variable_secs_per_trk) {
-		int min_sectors = ptracks.GetMinSectorsPerTrack(sectors_per_track);
-		int max_sectors = ptracks.GetMaxSectorsPerTrack(sectors_per_track);
+		fmt += wxT(" ");
+		fmt += wxT("%d");
+		fmt += _("bytes/sector");
 		str += wxString::Format(fmt
-			, tracks_per_side, sides_per_disk
-			, min_sectors, max_sectors, sector_size, interleave);
+			, number_of_blocks, sector_size);
+
 	} else {
-		str += wxString::Format(fmt
-			, tracks_per_side, sides_per_disk
-			, sectors_per_track, sector_size, interleave);
-	}
+		// tracks, sides and sectors
+		wxString fmt = wxT("%d");
+		fmt += tracks_per_side <= 1 ? _("track") : _("tracks");
+		fmt += wxT(" ");
+		fmt += wxT("%d");
+		fmt += sides_per_disk <= 1 ? _("side") : _("sides");
+		fmt += wxT(" ");
+		if (variable_secs_per_trk) {
+			fmt += wxT("%d-%d");
+			fmt += _("sectors");
+		} else {
+			fmt += wxT("%d");
+			fmt += sectors_per_track <= 1 ? _("sector") : _("sectors");
+		}
+		fmt += wxT(" ");
+		fmt += wxT("%d");
+		fmt += _("bytes/sector");
+//		fmt += wxT(" ");
+//		fmt += _("Interleave:");
+//		fmt += wxT("%d");
 
+		if (variable_secs_per_trk) {
+			int min_sectors = ptracks.GetMinSectorsPerTrack(sectors_per_track);
+			int max_sectors = ptracks.GetMaxSectorsPerTrack(sectors_per_track);
+			str += wxString::Format(fmt
+				, tracks_per_side, sides_per_disk
+				, min_sectors, max_sectors, sector_size);
+		} else {
+			str += wxString::Format(fmt
+				, tracks_per_side, sides_per_disk
+				, sectors_per_track, sector_size);
+		}
+	}
 	if (!description.IsEmpty()) {
 		str += wxT(" ");
 		str += description;
@@ -941,7 +1013,9 @@ bool DiskTemplates::Load(const wxString &data_path, const wxString &locale_name,
 			wxString desc, desc_locale;
 			while (itemnode) {
 				wxString str = itemnode->GetNodeContent();
-				if (itemnode->GetName() == "SidesPerDisk") {
+				if (itemnode->GetName() == "Blocks") {
+					p.SetNumberOfBlocks(Utils::ToInt(str));
+				} else if (itemnode->GetName() == "SidesPerDisk") {
 					p.SetSidesPerDisk(Utils::ToInt(str));
 				} else if (itemnode->GetName() == "TracksPerSide") {
 					p.SetTracksPerSide(Utils::ToInt(str));

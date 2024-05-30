@@ -39,6 +39,7 @@ add_executable(${PROJECT_NAME}
 	${SRCBASICFMTDIR}/basicfmt.cpp
 	${SRCDISKIMGDIR}/diskcommon.cpp
 	${SRCDISKIMGDIR}/bootparam.cpp
+	${SRCDISKIMGDIR}/bootparser.cpp
 	${SRCDISKIMGDIR}/diskparam.cpp
 	${SRCDISKIMGDIR}/diskimage.cpp
 	${SRCDISKIMGDIR}/diskplain.cpp
@@ -55,6 +56,7 @@ add_executable(${PROJECT_NAME}
 	${SRCDISKIMGDIR}/fileparam.cpp
 	${SRCUIDIR}/basicselbox.cpp
 	${SRCUIDIR}/basicparambox.cpp
+	${SRCUIDIR}/bootselbox.cpp
 	${SRCUIDIR}/configbox.cpp
 	${SRCUIDIR}/diskparambox.cpp
 	${SRCUIDIR}/fileselbox.cpp

@@ -26,6 +26,16 @@
 		<Description lang="ja">T98ファイル</Description>
 	</FileFormatType>
 
+	<FileType ext="h0">
+		<Format type="plain">
+		</Format>
+		<Description>H0 file</Description>
+	</FileType>
+	<FileType ext="h1">
+		<Format type="plain">
+		</Format>
+		<Description>H1 file</Description>
+	</FileType>
 	<FileType ext="hdi">
 		<Format type="hdi" />
 		<Description>HDI file</Description>
@@ -47,6 +57,16 @@
 		<Format type="plain">
 		</Format>
 		<Description>HDS file</Description>
+	</FileType>
+	<FileType ext="img">
+		<Format type="plain">
+		</Format>
+		<Description>IMG file</Description>
+	</FileType>
+	<FileType ext="mos">
+		<Format type="plain">
+		</Format>
+		<Description>MOS file</Description>
 	</FileType>
 	<FileType ext="nhd">
 		<Format type="nhd" />

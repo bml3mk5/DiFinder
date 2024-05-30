@@ -205,6 +205,7 @@ enum DiskBasicFormatType {
 	FORMAT_TYPE_MSDOS	= 3,
 	FORMAT_TYPE_OS9		= 9,
 	FORMAT_TYPE_HU68K	= 14,
+	FORMAT_TYPE_MACHFS	= 41,
 };
 
 //////////////////////////////////////////////////////////////////////

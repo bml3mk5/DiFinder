@@ -27,7 +27,13 @@
 #include "rawexpbox.h"
 #include "../utils.h"
 
+//////////////////////////////////////////////////////////////////////
 
+enum enDefaultParameters {
+	Def_Sectors_Per_Track = 63,
+	Def_Tracks_Per_Side = 1024,
+	Def_Sides_Per_Disk = 255,
+};
 //////////////////////////////////////////////////////////////////////
 
 const struct st_list_columns gUiDiskRawSectorColumnDefs[] = {
@@ -222,6 +228,12 @@ bool UiDiskRawPanel::ShowSectorAttr()
 	return true;
 }
 
+/// セクタを編集
+void UiDiskRawPanel::EditSector()
+{
+	return rpanel->EditSector();
+}
+
 /// ファイル名を生成
 /// @param[in] st_c 開始トラック番号
 /// @param[in] st_h 開始サイド番号
@@ -381,6 +393,10 @@ UiDiskRawTrack::UiDiskRawTrack(UiDiskFrame *parentframe, UiDiskRawPanel *parentw
 	frame    = parentframe;
 
 	p_file = NULL;
+	m_number_of_sectors = 0;
+	m_sectors_per_track = Def_Sectors_Per_Track;
+	m_tracks_per_side = Def_Tracks_Per_Side;
+	m_sides_per_disk = Def_Sides_Per_Disk;
 
 	// controls
 	wxSizerFlags flags_center = wxSizerFlags().Centre().Border(wxALL, 4);
@@ -479,8 +495,11 @@ void UiDiskRawTrack::SelectData()
 	int trk = txtTrack->GetValue();
 	int sid = txtSide->GetValue();
 
-	int start_sector = (trk * p_file->GetSidesPerDisk() + sid) * p_file->GetSectorsPerTrack();
-	int end_sector = start_sector + p_file->GetSectorsPerTrack() - 1;
+	int start_sector = (trk * m_sides_per_disk + sid) * m_sectors_per_track;
+	int end_sector = start_sector + m_sectors_per_track - 1;
+	if (end_sector >= m_number_of_sectors) {
+		end_sector = m_number_of_sectors - 1;
+	}
 
 	parent->SetSectorListData(p_file, trk, sid, start_sector, end_sector);
 
@@ -494,15 +513,34 @@ void UiDiskRawTrack::SearchDataBySector()
 
 	int sec = txtSector->GetValue();
 
-	int trk = ((sec / p_file->GetSectorsPerTrack()) / p_file->GetSidesPerDisk());
-	int sid = ((sec / p_file->GetSectorsPerTrack()) % p_file->GetSidesPerDisk());
+	int trk = ((sec / m_sectors_per_track) / m_sides_per_disk);
+	int sid = ((sec / m_sectors_per_track) % m_sides_per_disk);
 
-	int start_sector = (trk * p_file->GetSidesPerDisk() + sid) * p_file->GetSectorsPerTrack();
-	int end_sector = start_sector + p_file->GetSectorsPerTrack() - 1;
+	int start_sector = (trk * m_sides_per_disk + sid) * m_sectors_per_track;
+	int end_sector = start_sector + m_sectors_per_track - 1;
+	if (end_sector >= m_number_of_sectors) {
+		end_sector = m_number_of_sectors - 1;
+	}
 
 	parent->SetSectorListData(p_file, trk, sid, start_sector, end_sector);
 
 	SetTracks(trk, sid, sec);
+}
+
+/// パラメータセット
+void UiDiskRawTrack::SetParameter()
+{
+	m_sectors_per_track = p_file->GetSectorsPerTrack();
+	if (m_sectors_per_track <= 0) m_sectors_per_track = Def_Sectors_Per_Track;
+
+	m_tracks_per_side = p_file->GetTracksPerSide();
+	if (m_tracks_per_side <= 0) m_tracks_per_side = Def_Tracks_Per_Side;
+
+	m_sides_per_disk = p_file->GetSidesPerDisk();
+	if (m_sides_per_disk <= 0) m_sides_per_disk = Def_Sides_Per_Disk;
+
+	m_number_of_sectors = p_file->GetNumberOfBlocks();
+	if (m_number_of_sectors <= 0) m_number_of_sectors = m_sectors_per_track * m_tracks_per_side * m_sides_per_disk;
 }
 
 /// トラックリストをセット
@@ -512,6 +550,7 @@ void UiDiskRawTrack::SetTracks(DiskImageFile *newfile)
 
 	p_file = newfile;
 
+	SetParameter();
 	SetTracks(0);
 
 	// セクタリストはクリア
@@ -526,6 +565,7 @@ void UiDiskRawTrack::SetTracks(DiskImageDisk *newdisk)
 
 	p_file = newdisk->GetFile();
 
+	SetParameter();
 	SetTracks(newdisk->GetStartSectorNumber());
 
 	// セクタリストはクリア
@@ -547,11 +587,8 @@ void UiDiskRawTrack::SetTracks(int start_sector)
 {
 	if (!p_file) return;
 
-	int sides = p_file->GetSidesPerDisk();
-	int secs = p_file->GetSectorsPerTrack();
-
-	int trk_num = start_sector / secs / sides;
-	int sid_num = (start_sector / secs) % sides;
+	int trk_num = start_sector / m_sectors_per_track / m_sides_per_disk;
+	int sid_num = (start_sector / m_sectors_per_track) % m_sides_per_disk;
 
 	SetTracks(trk_num, sid_num, start_sector);
 }
@@ -559,9 +596,15 @@ void UiDiskRawTrack::SetTracks(int start_sector)
 /// トラックリストをセット
 void UiDiskRawTrack::SetTracks(int track_num, int side_num, int sector_num)
 {
-	int tracks = p_file->GetTracksPerSide();
-	int sides = p_file->GetSidesPerDisk();
-	int sectors = tracks * sides * p_file->GetSectorsPerTrack();
+	int tracks = 0;
+	int sides = m_sides_per_disk;
+	int sectors = p_file->GetNumberOfBlocks();
+	if (sectors > 0) {
+		tracks = (sectors + m_sectors_per_track * m_sides_per_disk - 1) / m_sectors_per_track / m_sides_per_disk;
+	} else {
+		tracks = p_file->GetTracksPerSide();
+		sectors = tracks * m_sides_per_disk * m_sectors_per_track;
+	}
 
 	txtTrack->SetRangeValue(0, tracks - 1, track_num);
 	txtSide->SetRangeValue(0, sides - 1, side_num);
@@ -862,7 +905,7 @@ void UiDiskRawTrack::IncreaseSide()
 	int trk = txtTrack->GetValue();
 	int sid = txtSide->GetValue();
 	sid++;
-	if (sid >= p_file->GetSidesPerDisk()) {
+	if (sid >= m_sides_per_disk) {
 		trk++;
 		sid = 0;
 	}
@@ -885,7 +928,7 @@ void UiDiskRawTrack::DecreaseSide()
 	sid--;
 	if (sid < 0) {
 		trk--;
-		sid = p_file->GetSidesPerDisk() - 1;
+		sid = m_sides_per_disk - 1;
 	}
 	if (trk < 0) {
 		trk = 0;
@@ -1277,7 +1320,7 @@ void UiDiskRawSector::RefreshSectors()
 	int row_count = (int)GetItemCount();
 
 	int siz = p_file->GetSectorSize();
-	int secs = p_file->GetSectorsPerTrack();
+	int secs = m_end_sector - m_start_sector + 1;
 
 	for (int sector_num = m_start_sector, i = 0; sector_num <= m_end_sector; sector_num++, i++) {
 		wxUint32 offset = sector_num * siz + p_file->GetStartOffset();

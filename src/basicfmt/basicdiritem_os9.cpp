@@ -141,6 +141,20 @@ void DiskBasicDirItemOS9FD::SetATT(wxUint8 val)
 	if (!fd) fd = GetFDFromSector();
 	if (fd) fd->FD_ATT = val;
 }
+/// ユーザIDを返す
+wxUint16 DiskBasicDirItemOS9FD::GetOWN() const
+{
+	directory_os9_fd_t *fd = p_fd;
+	if (!fd) fd = GetFDFromSector();
+	return fd ? wxUINT16_SWAP_ON_LE(fd->FD_OWN) : 0;
+}
+/// ユーザIDをセット
+void DiskBasicDirItemOS9FD::SetOWN(wxUint16 val)
+{
+	directory_os9_fd_t *fd = p_fd;
+	if (!fd) fd = GetFDFromSector();
+	if (fd) fd->FD_OWN = wxUINT16_SWAP_ON_LE(val);
+}
 /// セグメントのLSNを返す
 wxUint32 DiskBasicDirItemOS9FD::GetLSN(int idx) const
 {
@@ -250,63 +264,22 @@ DiskBasicDirItemOS9::DiskBasicDirItemOS9(DiskBasic *basic)
 {
 	m_data.Alloc();
 	fd.Alloc();
+	m_owner_id = 0;
+	m_group_id = 0;
 }
-#if 0
-DiskBasicDirItemOS9::DiskBasicDirItemOS9(DiskBasic *basic, int n_block_num, int n_position, wxUint8 *n_data)
-	: DiskBasicDirItem(basic, n_block_num, n_position, n_data)
-{
-	m_data.Attach(n_data);
-}
-DiskBasicDirItemOS9::DiskBasicDirItemOS9(DiskBasic *basic, int n_num, const DiskBasicGroupItem *n_gitem, int n_block_num, int n_position, wxUint8 *n_data, const int *n_next, bool &n_unuse)
-	: DiskBasicDirItem(basic, n_num, n_gitem, n_block_num, n_position, n_data, n_next, n_unuse)
-{
-	m_data.Attach(n_data);
-
-	Used(CheckUsed(n_unuse));
-
-	// FDセクタへのポインタをセット
-	if (IsUsed()) {
-		wxUint32 lsn = GET_OS9_LSN(((directory_os9_t *)n_data)->DE_LSN);
-		if (lsn != 0) {
-			int block_num = type->GetStartSectorFromGroup(lsn);
-			DiskImageSector *sector = basic->GetSector(block_num);
-			if (sector) {
-				fd.Set(basic, block_num, lsn);
-			}
-		}
-	}
-
-	CalcFileSize();
-
-	// カレント or 親ディレクトリはツリーに表示しない
-	wxString name = GetFileNamePlainStr();
-	VisibleOnTree(!(IsDirectory() && (name == wxT(".") || name == wxT(".."))));
-}
-
-/// アイテムへのポインタを設定
-/// @param [in]  n_num        通し番号
-/// @param [in]  n_gitem      トラック番号などのデータ
-/// @param [in]  n_block_num  パーティション内のセクタ番号
-/// @param [in]  n_position   セクタ内のディレクトリエントリの位置
-/// @param [in]  n_data       ディレクトリアイテム
-/// @param [out] n_next       次のセクタ
-void DiskBasicDirItemOS9::SetDataPtr(int n_num, const DiskBasicGroupItem *n_gitem, int n_block_num, int n_position, wxUint8 *n_data, const int *n_next)
-{
-	DiskBasicDirItem::SetDataPtr(n_num, n_gitem, n_block_num, n_position, n_data, n_next);
-
-	m_data.Attach(n_data);
-}
-#endif
-
 DiskBasicDirItemOS9::DiskBasicDirItemOS9(DiskBasic *basic, int n_block_num, int n_position)
 	: DiskBasicDirItem(basic, n_block_num, n_position)
 {
 	m_data.Attach(basic->GetDisk(), n_block_num, n_position);
+	m_owner_id = 0;
+	m_group_id = 0;
 }
 DiskBasicDirItemOS9::DiskBasicDirItemOS9(DiskBasic *basic, int n_num, const DiskBasicGroupItem *n_gitem, int n_block_num, int n_position, const int *n_next, bool &n_unuse)
 	: DiskBasicDirItem(basic, n_num, n_gitem, n_block_num, n_position, n_next, n_unuse)
 {
 	m_data.Attach(basic->GetDisk(), n_block_num, n_position);
+	m_owner_id = 0;
+	m_group_id = 0;
 
 	Used(CheckUsed(n_unuse));
 
@@ -370,6 +343,18 @@ void DiskBasicDirItemOS9::SetFileType1(int val)
 bool DiskBasicDirItemOS9::CheckUsed(bool unuse)
 {
 	return (m_data.Data()->DE_NAM[0] != 0);
+}
+
+/// ユーザIDを返す
+int DiskBasicDirItemOS9::GetUserID() const
+{
+	return fd.GetOWN();
+}
+
+/// ユーザIDのセット
+void DiskBasicDirItemOS9::SetUserID(int val)
+{
+	fd.SetOWN(val & 0xffff);
 }
 
 /// ファイル名を設定
@@ -465,8 +450,10 @@ void DiskBasicDirItemOS9::SetFileAttr(const DiskBasicFileType &file_type)
 	if (ftype == -1) return;
 
 	int t1 = 0;
+	int user_id = -1;
 	if (file_type.GetFormat() == basic->GetFormatTypeNumber()) {
-		t1 = file_type.GetOrigin();
+		t1 = file_type.GetOrigin(0);
+		user_id = file_type.GetOrigin(1);
 	} else {
 		if (ftype & FILE_TYPE_DIRECTORY_MASK) {
 			t1 |= FILETYPE_MASK_OS9_DIRECTORY;
@@ -484,6 +471,7 @@ void DiskBasicDirItemOS9::SetFileAttr(const DiskBasicFileType &file_type)
 		t1 |= FILETYPE_MASK_OS9_USER_READ;
 	}
 	SetFileType1(t1);
+	if (user_id >= 0) SetUserID(user_id);
 }
 
 /// 属性を返す
@@ -501,7 +489,7 @@ DiskBasicFileType DiskBasicDirItemOS9::GetFileAttr() const
 		val |= FILE_TYPE_BINARY_MASK;
 	}
 //	val |= ((t1 << FILETYPE_OS9_PERMISSION_POS) & FILETYPE_OS9_PERMISSION_MASK);
-	return DiskBasicFileType(basic->GetFormatTypeNumber(), val, t1);
+	return DiskBasicFileType(basic->GetFormatTypeNumber(), val, t1, GetUserID());
 }
 
 /// 属性の文字列を返す(ファイル一覧画面表示用)
@@ -576,12 +564,8 @@ void DiskBasicDirItemOS9::GetUnitGroups(int fileunit_num, DiskBasicGroups &group
 			}
 		}
 		for(int n = 0; n < siz; n++) {
-//			int track_num = 0;
-//			int side_num = 0;
 			int block_num = 0;
 			wxUint32 next_lsn = (n + 1 != siz ? lsn + n + 1 : 0);
-//			basic->CalcNumFromSectorPosForGroup(lsn + n, track_num, side_num, sector_num);
-//			group_items.Add(lsn + n, next_lsn, track_num, side_num, sector_num, sector_num);
 			block_num = type->GetStartSectorFromGroup(lsn + n);
 			group_items.Add(lsn + n, next_lsn, block_num, block_num);
 			calc_groups++;
@@ -853,6 +837,7 @@ void DiskBasicDirItemOS9::CopyItem(const DiskBasicDirItem &src)
 	DiskBasicDirItem::CopyItem(src);
 	const DiskBasicDirItemOS9FD *src_fd = &((const DiskBasicDirItemOS9 &)src).GetFD();
 	fd.SetATT(src_fd->GetATT());
+	fd.SetOWN(src_fd->GetOWN());
 	fd.SetSIZ(src_fd->GetSIZ());
 	fd.SetDAT(src_fd->GetDAT());
 	fd.SetDCR(src_fd->GetDCR());
@@ -919,6 +904,7 @@ int DiskBasicDirItemOS9::ConvOriginalTypeFromFileName(const wxString &filename) 
 #include <wx/statbox.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
+#include <wx/valnum.h>
 #include <wx/sizer.h>
 #include "../ui/intnamebox.h"
 #include "../ui/intnamevalid.h"
@@ -933,6 +919,8 @@ int DiskBasicDirItemOS9::ConvOriginalTypeFromFileName(const wxString &filename) 
 #define IDC_CHECK_USR_WRITE	57
 #define IDC_CHECK_USR_READ	58
 #define IDC_TEXT_CREATEDATE	59
+#define IDC_TEXT_OWNER      60
+#define IDC_TEXT_GROUP      61
 
 // 属性からリストの位置を返す(プロパティダイアログ用)
 int DiskBasicDirItemOS9::GetFileType1Pos()
@@ -963,6 +951,10 @@ void DiskBasicDirItemOS9::CreateControlsForAttrDialog(IntNameBox *parent, int sh
 {
 	int file_type_1 = GetFileType1Pos();
 //	int file_type_2 = 0;
+	int user_id = GetUserID();
+
+	wxTextCtrl *txtOwner;
+	wxTextCtrl *txtGroup;
 
 	wxCheckBox *chkDirectory;
 	wxCheckBox *chkSharable;
@@ -975,11 +967,30 @@ void DiskBasicDirItemOS9::CreateControlsForAttrDialog(IntNameBox *parent, int sh
 	wxCheckBox *chkUsrRead;
 
 //	wxTextCtrl *txtCDate;
+	wxSizerFlags nborder = wxSizerFlags().Expand().Border(wxALL, 1);
 
 	SetFileTypeForAttrDialog(show_flags, file_path, file_type_1);
 
-	wxStaticBoxSizer *staType4 = new wxStaticBoxSizer(new wxStaticBox(parent, wxID_ANY, _("File Attributes")), wxVERTICAL);
+	wxBoxSizer *hbox3 = new wxBoxSizer(wxHORIZONTAL);
+	wxStaticBoxSizer *staType3 = new wxStaticBoxSizer(new wxStaticBox(parent, wxID_ANY, _("Owner ID")), wxVERTICAL);
 	wxBoxSizer *hbox = new wxBoxSizer(wxHORIZONTAL);
+
+	wxSize sz(48, -1);
+	m_group_id = ((user_id >> 8) & 0xff);
+	txtGroup = new wxTextCtrl(parent, IDC_TEXT_GROUP, wxT(""), wxDefaultPosition, sz, wxTE_RIGHT, wxIntegerValidator<wxUint8>(&m_group_id));
+	txtGroup->SetMaxLength(4);
+	hbox->Add(txtGroup, nborder);
+	hbox->Add(new wxStaticText(parent, wxID_ANY, wxT(".")), nborder);
+	m_owner_id = (user_id & 0xff);
+	txtOwner = new wxTextCtrl(parent, IDC_TEXT_OWNER, wxT(""), wxDefaultPosition, sz, wxTE_RIGHT, wxIntegerValidator<wxUint8>(&m_owner_id));
+	txtOwner->SetMaxLength(4);
+	hbox->Add(txtOwner, nborder);
+	staType3->Add(hbox);
+
+	hbox3->Add(staType3, flags);
+
+	wxStaticBoxSizer *staType4 = new wxStaticBoxSizer(new wxStaticBox(parent, wxID_ANY, _("File Attributes")), wxVERTICAL);
+	hbox = new wxBoxSizer(wxHORIZONTAL);
 
 	chkDirectory = new wxCheckBox(parent, IDC_CHECK_DIRECTORY, wxGetTranslation(gTypeNameOS9[TYPE_NAME_OS9_DIRECTORY]));
 	chkDirectory->SetValue((file_type_1 & FILETYPE_MASK_OS9_DIRECTORY) != 0);
@@ -990,7 +1001,8 @@ void DiskBasicDirItemOS9::CreateControlsForAttrDialog(IntNameBox *parent, int sh
 	hbox->Add(chkSharable, flags);
 	staType4->Add(hbox);
 
-	sizer->Add(staType4);
+	hbox3->Add(staType4, flags);
+	sizer->Add(hbox3);
 
 	wxStaticBoxSizer *staType5 = new wxStaticBoxSizer(new wxStaticBox(parent, wxID_ANY, _("Permission")), wxVERTICAL);
 
@@ -1044,6 +1056,9 @@ void DiskBasicDirItemOS9::ChangeTypeInAttrDialog(IntNameBox *parent)
 /// @param [in,out] errinfo エラー情報
 bool DiskBasicDirItemOS9::SetAttrInAttrDialog(const IntNameBox *parent, DiskBasicDirItemAttr &attr, DiskBasicError &errinfo) const
 {
+//	wxTextCtrl *txtOwner = (wxTextCtrl *)parent->FindWindow(IDC_TEXT_OWNER);
+//	wxTextCtrl *txtGroup = (wxTextCtrl *)parent->FindWindow(IDC_TEXT_GROUP);
+
 	wxCheckBox *chkDirectory = (wxCheckBox *)parent->FindWindow(IDC_CHECK_DIRECTORY);
 	wxCheckBox *chkSharable = (wxCheckBox *)parent->FindWindow(IDC_CHECK_NONSHARE);
 
@@ -1064,7 +1079,8 @@ bool DiskBasicDirItemOS9::SetAttrInAttrDialog(const IntNameBox *parent, DiskBasi
 	t1 |= (chkUsrWrite->GetValue() ? FILETYPE_MASK_OS9_USER_WRITE : 0);
 	t1 |= (chkUsrRead->GetValue() ? FILETYPE_MASK_OS9_USER_READ : 0);
 
-	attr.SetFileAttr(basic->GetFormatTypeNumber(), 0, t1);
+	int user_id = (((wxUint32)m_group_id << 8) | m_owner_id);
+	attr.SetFileAttr(basic->GetFormatTypeNumber(), 0, t1, user_id);
 
 	return true;
 }

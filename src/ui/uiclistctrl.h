@@ -213,8 +213,8 @@ public:
 	/// 表示位置のカラム情報を返す
 	MyCListColumn *FindColumn(int col, int *n_idx) const;
 
-	/// カラム用のポップアップメニューを作成する
-	void CreateColumnPopupMenu(wxMenu* &menu, int menu_id, int menu_detail_id);
+//	/// カラム用のポップアップメニューを作成する
+//	void CreateColumnPopupMenu(wxMenu* &menu, int menu_id, int menu_detail_id);
 	/// カラム情報を現在の並び順で返す
 	void GetListColumnsByCurrentOrder(MyCListColumns &items) const;
 	/// カラム入れ替えダイアログを表示
@@ -261,6 +261,7 @@ class MyCListRearrangeBox : public wxRearrangeDialog
 {
 public:
 	MyCListRearrangeBox(MyCListCtrl *parent, const wxArrayInt &order, const wxArrayString &items);
+
 };
 
 #endif /* UICLISTCTRL_H */

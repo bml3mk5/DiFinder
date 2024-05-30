@@ -50,6 +50,9 @@
     <ClCompile Include="..\src\basicfmt\basicdiritem.cpp">
       <Filter>Source Files\basicfmt</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\basicfmt\basicdiritem_hfs.cpp">
+      <Filter>Source Files\basicfmt</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\basicfmt\basicdiritem_hu68k.cpp">
       <Filter>Source Files\basicfmt</Filter>
     </ClCompile>
@@ -86,6 +89,9 @@
     <ClCompile Include="..\src\basicfmt\basictype_fat_base.cpp">
       <Filter>Source Files\basicfmt</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\basicfmt\basictype_hfs.cpp">
+      <Filter>Source Files\basicfmt</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\basicfmt\basictype_hu68k.cpp">
       <Filter>Source Files\basicfmt</Filter>
     </ClCompile>
@@ -105,6 +111,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\diskimg\bootparam.cpp">
+      <Filter>Source Files\diskimg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\diskimg\bootparser.cpp">
       <Filter>Source Files\diskimg</Filter>
     </ClCompile>
     <ClCompile Include="..\src\diskimg\diskcommon.cpp">
@@ -168,6 +177,9 @@
       <Filter>Source Files\ui</Filter>
     </ClCompile>
     <ClCompile Include="..\src\ui\basicselbox.cpp">
+      <Filter>Source Files\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ui\bootselbox.cpp">
       <Filter>Source Files\ui</Filter>
     </ClCompile>
     <ClCompile Include="..\src\ui\configbox.cpp">
@@ -259,6 +271,9 @@
     <ClInclude Include="..\src\basicfmt\basicdiritem.h">
       <Filter>Header Files\basicfmt</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\basicfmt\basicdiritem_hfs.h">
+      <Filter>Header Files\basicfmt</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\basicfmt\basicdiritem_hu68k.h">
       <Filter>Header Files\basicfmt</Filter>
     </ClInclude>
@@ -295,6 +310,9 @@
     <ClInclude Include="..\src\basicfmt\basictype_fat_base.h">
       <Filter>Header Files\basicfmt</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\basicfmt\basictype_hfs.h">
+      <Filter>Header Files\basicfmt</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\basicfmt\basictype_hu68k.h">
       <Filter>Header Files\basicfmt</Filter>
     </ClInclude>
@@ -314,6 +332,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\diskimg\bootparam.h">
+      <Filter>Header Files\diskimg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\diskimg\bootparser.h">
       <Filter>Header Files\diskimg</Filter>
     </ClInclude>
     <ClInclude Include="..\src\diskimg\diskcommon.h">
@@ -377,6 +398,9 @@
       <Filter>Header Files\ui</Filter>
     </ClInclude>
     <ClInclude Include="..\src\ui\basicselbox.h">
+      <Filter>Header Files\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ui\bootselbox.h">
       <Filter>Header Files\ui</Filter>
     </ClInclude>
     <ClInclude Include="..\src\ui\configbox.h">

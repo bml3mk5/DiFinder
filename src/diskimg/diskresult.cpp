@@ -24,6 +24,8 @@ const char *gDiskResultMsgs[] = {
 	wxTRANSLATE("No partition exists."),
 	//	ERR_NO_BOOTSTRAP
 	wxTRANSLATE("No bootstrap found."),
+	//	ERR_INVALID_BOOTSTRAP
+	wxTRANSLATE("Invalid bootstrap."),
 	//	ERR_NO_TRACK,
 	wxTRANSLATE("No track exists."),
 	//	ERR_REPLACE,

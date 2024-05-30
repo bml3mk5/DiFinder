@@ -145,7 +145,7 @@ double DiskBasicTypeMSDOS::ParseMSDOSParamOnDisk(DiskImageDisk *disk, bool is_fo
 	int sector_mag = sector_size_on_os / sector_size_on_disk;
 
 	nums++;
-	if (sector_mag == 1 || sector_mag == 2 || sector_mag == 4) {
+	if (sector_mag == 1 || sector_mag == 2 || sector_mag == 4 || sector_mag == 8) {
 		// セクタタサイズ
 		valids++;
 	}
@@ -167,6 +167,10 @@ double DiskBasicTypeMSDOS::ParseMSDOSParamOnDisk(DiskImageDisk *disk, bool is_fo
 		basic->CalcDirStartEndSector(sector_size_on_disk);
 		// メディアID
 		basic->SetMediaId(bpb->BPB_Media);
+	}
+
+	if (basic->GetSectorsPerGroup() <= 0) {
+		basic->SetSectorsPerGroup(1);
 	}
 
 	// FATタイプの決定

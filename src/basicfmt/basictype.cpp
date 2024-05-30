@@ -1093,7 +1093,7 @@ int DiskBasicType::AllocateUnitGroups(int fileunit_num, DiskBasicDirItem *item, 
 {
 //	myLog.SetDebug("DiskBasicType::AllocateGroups {");
 
-	int groups = 0; 
+//	int groups = 0;
 
 	// FAT
 	int  rc = 0;
@@ -1137,7 +1137,7 @@ int DiskBasicType::AllocateUnitGroups(int fileunit_num, DiskBasicDirItem *item, 
 		group_num = next_group_num;
 
 		sizeremain -= bytes_per_group;
-		groups++;
+//		groups++;
 
 		limit--;
 	}

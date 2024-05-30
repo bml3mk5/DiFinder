@@ -48,6 +48,7 @@ class DiskBasicGroups;
 class DiskBasicDirItem;
 class DiskBasicDirItems;
 class DiskBasicParam;
+class BootParam;
 
 class CharTypeBox;
 
@@ -205,6 +206,8 @@ public:
 	void OnPasteDataToDisk(wxCommandEvent& event);
 	/// メニュー ディレクトリ作成選択
 	void OnMakeDirectoryOnDisk(wxCommandEvent& event);
+	/// メニュー ファイル編集選択
+	void OnEditFileOnDisk(wxCommandEvent& event);
 	/// メニュー プロパティ選択
 	void OnPropertyOnDisk(wxCommandEvent& event);
 
@@ -339,6 +342,8 @@ public:
 	bool ShowFileSelectDialog(const wxString &path, wxString &file_format);
 	/// ディスク種類選択ダイアログ
 	bool ShowParamSelectDialog(const wxString &path, const DiskParamPtrs &disk_params, const DiskParam *manual_param, DiskParam &param_hint);
+	/// ディスクイメージを開きなおす
+	bool ReOpenDataFile(const BootParam &boot_param);
 	/// ファイルを閉じる
 	bool CloseDataFile(bool force = false);
 	/// 名前を付けて保存ダイアログ
@@ -365,6 +370,8 @@ public:
 	void PasteDataToDisk();
 	/// ディスクにディレクトリを作成
 	void MakeDirectoryOnDisk();
+	/// ファイル編集
+	void EditFileOnDisk(enEditorTypes editor_type);
 	/// ファイルのプロパティ
 	void PropertyOnDisk();
 	/// DISK BASIC用に論理フォーマットできるか
@@ -620,6 +627,8 @@ public:
 		IDM_COPY_DATA,
 		IDM_PASTE_DATA,
 		IDM_MAKE_DIRECTORY_ON_DISK,
+		IDM_EDIT_FILE_BINARY,
+		IDM_EDIT_FILE_TEXT,
 		IDM_PROPERTY_DATA,
 
 		IDM_BASIC_MODE,

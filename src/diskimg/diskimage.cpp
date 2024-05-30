@@ -166,8 +166,9 @@ void DiskImageDisk::SetCharCode(const wxString &name)
 }
 
 // セクタ位置からトラック、サイド、セクタ番号を得る(オフセットを考慮)
-void DiskImageDisk::GetNumberFromBlockNum(int block_num, int &track_num, int &side_num, int &sector_num) const
+bool DiskImageDisk::GetNumberFromBlockNum(int block_num, int &track_num, int &side_num, int &sector_num) const
 {
+	return false;
 }
 
 // ----------------------------------------------------------------------
@@ -232,17 +233,24 @@ void DiskImageFile::SetFileName(const wxString &path)
 }
 
 /// セクタ位置からトラック、サイド、セクタ番号を得る
-void DiskImageFile::GetNumberFromSectorPos(int sector_pos, int &track_num, int &side_num, int &sector_num) const
+/// @return false : 計算不可(トラック数、サイド数の設定がない)
+bool DiskImageFile::GetNumberFromSectorPos(int sector_pos, int &track_num, int &side_num, int &sector_num) const
 {
 	if (sector_pos < 0) {
 		track_num = -1;
 		side_num = -1;
 		sector_num = -1;
 	} else {
-		track_num = sector_pos / GetSectorsPerTrack() / GetSidesPerDisk();
-		side_num = (sector_pos / GetSectorsPerTrack()) % GetSidesPerDisk();
-		sector_num = (sector_pos % GetSectorsPerTrack());
+		int sec_per_trk = GetSectorsPerTrack();
+		int sid_per_dsk = GetSidesPerDisk();
+		if (sec_per_trk * sid_per_dsk == 0) {
+			return false;
+		}
+		track_num = sector_pos / sec_per_trk / sid_per_dsk;
+		side_num = (sector_pos / sec_per_trk) % sid_per_dsk;
+		sector_num = (sector_pos % sec_per_trk);
 	}
+	return true;
 }
 
 /// トラック、サイド、セクタ番号からセクタ位置を得る
@@ -332,6 +340,17 @@ int DiskImage::Open(const wxString &filepath, const wxString &file_format, const
 /// @retval -1 エラーあり
 /// @retval  1 警告あり
 int DiskImage::Check(const wxString &filepath, wxString &file_format, DiskParamPtrs &params, DiskParam &manual_param)
+{
+	m_result.SetError(DiskResult::ERR_UNSUPPORTED);
+	return -1;
+}
+
+/// 既に開いているファイルを開きなおす
+/// @param [in] boot_param ブートストラップ種類
+/// @retval  0 問題なし
+/// @retval -1 エラーあり
+/// @retval  1 警告あり
+int DiskImage::ReOpen(const BootParam &boot_param)
 {
 	m_result.SetError(DiskResult::ERR_UNSUPPORTED);
 	return -1;

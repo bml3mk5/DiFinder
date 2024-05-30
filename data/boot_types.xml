@@ -9,6 +9,16 @@
 		<Description>SHARP X680x0</Description>
 		<Description lang="ja">シャープ X680x0</Description>
 	</BootCategory>
+	<BootCategory name="FMR">
+		<Description>FUJITSU FMR/FM TOWNS</Description>
+		<Description lang="ja">富士通 FMR/FM TOWNS</Description>
+	</BootCategory>
+	<BootCategory name="MAC">
+		<Description>Apple Macintosh</Description>
+	</BootCategory>
+	<BootCategory name="PCAT">
+		<Description>IBM PC/AT</Description>
+	</BootCategory>
 </BootCategories>
 
 <BootTypes version="1.0">
@@ -17,11 +27,12 @@
 			<String pos="0">\xeb</String>
 			<String pos="4">IPL1</String>
 			<String>NEC Corporation</String>
+			<String>\xe9\xd1\x02\x20</String>
 		</CompareKeywords>
 		<DiskBasicTypes>
 			<Type>MSD98-HDD</Type>
 		</DiskBasicTypes>
-		<Description>PC-98x1 IPL</Description>
+		<Description>NEC PC-98x1 IPL</Description>
 	</BootType>
 	<BootType name="OS9-X68K-24-IPL" type="2" category="X68K">
 		<CompareKeywords>
@@ -31,7 +42,7 @@
 		<DiskBasicTypes>
 			<Type>OS9-X68K-24-HDD</Type>
 		</DiskBasicTypes>
-		<Description>OS-9/X68000 V2.4 IPL</Description>
+		<Description>SHARP OS-9/X68000 V2.4 IPL</Description>
 	</BootType>
 	<BootType name="HU68K-IPL" type="3" category="X68K">
 		<CompareKeywords>
@@ -43,7 +54,7 @@
 			<Type>OS9-X68K-24-HDD</Type>
 			<Type>HU68K-HDD</Type>
 		</DiskBasicTypes>
-		<Description>Human68k IPL</Description>
+		<Description>SHARP Human68k IPL</Description>
 	</BootType>
 	<BootType name="OS9-X68K-24-SCSI-IPL" type="4" category="X68K">
 		<CompareKeywords>
@@ -54,7 +65,7 @@
 		<DiskBasicTypes>
 			<Type>OS9-X68K-24-HDD</Type>
 		</DiskBasicTypes>
-		<Description>OS-9/X68000 V2.4 SCSI IPL</Description>
+		<Description>SHARP OS-9/X68000 V2.4 SCSI IPL</Description>
 	</BootType>
 	<BootType name="HU68K-SCSI-IPL" type="5" category="X68K">
 		<CompareKeywords>
@@ -67,7 +78,55 @@
 			<Type>OS9-X68K-24-HDD</Type>
 			<Type>HU68K-SCSI-HDD</Type>
 		</DiskBasicTypes>
-		<Description>Human68k SCSI IPL</Description>
+		<Description>SHARP Human68k SCSI IPL</Description>
+	</BootType>
+	<BootType name="FMR-IPL" type="6" category="FMR">
+		<CompareKeywords>
+			<String pos="0">IPL</String><!-- IPL -->
+			<Regex pos="4">^[1-5]</Regex><!-- IPL1 - IPL5 -->
+			<String pos="0x200">\x95\x78\x8e\x6d\x92\xca</String><!-- FUJITSU -->
+		</CompareKeywords>
+		<DiskBasicTypes>
+			<Type>MSDFM-HDD</Type>
+		</DiskBasicTypes>
+		<Description>FUJITSU FMR/FM TOWNS IPL</Description>
+	</BootType>
+	<BootType name="MAC-HFS" type="7" category="MAC">
+		<CompareKeywords>
+			<String pos="0">LK</String>
+			<String pos="0x1b">Finder</String>
+			<String pos="0x400">BD</String>
+		</CompareKeywords>
+		<DiskBasicTypes>
+			<Type>MACHFS-HDD</Type>
+		</DiskBasicTypes>
+		<Description>Apple Mac HFS Volume</Description>
+	</BootType>
+	<BootType name="SUPER-FD" type="11" category="PCAT">
+		<CompareKeywords>
+			<String pos="0">\xeb</String>
+			<String pos="0x36" weight="0.5">FAT</String>
+			<ArrayString pos="0xc">
+				<String>\x00\x01</String>
+				<String>\x00\x02</String>
+				<String>\x00\x04</String>
+				<String>\x00\x08</String>
+			</ArrayString>
+		</CompareKeywords>
+		<DiskBasicTypes>
+			<Type>MSDOS-HDD</Type>
+		</DiskBasicTypes>
+		<Description>Super Floppy Type</Description>
+		<Description lang="ja">スーパーフロッピー形式</Description>
+	</BootType>
+	<BootType name="PCAT-MBR" type="12" category="PCAT">
+		<CompareKeywords>
+			<String pos="0x1fe" weight="0.2">\x55\xaa</String>
+		</CompareKeywords>
+		<DiskBasicTypes>
+			<Type>MSDOS-HDD</Type>
+		</DiskBasicTypes>
+		<Description>IBM PC/AT MBR</Description>
 	</BootType>
 </BootTypes>
 </Boots>

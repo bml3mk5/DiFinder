@@ -22,6 +22,7 @@ class DiskParam;
 class DiskParamPtrs;
 class FileParamFormat;
 class DiskTypeHints;
+class BootParam;
 
 /// ディスクパーサー
 class DiskParser
@@ -34,8 +35,8 @@ private:
 	wxString		 m_image_type;
 
 	/// ファイルの解析方法を選択
-	int SelectPerser(const wxString &type, const DiskParam *disk_param, short mod_flags, bool &support);
-	int Parse(const wxString &file_format, const DiskParam &param_hint, short mod_flags);
+	int SelectPerser(const wxString &type, const DiskParam *disk_param, short mod_flags, bool &support, const BootParam *boot_param);
+	int Parse(const wxString &file_format, const DiskParam &param_hint, short mod_flags, const BootParam *boot_param);
 	/// ファイルの解析方法を選択
 	int SelectChecker(const wxString &type, const DiskTypeHints *disk_hints, const DiskParam *disk_param, DiskParamPtrs &disk_params, DiskParam &manual_param, short mod_flags, bool &support);
 	int Check(wxString &file_format, DiskParamPtrs &disk_params, DiskParam &manual_param, short mod_flags);
@@ -45,9 +46,9 @@ public:
 	~DiskParser();
 
 	/// ディスクイメージを新たに解析する
-	int Parse(const wxString &file_format, const DiskParam &param_hint);
+	int Parse(const wxString &file_format, const DiskParam &param_hint, const BootParam *boot_param);
 	/// 指定ディスクを解析してこれを既存のディスクイメージに追加する
-	int ParseAdd(const wxString &file_format, const DiskParam &param_hint);
+	int ParseAdd(const wxString &file_format, const DiskParam &param_hint, const BootParam *boot_param);
 	/// ディスクイメージをチェック
 	int Check(wxString &file_format, DiskParamPtrs &disk_params, DiskParam &manual_param);
 	/// ディスクイメージのタイプを返す
@@ -71,7 +72,7 @@ public:
 
 	/// チェック
 	virtual int Check(wxInputStream &istream, const DiskTypeHints *disk_hints, const DiskParam *disk_param, DiskParamPtrs &disk_params, DiskParam &manual_param);
-	virtual int Parse(wxInputStream &istream, const DiskParam *disk_param);
+	virtual int Parse(wxInputStream &istream, const DiskParam *disk_param, const BootParam *boot_param);
 };
 
 #endif /* DISK_PARSER_H */

@@ -268,7 +268,7 @@ public:
 	virtual void	SetCharCode(const wxString &name);
 
 	// セクタ位置からトラック、サイド、セクタ番号を得る(オフセットを考慮)
-	virtual void GetNumberFromBlockNum(int block_num, int &track_num, int &side_num, int &sector_num) const;
+	virtual bool	GetNumberFromBlockNum(int block_num, int &track_num, int &side_num, int &sector_num) const;
 };
 
 // ----------------------------------------------------------------------
@@ -282,7 +282,7 @@ class DiskImageFile : public DiskParam
 {
 protected:
 	wxFileName m_filename;
-
+	wxString   m_file_format;	///< ファイルフォーマット種類
 	wxString m_basic_type_hint;	///< BASIC種類ヒント
 
 	DiskImageFile(const DiskImageFile &src) : DiskParam() {}
@@ -308,6 +308,7 @@ public:
 	virtual size_t Count() const;
 	virtual bool Delete(size_t idx);
 
+	virtual void ClearDisks() {}
 	virtual DiskImageDisks *GetDisks() { return NULL; }
 	virtual const DiskImageDisks *GetDisks() const { return NULL; }
 	virtual DiskImageDisk  *GetDisk(size_t idx) = 0;
@@ -355,6 +356,11 @@ public:
 	/// ファイルの説明
 	virtual void	SetDescription(const wxString &desc) {}
 
+	/// ファイルフォーマット種類を返す
+	virtual const wxString &GetFileFormat() const { return m_file_format; }
+	/// ファイルフォーマット種類を設定
+	virtual void	SetFileFormat(const wxString &format) { m_file_format = format; }
+
 	virtual const wxString &GetBasicTypeHint() const { return m_basic_type_hint; }
 	virtual void SetBasicTypeHint(const wxString &val) { m_basic_type_hint = val; };
 
@@ -362,7 +368,7 @@ public:
 	virtual void GetStatusMessage(wxString &str) const {}
 
 	/// セクタ位置からトラック、サイド、セクタ番号を得る
-	virtual void GetNumberFromSectorPos(int sector_pos, int &track_num, int &side_num, int &sector_num) const;
+	virtual bool GetNumberFromSectorPos(int sector_pos, int &track_num, int &side_num, int &sector_num) const;
 	/// トラック、サイド、セクタ番号からセクタ位置を得る
 	virtual int  GetSectorPosFromNumber(int track_num, int side_num, int sector_num) const;
 	
@@ -398,6 +404,8 @@ public:
 	virtual int Open(const wxString &filepath, const wxString &file_format, const DiskParam &param_hint);
 	/// ファイルを開く前のチェック
 	virtual int Check(const wxString &filepath, wxString &file_format, DiskParamPtrs &params, DiskParam &manual_param);
+	/// 既に開いているファイルを開きなおす
+	virtual int ReOpen(const BootParam &boot_param);
 	/// 閉じる
 	virtual void Close();
 	/// ファイルを開いているか

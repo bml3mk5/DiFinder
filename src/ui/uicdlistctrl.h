@@ -181,8 +181,8 @@ public:
 	/// 表示位置のカラム情報を返す
 	MyCDListColumn *FindColumn(wxDataViewColumn *col, int *n_idx, bool all = false) const;
 
-	/// カラム用のポップアップメニューを作成する
-	void CreateColumnPopupMenu(wxMenu* &menu, int menu_id, int menu_detail_id);
+//	/// カラム用のポップアップメニューを作成する
+//	void CreateColumnPopupMenu(wxMenu* &menu, int menu_id, int menu_detail_id);
 	/// カラム情報を現在の並び順で返す
 	void GetListColumnsByCurrentOrder(MyCDListColumns &items) const;
 	/// カラム入れ替えダイアログを表示
@@ -207,6 +207,7 @@ class MyCDListRearrangeBox : public wxRearrangeDialog
 {
 public:
 	MyCDListRearrangeBox(MyCDListCtrl *parent, const wxArrayInt &order, const wxArrayString &items);
+
 };
 
 #endif /* _UICDLISTCTRL_H_ */

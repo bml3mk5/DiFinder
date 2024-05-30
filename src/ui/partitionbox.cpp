@@ -7,6 +7,8 @@
 
 #include "partitionbox.h"
 #include <wx/string.h>
+#include <wx/textctrl.h>
+#include <wx/listctrl.h>
 #include <wx/sizer.h>
 #include "uimainprocess.h"
 #include "../diskimg/diskimage.h"
@@ -27,6 +29,9 @@ PartitionBox::PartitionBox(UiDiskProcess *frame, wxWindow* parent, wxWindowID id
 
 	wxBoxSizer *szrAll = new wxBoxSizer(wxVERTICAL);
 
+	txtIPL = new wxTextCtrl(this, IDC_TEXT_IPL, file->GetDescriptionDetails(), wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
+	szrAll->Add(txtIPL, flags);
+
 	lstPartition = new wxListCtrl(this, IDC_LIST_PARTITION, wxDefaultPosition, wxDefaultSize, wxLC_REPORT | wxLC_SINGLE_SEL);
 	szrAll->Add(lstPartition, flags);
 
@@ -43,7 +48,6 @@ PartitionBox::PartitionBox(UiDiskProcess *frame, wxWindow* parent, wxWindowID id
 	lstPartition->SetSizeHints(w, 128);
 
 	const DiskImageDisks *disks = file->GetDisks();
-
 	if (disks) {
 		for(int n = 0; n < (int)disks->Count(); n++) {
 			const DiskImageDisk *disk = disks->Item(n);
@@ -122,6 +126,11 @@ void PartitionBox::OnSize(wxSizeEvent& event)
 	pos.y += subsiz.y;
 	sz.SetWidth(sz.GetWidth() + subsiz.x);
 	szrButtons->SetDimension(pos, sz);
+
+	// Resize the text to fit to the dialog width
+	sz = txtIPL->GetSize();
+	sz.SetWidth(sz.GetWidth() + subsiz.x);
+	txtIPL->SetSize(sz);
 
 	// Resize the list to fit to the dialog width and height
 	sz = lstPartition->GetSize();

@@ -232,3 +232,26 @@ bool TM::Ignorable() const
 		|| tm.tm_mday == 0 || tm.tm_mday > 31 || tm.tm_hour > 24 || tm.tm_min > 61
 	));
 }
+/// 有効でない日時を初期値にする
+bool TM::AdjustDateTime()
+{
+	if (tm.tm_sec < 0 || tm.tm_sec >= 60) tm.tm_sec = 0;
+	if (tm.tm_min < 0 || tm.tm_min >= 60) tm.tm_min = 0;
+	if (tm.tm_hour < 0 || tm.tm_hour >= 24) tm.tm_hour = 0;
+	if (tm.tm_mday <= 0 || tm.tm_mday > 31) tm.tm_mday = 1;
+	if (tm.tm_mon < 0 || tm.tm_mon >= 12) tm.tm_mon = 0;
+	if (tm.tm_year < 0) tm.tm_year = 0;
+	return true;
+}
+/// 日時の比較
+int TM::Compare(const TM &tm1, const TM &tm2)
+{
+	int cmp;
+	cmp = (tm1.GetYear() - tm2.GetYear()); if (cmp) return cmp;
+	cmp = (tm1.GetMonth() - tm2.GetMonth()); if (cmp) return cmp;
+	cmp = (tm1.GetDay() - tm2.GetDay()); if (cmp) return cmp;
+	cmp = (tm1.GetHour() - tm2.GetHour()); if (cmp) return cmp;
+	cmp = (tm1.GetMinute() - tm2.GetMinute()); if (cmp) return cmp;
+	cmp = (tm1.GetSecond() - tm2.GetSecond());
+	return cmp;
+}

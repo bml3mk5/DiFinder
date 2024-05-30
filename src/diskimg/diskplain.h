@@ -332,7 +332,7 @@ public:
 	void	SetCharCode(const wxString &name);
 
 	// セクタ位置からトラック、サイド、セクタ番号を得る(オフセットを考慮)
-	void	GetNumberFromBlockNum(int block_num, int &track_num, int &side_num, int &sector_num) const;
+	bool	GetNumberFromBlockNum(int block_num, int &track_num, int &side_num, int &sector_num) const;
 
 	/// ディスク番号を比較
 	static int Compare(DiskPlainDisk *item1, DiskPlainDisk *item2);
@@ -500,6 +500,8 @@ public:
 	/// セクタデータを得る
 	DiskImageSector *GetSector(int sector_pos);
 	/// キャッシュをクリア
+	void ClearCacheAll();
+	/// キャッシュをクリア
 	void ClearCache(int start, int size);
 	/// セクタのリファレンス数をクリア
 	void ClearRefs(int start, int size);
@@ -551,12 +553,14 @@ public:
 	DiskImageDisk *NewImageDisk(int disk_number, DiskImageDiskHeader &n_header);
 
 	void SetFileStream(wxFileStream *stream);
+	wxFileStream *GetFileStream();
 
 	size_t Add(DiskImageDisk *newdisk, short mod_flags);
 	void Clear();
 	size_t Count() const;
 	bool Delete(size_t idx);
 
+	void ClearDisks();
 	DiskImageDisks *GetDisks() { return p_disks; }
 	const DiskImageDisks *GetDisks() const { return p_disks; }
 	DiskImageDisk  *GetDisk(size_t idx);
@@ -575,6 +579,8 @@ public:
 	DiskImageSector *GetSector(int sector_pos);
 	/// キャッシュを更新する
 	void RefreshCache(int sector_pos);
+	/// キャッシュをクリア ファイル更新もしない
+	void ClearCacheAll();
 	/// キャッシュをクリアする
 	void ClearCache(wxUint32 start, wxUint32 size);
 	/// キャッシュのリファレンス数ををクリアする
@@ -639,6 +645,8 @@ public:
 	int Open(const wxString &filepath, const wxString &file_format, const DiskParam &param_hint);
 	/// ファイルを開く前のチェック
 	int Check(const wxString &filepath, wxString &file_format, DiskParamPtrs &params, DiskParam &manual_param);
+	/// 既に開いているファイルを開きなおす
+	int ReOpen(const BootParam &boot_param);
 	/// 閉じる
 	void Close();
 	/// ファイルを開いているか

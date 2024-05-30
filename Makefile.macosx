@@ -3,7 +3,7 @@
 #
 CC=g++
 
-APPLICATION_VERSION=0.0.3
+APPLICATION_VERSION=0.0.4
 
 CDEFS=
 DBG_CDEFS=-D_DEBUG -D_DEBUG_LOG
@@ -77,14 +77,17 @@ OBJS=	$(SRCDIR)/utils.o \
 	$(SRCBASICFMTDIR)/basictype_msdos.o \
 	$(SRCBASICFMTDIR)/basictype_os9.o \
 	$(SRCBASICFMTDIR)/basictype_hu68k.o \
+	$(SRCBASICFMTDIR)/basictype_hfs.o \
 	$(SRCBASICFMTDIR)/basicfat.o \
 	$(SRCBASICFMTDIR)/basicdiritem_msdos.o \
 	$(SRCBASICFMTDIR)/basicdiritem_os9.o \
 	$(SRCBASICFMTDIR)/basicdiritem_hu68k.o \
+	$(SRCBASICFMTDIR)/basicdiritem_hfs.o \
 	$(SRCBASICFMTDIR)/basicdiritem.o \
 	$(SRCBASICFMTDIR)/basicdir.o \
 	$(SRCBASICFMTDIR)/basicfmt.o \
 	$(SRCDISKIMGDIR)/bootparam.o \
+	$(SRCDISKIMGDIR)/bootparser.o \
 	$(SRCDISKIMGDIR)/diskcommon.o \
 	$(SRCDISKIMGDIR)/diskimage.o \
 	$(SRCDISKIMGDIR)/diskplain.o \
@@ -102,6 +105,7 @@ OBJS=	$(SRCDIR)/utils.o \
 	$(SRCDISKIMGDIR)/fileparam.o \
 	$(SRCUIDIR)/basicselbox.o \
 	$(SRCUIDIR)/basicparambox.o \
+	$(SRCUIDIR)/bootselbox.o \
 	$(SRCUIDIR)/configbox.o \
 	$(SRCUIDIR)/diskparambox.o \
 	$(SRCUIDIR)/fileselbox.o \

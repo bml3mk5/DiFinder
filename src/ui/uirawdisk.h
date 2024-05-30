@@ -125,6 +125,9 @@ public:
 	/// セクタのプロパティダイアログ表示
 	bool ShowSectorAttr();
 
+	/// セクタを編集
+	void EditSector();
+
 //	/// ファイル名
 //	wxString MakeFileName(DiskImageSector *sector);
 	/// ファイル名
@@ -199,10 +202,17 @@ private:
 
 	MyMenu *menuPopup;
 
+	int m_number_of_sectors;
+	int m_sectors_per_track;
+	int m_tracks_per_side;
+	int m_sides_per_disk;
+
 	/// ファイルリスト作成（DnD, クリップボード用）
 	bool CreateFileObject(wxString &tmp_dir_name, wxFileDataObject &file_object);
 	/// ファイルリストを解放（DnD, クリップボード用）
 	void ReleaseFileObject(const wxString &tmp_dir_name);
+	/// パラメータセット
+	void SetParameter();
 
 public:
 	UiDiskRawTrack(UiDiskFrame *parentframe, UiDiskRawPanel *parentwindow);

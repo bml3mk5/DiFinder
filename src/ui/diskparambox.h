@@ -63,6 +63,7 @@ private:
 	wxTextCtrl *txtDiskSize;
 
 	wxTextCtrl *txtDiskName;
+	wxTextCtrl *txtBlocks;
 	wxButton   *btnFile;
 
 	OpeFlags m_ope_flags;
@@ -98,6 +99,7 @@ public:
 		IDC_COMBO_NUMBSEC,
 		IDC_TEXT_DISKSIZE,
 		IDC_TEXT_DISKNAME,
+		IDC_TEXT_BLOCKS,
 		IDC_BTN_FILE,
 	};
 
@@ -130,6 +132,7 @@ public:
 	int GetSectorsPerTrack() const;
 	int GetSectorSize() const;
 	int GetInterleave() const;
+	int GetNumberOfBlocks() const;
 	wxString GetDiskName() const;
 
 	wxDECLARE_EVENT_TABLE();

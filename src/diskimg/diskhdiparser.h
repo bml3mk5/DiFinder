@@ -23,6 +23,7 @@ class DiskParamPtrs;
 class DiskResult;
 class FileParam;
 class DiskTypeHints;
+class BootParam;
 
 /// HDIディスクパーサー
 class DiskHDIParser : public DiskPlainParser
@@ -37,7 +38,7 @@ public:
 	/// チェック
 	int Check(wxInputStream &istream, const DiskTypeHints *disk_hints, const DiskParam *disk_param, DiskParamPtrs &disk_params, DiskParam &manual_param);
 	/// 解析
-	int Parse(wxInputStream &istream, const DiskParam *disk_param);
+	int Parse(wxInputStream &istream, const DiskParam *disk_param, const BootParam *boot_param);
 };
 
 #endif /* DISKHDI_PARSER_H */

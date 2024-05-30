@@ -10,9 +10,10 @@
 
 #include "../common.h"
 #include <wx/dialog.h>
-#include <wx/listctrl.h>
 
 class wxSizer;
+class wxTextCtrl;
+class wxListCtrl;
 class UiDiskProcess;
 class DiskImageFile;
 class DiskImageDisk;
@@ -22,6 +23,7 @@ class PartitionBox : public wxDialog
 {
 private:
 	bool m_initialized;
+	wxTextCtrl *txtIPL;
 	wxListCtrl *lstPartition;
 	wxSize m_oldsize;
 
@@ -31,7 +33,8 @@ public:
 	PartitionBox(UiDiskProcess *frame, wxWindow* parent, wxWindowID id, const DiskImageFile *file, const DiskImageDisk *current_disk, int show_flags);
 
 	enum {
-		IDC_LIST_PARTITION = 1,
+		IDC_TEXT_IPL = 1,
+		IDC_LIST_PARTITION,
 	};
 
 	enum en_show_flags {

@@ -560,6 +560,7 @@ void DiskPlainDisk::SetName(const wxString &val)
 void DiskPlainDisk::SetName(const wxUint8 *buf, size_t len)
 {
 	m_name = wxString(buf, len);
+	m_name.Trim();
 }
 
 /// 指定セクタを返す
@@ -658,8 +659,9 @@ wxString DiskPlainDisk::GetStartSectorNumberStr(int show_type) const
 	int trk_num, sid_num, sec_num;
 	switch(show_type) {
 	case 1:
-		parent->GetNumberFromSectorPos(m_start_block, trk_num, sid_num, sec_num);
-		str = wxString::Format(_("(C:%d H:%d R:%d)"), trk_num, sid_num, sec_num); 
+		if (parent->GetNumberFromSectorPos(m_start_block, trk_num, sid_num, sec_num)) {
+			str = wxString::Format(_("(C:%d H:%d R:%d)"), trk_num, sid_num, sec_num); 
+		}
 		break;
 	default:
 		str = wxNumberFormatter::ToString((long)m_start_block);
@@ -740,6 +742,7 @@ wxString DiskPlainDisk::GetDescriptionDetails() const
 void DiskPlainDisk::SetDescription(const wxUint8 *buf, size_t len)
 {
 	m_desc = wxString(buf, len);
+	m_desc.Trim();
 }
 
 /// ディスク番号を比較
@@ -786,9 +789,9 @@ void DiskPlainDisk::SetCharCode(const wxString &name)
 }
 
 // セクタ位置からトラック、サイド、セクタ番号を得る(オフセットを考慮)
-void DiskPlainDisk::GetNumberFromBlockNum(int block_num, int &track_num, int &side_num, int &sector_num) const
+bool DiskPlainDisk::GetNumberFromBlockNum(int block_num, int &track_num, int &side_num, int &sector_num) const
 {
-	parent->GetNumberFromSectorPos(m_start_block + block_num, track_num, side_num, sector_num);
+	return parent->GetNumberFromSectorPos(m_start_block + block_num, track_num, side_num, sector_num);
 }
 
 // ----------------------------------------------------------------------
@@ -1224,7 +1227,8 @@ DiskPlainSectorBlock *DiskPlainSectorBlockCache::AddSectorBlock(int sector_pos)
 	size_t read_size = stream->Read(m_temp.GetData(), block_size).LastRead();
 
 	// キャッシュに追加
-	DiskPlainSectorBlock *block = new DiskPlainSectorBlock(seq_num, header, m_temp.GetData(), read_size, sector_pos, sector_size, offset);
+	int start_pos = seq_num * DiskPlainSectorBlock::NumOfSecs;
+	DiskPlainSectorBlock *block = new DiskPlainSectorBlock(seq_num, header, m_temp.GetData(), read_size, start_pos, sector_size, offset);
 	p_cache->Add(block);
 
 	return block;
@@ -1335,6 +1339,17 @@ DiskImageSector *DiskPlainSectorBlockCache::GetSector(int sector_pos)
 	DiskPlainSectorBlock *block = AddSectorBlock(sector_pos);
 	sector = block->GetSector(sector_pos);
 	return sector;
+}
+/// キャッシュを全てクリア ファイル更新もしない
+void DiskPlainSectorBlockCache::ClearCacheAll()
+{
+	size_t cnt = p_cache->Count();
+	for(size_t i=0; i<cnt; i++) {
+		DiskPlainSectorBlock *itm = p_cache->Item(i);
+		delete itm;
+	}
+	p_cache->Clear();
+	m_cache_overflowed = 0;
 }
 /// キャッシュをクリア
 void DiskPlainSectorBlockCache::ClearCache(int start, int size)
@@ -1495,6 +1510,11 @@ void DiskPlainFile::SetFileStream(wxFileStream *stream)
 	p_stream = stream;
 }
 
+wxFileStream *DiskPlainFile::GetFileStream()
+{
+	return p_stream;
+}
+
 size_t DiskPlainFile::Add(DiskImageDisk *newdisk, short mod_flags)
 {
 	if (!p_disks) p_disks = new DiskImageDisks;
@@ -1537,6 +1557,18 @@ bool DiskPlainFile::Delete(size_t idx)
 	return true;
 }
 
+void DiskPlainFile::ClearDisks()
+{
+	if (!p_disks) return;
+
+	size_t cnt = p_disks->Count();
+	for(size_t i=0; i<cnt; i++) {
+		DiskPlainDisk *p = (DiskPlainDisk *)p_disks->Item(i);
+		delete p;
+	}
+	p_disks->Clear();
+}
+
 DiskImageDisk *DiskPlainFile::GetDisk(size_t idx)
 {
 	if (!p_disks) return NULL;
@@ -1570,6 +1602,12 @@ void DiskPlainFile::RefreshCache(int sector_pos)
 #endif
 	}
 	p_cache->GetSector(sector_pos);
+}
+/// キャッシュをクリア ファイル更新もしない
+void DiskPlainFile::ClearCacheAll()
+{
+	if (!p_cache) return;
+	return p_cache->ClearCacheAll();
 }
 /// キャッシュをクリアする
 void DiskPlainFile::ClearCache(wxUint32 start, wxUint32 size)
@@ -1728,14 +1766,15 @@ int DiskPlain::Open(const wxString &filepath, const wxString &file_format, const
 	}
 
 	NewFile(filepath);
+	p_file->SetFileFormat(file_format);
 	((DiskPlainFile *)p_file)->SetFileStream(fstream);
 	DiskParser ps(filepath, fstream, p_file, m_result);
-	int valid_disk = ps.Parse(file_format, param_hint);
+	int valid_disk = ps.Parse(file_format, param_hint, NULL);
 
-	// エラーあり
-	if (valid_disk < 0) {
-		ClearFile();
-	}
+	// エラーあり 閉じない
+//	if (valid_disk < 0) {
+//		ClearFile();
+//	}
 
 	return valid_disk;
 }
@@ -1761,6 +1800,45 @@ int DiskPlain::Check(const wxString &filepath, wxString &file_format, DiskParamP
 
 	DiskParser ps(filepath, &fstream, p_file, m_result);
 	return ps.Check(file_format, params, manual_param);
+}
+
+/// 既に開いているファイルを開きなおす
+/// @param [in] boot_param ブートストラップ種類
+/// @retval  0 問題なし
+/// @retval -1 エラーあり
+/// @retval  1 警告あり
+int DiskPlain::ReOpen(const BootParam &boot_param)
+{
+	m_result.Clear();
+
+	if (!p_file) {
+		m_result.SetError(DiskResult::ERR_NO_DISK);
+		return -1;
+	}
+
+	DiskPlainFile *file = (DiskPlainFile *)p_file;
+
+	// キャッシュをクリア 変更内容は破棄
+	file->ClearCacheAll();
+	// パーティション情報を削除
+	file->ClearDisks();
+
+	// 元のファイル情報を基に再度解析する
+	wxString filepath = file->GetFilePath();
+	wxFileStream *fstream = file->GetFileStream();
+	wxString file_format = file->GetFileFormat();
+	DiskParam disk_param(*file);
+
+	fstream->SeekI(0);
+	DiskParser ps(filepath, fstream, p_file, m_result);
+	int valid_disk = ps.Parse(file_format, disk_param, &boot_param);
+
+	// エラーあり閉じない
+//	if (valid_disk < 0) {
+//		ClearFile();
+//	}
+
+	return valid_disk;
 }
 
 /// 閉じる
@@ -1840,7 +1918,7 @@ int DiskPlain::ParseForReplace(int disk_number, const wxString &filepath, const 
 	}
 
 	DiskParser ps(filepath, &fstream, &src_file, m_result);
-	int valid_disk = ps.Parse(file_format, param_hint);
+	int valid_disk = ps.Parse(file_format, param_hint, NULL);
 
 	// エラーあり
 	if (valid_disk < 0) {

@@ -150,4 +150,46 @@
 		<DensityName>HDD</DensityName>
 		<Description>40MB</Description>
 	</DiskType>
+	<DiskType name="MO3-128M">
+		<Blocks>248826</Blocks>
+		<SectorSize>512</SectorSize>
+		<DensityName>MO3.5inch</DensityName>
+		<Description>128MB</Description>
+	</DiskType>
+	<DiskType name="MO3-230M-1">
+		<Blocks>446324</Blocks>
+		<SectorSize>512</SectorSize>
+		<DensityName>MO3.5inch</DensityName>
+		<Description>230MB</Description>
+	</DiskType>
+	<DiskType name="MO3-230M-2">
+		<Blocks>446325</Blocks>
+		<SectorSize>512</SectorSize>
+		<DensityName>MO3.5inch</DensityName>
+		<Description>230MB</Description>
+	</DiskType>
+	<DiskType name="MO3-540M">
+		<Blocks>1041500</Blocks>
+		<SectorSize>512</SectorSize>
+		<DensityName>MO3.5inch</DensityName>
+		<Description>540MB</Description>
+	</DiskType>
+	<DiskType name="MO3-640M">
+		<Blocks>310352</Blocks>
+		<SectorSize>2048</SectorSize>
+		<DensityName>MO3.5inch</DensityName>
+		<Description>640MB</Description>
+	</DiskType>
+	<DiskType name="MO3-1.3G">
+		<Blocks>605846</Blocks>
+		<SectorSize>2048</SectorSize>
+		<DensityName>MO3.5inch</DensityName>
+		<Description>1.3G</Description>
+	</DiskType>
+	<DiskType name="MO3-2.3G">
+		<Blocks>1063146</Blocks>
+		<SectorSize>2048</SectorSize>
+		<DensityName>MO3.5inch</DensityName>
+		<Description>2.3G</Description>
+	</DiskType>
 </DiskTypes>

@@ -46,10 +46,11 @@ DiskHDDParser::~DiskHDDParser()
 /// HDIファイルを解析
 /// @param [in] istream    解析対象データ
 /// @param [in] disk_param ディスクパラメータ
+/// @param [in] boot_param ブートストラップ種類(nullable)
 /// @retval  0 正常
 /// @retval -1 エラーあり
 /// @retval  1 警告あり
-int DiskHDDParser::Parse(wxInputStream &istream, const DiskParam *disk_param)
+int DiskHDDParser::Parse(wxInputStream &istream, const DiskParam *disk_param, const BootParam *boot_param)
 {
 	if (!disk_param) {
 		p_result->SetError(DiskResult::ERRV_INVALID_DISK, 0);
@@ -69,7 +70,7 @@ int DiskHDDParser::Parse(wxInputStream &istream, const DiskParam *disk_param)
 	istream.SeekI(skip_size);
 	p_file->SetStartOffset(skip_size);
 
-	return DiskPlainParser::Parse(istream, disk_param);
+	return DiskPlainParser::Parse(istream, disk_param, boot_param);
 }
 
 /// チェック
@@ -134,6 +135,7 @@ int DiskHDDParser::Check(wxInputStream &istream, const DiskTypeHints *disk_hints
 	// 候補がないとき、手動設定
 	if (disk_params.Count() == 0) {
 		manual_param.SetDiskParam(
+			0,
 			sides_per_disk,
 			tracks_per_side,
 			sectors_per_track,

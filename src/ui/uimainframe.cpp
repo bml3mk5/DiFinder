@@ -199,6 +199,8 @@ wxBEGIN_EVENT_TABLE(UiDiskFrame, wxFrame)
 	EVT_MENU(IDM_RENAME_DATA_ON_DISK, UiDiskFrame::OnRenameDataOnDisk)
 	EVT_MENU(IDM_COPY_DATA, UiDiskFrame::OnCopyDataFromDisk)
 	EVT_MENU(IDM_PASTE_DATA, UiDiskFrame::OnPasteDataToDisk)
+	EVT_MENU(IDM_EDIT_FILE_BINARY, UiDiskFrame::OnEditFileOnDisk)
+	EVT_MENU(IDM_EDIT_FILE_TEXT, UiDiskFrame::OnEditFileOnDisk)
 	EVT_MENU(IDM_MAKE_DIRECTORY_ON_DISK, UiDiskFrame::OnMakeDirectoryOnDisk)
 	EVT_MENU(IDM_PROPERTY_DATA, UiDiskFrame::OnPropertyOnDisk)
 
@@ -538,6 +540,11 @@ void UiDiskFrame::OnMakeDirectoryOnDisk(wxCommandEvent& WXUNUSED(event))
 {
 	MakeDirectoryOnDisk();
 }
+/// メニュー ファイル編集選択
+void UiDiskFrame::OnEditFileOnDisk(wxCommandEvent& event)
+{
+	EditFileOnDisk(event.GetId() == IDM_EDIT_FILE_BINARY ? EDITOR_TYPE_BINARY : EDITOR_TYPE_TEXT);
+}
 /// メニュー プロパティ選択
 void UiDiskFrame::OnPropertyOnDisk(wxCommandEvent& WXUNUSED(event))
 {
@@ -667,6 +674,9 @@ void UiDiskFrame::MakeMenu()
 	menuData->AppendSeparator();
 	menuData->Append(IDM_COPY_DATA, _("&Copy"));
 	menuData->Append(IDM_PASTE_DATA, _("&Paste..."));
+	menuData->AppendSeparator();
+	menuData->Append(IDM_EDIT_FILE_BINARY, _("Edit using binary editor..."));
+	menuData->Append(IDM_EDIT_FILE_TEXT, _("Edit using text editor..."));
 	menuData->AppendSeparator();
 	menuData->Append( IDM_MAKE_DIRECTORY_ON_DISK, _("Make Directory(&F)...") );
 	menuData->AppendSeparator();
@@ -834,6 +844,8 @@ void UiDiskFrame::UpdateMenuFileList(UiDiskFileList *list)
 	menuData->Enable(IDM_COPY_DATA, opened);
 	opened = (opened && cnt == 1);
 	menuData->Enable(IDM_RENAME_DATA_ON_DISK, opened);
+	menuData->Enable(IDM_EDIT_FILE_BINARY, opened);
+	menuData->Enable(IDM_EDIT_FILE_TEXT, opened);
 }
 
 /// ツールバーのファイルリスト項目を更新
@@ -875,9 +887,11 @@ void UiDiskFrame::UpdateMenuRawDisk(UiDiskRawPanel *rawpanel)
 	menuData->Enable(IDM_COPY_DATA, opened);
 	menuData->Enable(IDM_PASTE_DATA, opened);
 	menuData->Enable(IDM_DELETE_DATA, opened);
+	menuData->Enable(IDM_EDIT_FILE_BINARY, opened);
 
 	menuData->Enable(IDM_RENAME_DATA_ON_DISK, false);
 	menuData->Enable(IDM_MAKE_DIRECTORY_ON_DISK, false);
+	menuData->Enable(IDM_EDIT_FILE_TEXT, false);
 }
 
 /// ツールバーの生ディスク項目を更新
@@ -1321,6 +1335,31 @@ bool UiDiskFrame::ShowParamSelectDialog(const wxString &path, const DiskParamPtr
 	return true;
 }
 
+/// ディスクイメージを開きなおす
+bool UiDiskFrame::ReOpenDataFile(const BootParam &boot_param)
+{
+	bool valid = false;
+
+	// reopen
+	int rc = p_image->ReOpen(boot_param);
+	if (rc >= 0) {
+		//
+		myLog.SetInfo("Reopened the disk image.");
+		// update window
+		UpdateDataOnWindow(false);
+		valid = true;
+	}
+
+	if (rc != 0) {
+		// message
+		p_image->ShowErrorMessage();
+	}
+
+	UpdateToolBar();
+
+	return valid;
+}
+
 /// ファイルを閉じる
 /// @param [in] force 強制 (確認をしない)
 /// @return false:キャンセルした
@@ -1537,6 +1576,21 @@ void UiDiskFrame::MakeDirectoryOnDisk()
 	UiDiskFileList *list = GetFileListPanel();
 	if (list) {
 		list->ShowMakeDirectoryDialog();
+		return;
+	}
+}
+/// ファイル編集
+void UiDiskFrame::EditFileOnDisk(enEditorTypes editor_type)
+{
+	UiDiskFileList *list = GetFileListPanel();
+	if (list) {
+		list->EditDataFile(editor_type);
+		return;
+	}
+	if (editor_type != EDITOR_TYPE_BINARY) return;
+	UiDiskRawPanel *panel = GetDiskRawPanel();
+	if (panel) {
+		panel->EditSector();
 		return;
 	}
 }

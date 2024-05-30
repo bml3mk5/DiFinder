@@ -16,8 +16,8 @@
 #include "diskcommon.h"
 
 
-/// (0:128bytes 1:256bytes 2:512bytes 3:1024bytes)
-extern const int gSectorSizes[5];
+/// (0:128bytes 1:256bytes 2:512bytes 3:1024bytes 4:2048bytes)
+extern const int gSectorSizes[6];
 
 class wxXmlNode;
 
@@ -244,6 +244,7 @@ protected:
 	wxString disk_type_name;	///< ディスク種類名 "2D" "2HD" など
 	BootParamNames boot_types;	///< ブートストラップ名リスト
 //	bool reversible;			///< 裏返し可能 AB面あり（L3用3インチFDなど）
+	int number_of_blocks;		///< ブロック数			
 	int sides_per_disk;			///< サイド数
 	int tracks_per_side;		///< トラック数
 	int sectors_per_track;		///< セクタ数
@@ -270,7 +271,8 @@ public:
 	/// @brief 設定
 	void SetDiskParam(const DiskParam &src);
 	/// @brief 主要パラメータだけ設定
-	void SetDiskParam(int n_sides_per_disk
+	void SetDiskParam(int n_number_of_blocks
+		, int n_sides_per_disk
 		, int n_tracks_per_side
 		, int n_sectors_per_track
 		, int n_sector_size
@@ -283,6 +285,7 @@ public:
 	void SetDiskParam(const wxString &n_type_name
 		, const BootParamNames &n_boot_types
 //		, bool n_reversible
+		, int n_number_of_blocks
 		, int n_sides_per_disk
 		, int n_tracks_per_side
 		, int n_sectors_per_track
@@ -318,6 +321,8 @@ public:
 	bool FindSingleDensity(int track_num, int side_num, int *sectors_per_track = NULL, int *sector_size = NULL) const;
 	/// @brief 単密度を持っているか
 	int  HasSingleDensity(int *sectors_per_track = NULL, int *sector_size = NULL) const;
+	/// @brief ブロック数を計算する（ベタディスク用）
+	int  CalcNumberOfBlocks() const;
 	/// @brief ディスクサイズを計算する（ベタディスク用）
 	int  CalcDiskSize() const;
 	/// @brief 特殊なトラックか
@@ -333,6 +338,8 @@ public:
 	void SetBootTypes(const BootParamNames &arr) { boot_types = arr; }
 //	/// @brief 裏返し可能 AB面ありかどうかを設定
 //	void Reversible(bool val) { reversible = val; }
+	/// @brief ブロック数を設定
+	void SetNumberOfBlocks(int val) { number_of_blocks = val; }
 	/// @brief サイド数を設定
 	void SetSidesPerDisk(int val) { sides_per_disk = val; }
 	/// @brief トラック数を設定
@@ -377,6 +384,8 @@ public:
 	const BootParamNames &GetBootTypes() const { return boot_types; }
 //	/// @brief 裏返し可能 AB面ありかどうかを返す
 //	bool IsReversible() const { return reversible; }
+	/// @brief ブロック数を返す
+	int GetNumberOfBlocks() const { return number_of_blocks; }
 	/// @brief サイド数を返す
 	int GetSidesPerDisk() const { return sides_per_disk; }
 	/// @brief トラック数を返す

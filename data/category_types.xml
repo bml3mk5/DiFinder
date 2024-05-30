@@ -7,6 +7,13 @@
 		<Description>SHARP X68000 Human68k</Description>
 		<Description lang="ja">シャープ X68000 Human68k</Description>
 	</DiskBasicCategory>
+	<DiskBasicCategory name="FMR">
+		<Description>FUJITSU FMR/FM TOWNS MS-DOS</Description>
+		<Description lang="ja">富士通 FMR/FM TOWNS MS-DOS</Description>
+	</DiskBasicCategory>
+	<DiskBasicCategory name="MACHFS">
+		<Description>Apple Mac HFS Volume</Description>
+	</DiskBasicCategory>
 	<DiskBasicCategory name="OS9">
 		<Description>OS-9</Description>
 		<Description lang="ja">OS-9</Description>

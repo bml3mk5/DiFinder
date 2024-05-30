@@ -9,6 +9,7 @@
 #include "basicdiritem_msdos.h"
 #include "basicdiritem_os9.h"
 #include "basicdiritem_hu68k.h"
+#include "basicdiritem_hfs.h"
 #include "basicfmt.h"
 #include "basictype.h"
 #include "../charcodes.h"
@@ -46,6 +47,9 @@ DiskBasicDirItem *DiskBasicDir::NewItem()
 	case FORMAT_TYPE_OS9:
 		item = new DiskBasicDirItemOS9(basic);
 		break;
+	case FORMAT_TYPE_MACHFS:
+		item = new DiskBasicDirItemHFS(basic);
+		break;
 	case FORMAT_TYPE_HU68K:
 		item = new DiskBasicDirItemHU68K(basic);
 		break;
@@ -76,6 +80,9 @@ DiskBasicDirItem *DiskBasicDir::NewItem(int n_block_num, int n_position, wxUint8
 		break;
 	case FORMAT_TYPE_OS9:
 		item = new DiskBasicDirItemOS9(basic, n_block_num, n_position, n_data);
+		break;
+	case FORMAT_TYPE_MACHFS:
+		item = new DiskBasicDirItemHFS(basic, n_block_num, n_position, n_data);
 		break;
 	case FORMAT_TYPE_HU68K:
 		item = new DiskBasicDirItemHU68K(basic, n_block_num, n_position, n_data);
@@ -108,6 +115,9 @@ DiskBasicDirItem *DiskBasicDir::NewItem(int n_num, const DiskBasicGroupItem *n_g
 	case FORMAT_TYPE_OS9:
 		item = new DiskBasicDirItemOS9(basic, n_num, n_gitem, n_block_num, n_position, n_data, n_next, n_unuse);
 		break;
+	case FORMAT_TYPE_MACHFS:
+		item = new DiskBasicDirItemHFS(basic, n_num, n_gitem, n_block_num, n_position, n_data, n_next, n_unuse);
+		break;
 	case FORMAT_TYPE_HU68K:
 		item = new DiskBasicDirItemHU68K(basic, n_num, n_gitem, n_block_num, n_position, n_data, n_next, n_unuse);
 		break;
@@ -134,6 +144,9 @@ DiskBasicDirItem *DiskBasicDir::NewItem(int n_block_num, int n_position)
 		break;
 	case FORMAT_TYPE_OS9:
 		item = new DiskBasicDirItemOS9(basic, n_block_num, n_position);
+		break;
+	case FORMAT_TYPE_MACHFS:
+		item = new DiskBasicDirItemHFS(basic, n_block_num, n_position);
 		break;
 	case FORMAT_TYPE_HU68K:
 		item = new DiskBasicDirItemHU68K(basic, n_block_num, n_position);
@@ -164,6 +177,9 @@ DiskBasicDirItem *DiskBasicDir::NewItem(int n_num, const DiskBasicGroupItem *n_g
 		break;
 	case FORMAT_TYPE_OS9:
 		item = new DiskBasicDirItemOS9(basic, n_num, n_gitem, n_block_num, n_position, n_next, n_unuse);
+		break;
+	case FORMAT_TYPE_MACHFS:
+		item = new DiskBasicDirItemHFS(basic, n_num, n_gitem, n_block_num, n_position, n_next, n_unuse);
 		break;
 	case FORMAT_TYPE_HU68K:
 		item = new DiskBasicDirItemHU68K(basic, n_num, n_gitem, n_block_num, n_position, n_next, n_unuse);

@@ -100,10 +100,11 @@ public:
 class DiskBasic : public DiskBasicParam
 {
 private:
-	DiskImageDisk *disk;
-	bool formatted;
-	bool parsed;
-	bool assigned;
+	DiskImageDisk *p_disk;
+	bool m_formatted;
+	bool m_parsed;
+	bool m_assigned;
+	bool m_forcely;
 
 	DiskBasicFat  *fat;
 	DiskBasicDir  *dir;
@@ -149,11 +150,13 @@ public:
 	/// 現在選択しているディスクのFATとルートディレクトリをアサイン
 	bool			AssignFatAndDirectory();
 	/// 解析済みをクリア
-	void			ClearParseAndAssign();
+	void			ClearParseAndAssign(bool forcely = false);
 	/// 解析済みか
-	bool			IsParsed() const { return parsed; }
+	bool			IsParsed() const { return m_parsed; }
 	/// アサイン済みか
-	bool			IsAssigned() const { return assigned; }
+	bool			IsAssigned() const { return m_assigned; }
+	/// 解析エラーを無視するか
+	bool			IsForcely() const { return m_forcely; }
 	//@}
 	/// @name 読み出し
 	//@{
@@ -314,9 +317,9 @@ public:
 	/// @name プロパティ
 	//@{
 	/// DISK使用可能か
-	bool			CanUse() const { return (disk != NULL); }
+	bool			CanUse() const { return (p_disk != NULL); }
 	/// DISKイメージを返す
-	DiskImageDisk	*GetDisk() const { return disk; }
+	DiskImageDisk	*GetDisk() const { return p_disk; }
 	/// DISKイメージの番号を返す
 	int				GetDiskNumber() const;
 	/// 選択中のサイドを設定

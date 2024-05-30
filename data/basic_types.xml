@@ -91,9 +91,32 @@
 			<Ascii name="BAT" />
 		</AttributesByExtension>
 	</DiskBasicFormat>
+	<DiskBasicFormat type="41" name="MACHFS">
+		<FillCodeOnFormat>0x00</FillCodeOnFormat>
+		<FillCodeOnDir>0x00</FillCodeOnDir>
+		<DeleteCodeOnDir>0x00</DeleteCodeOnDir>
+		<FileNameCharacters>
+			<ValidCharSet> !@#$%()-+/._</ValidCharSet>
+			<ValidCodeRange first="0x30" last="0x39" />
+			<ValidCodeRange first="0x41" last="0x5a" />
+			<ValidCodeRange first="0x61" last="0x7a" />
+		</FileNameCharacters>
+		<RequireFileName>true</RequireFileName>
+		<TextTerminateCode>0x00</TextTerminateCode>
+	</DiskBasicFormat>
 </DiskBasicFormats>
 
 <DiskBasicTypes version="1.0">
+	<DiskBasicType name="MSDOS-HDD" type="3" category="MSDOS">
+		<ReservedSectors>1</ReservedSectors>
+		<NumberOfFATs>3</NumberOfFATs>
+		<SectorsPerFAT>2</SectorsPerFAT>
+		<FATStartPosition>0</FATStartPosition>
+		<DirEntryCount>192</DirEntryCount>
+		<MediaID>0xf8</MediaID>
+		<JumpBoot type="string">\xeb</JumpBoot>
+		<Description>MS-DOS (HDD)</Description>
+	</DiskBasicType>
 	<DiskBasicType name="MSD98-HDD" type="3" category="MSDOS">
 		<ReservedSectors>1</ReservedSectors>
 		<NumberOfFATs>3</NumberOfFATs>
@@ -105,6 +128,19 @@
 		<Description>MS-DOS for PC-9801 (HDD)</Description>
 		<Categories>
 			<Category>PC98X1</Category>
+		</Categories>
+	</DiskBasicType>
+	<DiskBasicType name="MSDFM-HDD" type="3" category="MSDOS">
+		<ReservedSectors>1</ReservedSectors>
+		<NumberOfFATs>3</NumberOfFATs>
+		<SectorsPerFAT>2</SectorsPerFAT>
+		<FATStartPosition>0</FATStartPosition>
+		<DirEntryCount>192</DirEntryCount>
+		<MediaID>0xf8</MediaID>
+		<JumpBoot type="string">IPL</JumpBoot>
+		<Description>MS-DOS for FMR/FM TOWNS (HDD)</Description>
+		<Categories>
+			<Category>FMR</Category>
 		</Categories>
 	</DiskBasicType>
 	<DiskBasicType name="OS9-HDD" type="9" category="OS9">
@@ -164,6 +200,9 @@
 		<JumpBoot type="string">\x60\x24</JumpBoot>
 		<IPLCompareString type="string">SCSI IPL</IPLCompareString>
 		<Description>Human68k (SCSI HDD)</Description>
+	</DiskBasicType>
+	<DiskBasicType name="MACHFS-HDD" type="41" category="MACHFS">
+		<Description>Mac HFS (HDD)</Description>
 	</DiskBasicType>
 </DiskBasicTypes>
 </DiskBasics>

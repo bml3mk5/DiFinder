@@ -13,6 +13,7 @@
 #include "diskthdparser.h"
 #include "diskimage.h"
 #include "fileparam.h"
+#include "bootparam.h"
 #include "diskresult.h"
 
 
@@ -36,27 +37,30 @@ DiskParser::~DiskParser()
 /// ディスクイメージを新たに解析する
 /// @param [in] file_format      ファイルの形式名("d88","plain"など)
 /// @param [in] param_hint       ディスクパラメータヒント("plain"時のみ)
-int DiskParser::Parse(const wxString &file_format, const DiskParam &param_hint)
+/// @param [in] boot_param  ブートストラップ種類(nullable)
+int DiskParser::Parse(const wxString &file_format, const DiskParam &param_hint, const BootParam *boot_param)
 {
-	return Parse(file_format, param_hint, DiskImageFile::MODIFY_NONE);
+	return Parse(file_format, param_hint, DiskImageFile::MODIFY_NONE, boot_param);
 }
 
 /// 指定ディスクを解析してこれを既存のディスクイメージに追加する
 /// @param [in] file_format      ファイルの形式名("d88","plain"など)
 /// @param [in] param_hint       ディスクパラメータヒント("plain"時のみ)
-int DiskParser::ParseAdd(const wxString &file_format, const DiskParam &param_hint)
+/// @param [in] boot_param  ブートストラップ種類(nullable)
+int DiskParser::ParseAdd(const wxString &file_format, const DiskParam &param_hint, const BootParam *boot_param)
 {
-	return Parse(file_format, param_hint, DiskImageFile::MODIFY_ADD);
+	return Parse(file_format, param_hint, DiskImageFile::MODIFY_ADD, boot_param);
 }
 
 /// ディスクイメージの解析
 /// @param [in] file_format ファイルの形式名("d88","plain"など)
 /// @param [in] param_hint  ディスクパラメータヒント("plain"時のみ)
 /// @param [in] mod_flags   オープン/追加 DiskImageFile::Add()
+/// @param [in] boot_param  ブートストラップ種類(nullable)
 /// @retval  0 正常
 /// @retval -1 エラーあり
 /// @retval  1 警告あり
-int DiskParser::Parse(const wxString &file_format, const DiskParam &param_hint, short mod_flags)
+int DiskParser::Parse(const wxString &file_format, const DiskParam &param_hint, short mod_flags, const BootParam *boot_param)
 {
 	bool support = false;
 	int rc = -1;
@@ -64,7 +68,7 @@ int DiskParser::Parse(const wxString &file_format, const DiskParam &param_hint, 
 	m_image_type.Empty();
 	if (!file_format.IsEmpty()) {
 		// ファイル形式の指定あり
-		rc = SelectPerser(file_format, &param_hint, mod_flags, support);
+		rc = SelectPerser(file_format, &param_hint, mod_flags, support, boot_param);
 		if (rc >= 0) {
 			m_image_type = file_format;
 		}
@@ -139,40 +143,41 @@ int DiskParser::Check(wxString &file_format, DiskParamPtrs &disk_params, DiskPar
 /// @param [in] disk_param       ディスクパラメータ("plain"時のみ)
 /// @param [in] mod_flags        オープン/追加 DiskImageFile::Add()
 /// @param [out] support         サポートしているファイルか
+/// @param [in] boot_param       ブートストラップ種類(nullable)
 /// @retval  1 警告
 /// @retval  0 正常
 /// @retval -1 エラー
-int DiskParser::SelectPerser(const wxString &type, const DiskParam *disk_param, short mod_flags, bool &support)
+int DiskParser::SelectPerser(const wxString &type, const DiskParam *disk_param, short mod_flags, bool &support, const BootParam *boot_param)
 {
 	int rc = -1;
 	if (type == wxT("hdi")) {
 		// HDI形式 (Anex86)
 		DiskHDIParser ps(p_file, mod_flags, p_result);
-		rc = ps.Parse(*p_stream, disk_param);
+		rc = ps.Parse(*p_stream, disk_param, boot_param);
 		support = true;
 	} else
 	if (type == wxT("hdd")) {
 		// HDD形式 (Virtual98)
 		DiskHDDParser ps(p_file, mod_flags, p_result);
-		rc = ps.Parse(*p_stream, disk_param);
+		rc = ps.Parse(*p_stream, disk_param, boot_param);
 		support = true;
 	} else
 	if (type == wxT("nhd")) {
 		// NHD形式 (T98 NEXT)
 		DiskNHDParser ps(p_file, mod_flags, p_result);
-		rc = ps.Parse(*p_stream, disk_param);
+		rc = ps.Parse(*p_stream, disk_param, boot_param);
 		support = true;
 	} else
 	if (type == wxT("thd")) {
 		// THD形式 (T98)
 		DiskTHDParser ps(p_file, mod_flags, p_result);
-		rc = ps.Parse(*p_stream, disk_param);
+		rc = ps.Parse(*p_stream, disk_param, boot_param);
 		support = true;
 	} else
 	if (type == wxT("plain")) {
 		// ベタ
 		DiskPlainParser ps(p_file, mod_flags, p_result);
-		rc = ps.Parse(*p_stream, disk_param);
+		rc = ps.Parse(*p_stream, disk_param, boot_param);
 		support = true;
 	}
 	return rc;
@@ -243,10 +248,11 @@ DiskImageParser::~DiskImageParser()
 /// ファイルイメージを解析
 /// @param [in] istream    解析対象データ
 /// @param [in] disk_param ディスクパラメータ
+/// @param [in] boot_param ブートストラップ種類(nullable)
 /// @retval  0 正常
 /// @retval -1 エラーあり
 /// @retval  1 警告あり
-int DiskImageParser::Parse(wxInputStream &istream, const DiskParam *disk_param)
+int DiskImageParser::Parse(wxInputStream &istream, const DiskParam *disk_param, const BootParam *boot_param)
 {
 	return p_result->GetValid();
 }

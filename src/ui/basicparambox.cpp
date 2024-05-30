@@ -24,6 +24,7 @@
 // Attach Event
 BEGIN_EVENT_TABLE(BasicParamBox, wxDialog)
 	EVT_BUTTON(wxID_OK, BasicParamBox::OnOK)
+	EVT_BUTTON(IDC_BUTTON_FORCE, BasicParamBox::OnOKForcely)
 END_EVENT_TABLE()
 
 BasicParamBox::BasicParamBox(wxWindow* parent, wxWindowID id, const wxString &caption, DiskImageDisk *disk, DiskBasic *basic, int show_flags)
@@ -31,7 +32,8 @@ BasicParamBox::BasicParamBox(wxWindow* parent, wxWindowID id, const wxString &ca
 	, VolumeCtrl()
 {
 	this->basic = basic;
-	this->show_flags = show_flags;
+	this->m_show_flags = show_flags;
+	this->m_open_forcely = false;
 
 	DiskBasicType *type = basic->GetType();
 
@@ -68,12 +70,12 @@ BasicParamBox::BasicParamBox(wxWindow* parent, wxWindowID id, const wxString &ca
 			pos++;
 		}
 		comBasic->SetSelection(cur_num);
-		selected_basic = cur_num;
+		m_selected_basic = cur_num;
 	} else {
 		// 選択不可
 		comBasic->Append(basic->GetBasicDescription());
 		comBasic->SetSelection(0);
-		selected_basic = 0;
+		m_selected_basic = 0;
 	}
 
 	grid = new wxGridSizer(2, 4, 4);
@@ -161,8 +163,9 @@ BasicParamBox::BasicParamBox(wxWindow* parent, wxWindowID id, const wxString &ca
 	type->GetStartNumOnRootDirectory(blk_num, sec_pos);
 	if (blk_num >= 0) {
 		str = wxString::Format(_("Block:%d Sector:%d "), blk_num, sec_pos);
-		disk->GetNumberFromBlockNum(blk_num, trk, sid, sec);
-		str += wxString::Format(_("(C:%d H:%d R:%d)"), trk, sid, sec);
+		if (disk->GetNumberFromBlockNum(blk_num, trk, sid, sec)) {
+			str += wxString::Format(_("(C:%d H:%d R:%d)"), trk, sid, sec);
+		}
 	} else {
 		str = wxT("---");
 	}
@@ -175,8 +178,9 @@ BasicParamBox::BasicParamBox(wxWindow* parent, wxWindowID id, const wxString &ca
 	type->GetEndNumOnRootDirectory(blk_num, sec_pos);
 	if (blk_num >= 0) {
 		str = wxString::Format(_("Block:%d Sector:%d "), blk_num, sec_pos);
-		disk->GetNumberFromBlockNum(blk_num, trk, sid, sec);
-		str += wxString::Format(_("(C:%d H:%d R:%d)"), trk, sid, sec);
+		if (disk->GetNumberFromBlockNum(blk_num, trk, sid, sec)) {
+			str += wxString::Format(_("(C:%d H:%d R:%d)"), trk, sid, sec);
+		}
 	} else {
 		str = wxT("---");
 	}
@@ -191,8 +195,9 @@ BasicParamBox::BasicParamBox(wxWindow* parent, wxWindowID id, const wxString &ca
 	type->GetStartNumOnFat(blk_num, sec_pos);
 	if (blk_num >= 0) {
 		str = wxString::Format(_("Block:%d Sector:%d "), blk_num, sec_pos);
-		disk->GetNumberFromBlockNum(blk_num, trk, sid, sec);
-		str += wxString::Format(_("(C:%d H:%d R:%d)"), trk, sid, sec);
+		if (disk->GetNumberFromBlockNum(blk_num, trk, sid, sec)) {
+			str += wxString::Format(_("(C:%d H:%d R:%d)"), trk, sid, sec);
+		}
 	} else {
 		str = wxT("---");
 	}
@@ -205,8 +210,9 @@ BasicParamBox::BasicParamBox(wxWindow* parent, wxWindowID id, const wxString &ca
 	type->GetEndNumOnFat(blk_num, sec_pos);
 	if (blk_num >= 0) {
 		str = wxString::Format(_("Block:%d Sector:%d "), blk_num, sec_pos);
-		disk->GetNumberFromBlockNum(blk_num, trk, sid, sec);
-		str += wxString::Format(_("(C:%d H:%d R:%d)"), trk, sid, sec);
+		if (disk->GetNumberFromBlockNum(blk_num, trk, sid, sec)) {
+			str += wxString::Format(_("(C:%d H:%d R:%d)"), trk, sid, sec);
+		}
 	} else {
 		str = wxT("---");
 	}
@@ -216,13 +222,14 @@ BasicParamBox::BasicParamBox(wxWindow* parent, wxWindowID id, const wxString &ca
 	lbl = new wxStaticText(this, wxID_ANY, wxString::Format(_("Sectors / %s :"), fat_title));
 	grid->Add(lbl);
 	int spf = basic->GetSectorsPerFat();
-	str = trk >= 0 ? wxString::Format(wxT("%d"), spf) : wxT("---");
+	str = spf >= 0 ? wxString::Format(wxT("%d"), spf) : wxT("---");
 	lbl = new wxStaticText(this, wxID_ANY, str);
 	grid->Add(lbl, flagsr);
 
 	lbl = new wxStaticText(this, wxID_ANY, wxString::Format(_("Number of %ss :"), fat_title));
 	grid->Add(lbl);
-	str = trk >= 0 ? wxString::Format(wxT("%d"), basic->GetNumberOfFats()) : wxT("---");
+	int nof = basic->GetNumberOfFats();
+	str = nof >= 0 ? wxString::Format(wxT("%d"), nof) : wxT("---");
 	lbl = new wxStaticText(this, wxID_ANY, str);
 	grid->Add(lbl, flagsr);
 
@@ -238,11 +245,18 @@ BasicParamBox::BasicParamBox(wxWindow* parent, wxWindowID id, const wxString &ca
 
 	const DiskBasicFormat *fmt = basic->GetFormatType();
 	SetVolumeName(idata.GetVolumeName());
-	EnableVolumeName(fmt->HasVolumeName(), idata.GetVolumeNameMaxLength(), basic->GetValidVolumeName());
+	EnableVolumeName((show_flags & BASIC_SELECTABLE) == 0 && fmt->HasVolumeName(), idata.GetVolumeNameMaxLength(), basic->GetValidVolumeName());
 	SetVolumeNumber(idata.GetVolumeNumber(), idata.IsVolumeNumberHexa());
-	EnableVolumeNumber(fmt->HasVolumeNumber());
+	EnableVolumeNumber((show_flags & BASIC_SELECTABLE) == 0 && fmt->HasVolumeNumber());
 	SetVolumeDate(idata.GetVolumeDate());
-	EnableVolumeDate(fmt->HasVolumeDate());
+	EnableVolumeDate((show_flags & BASIC_SELECTABLE) == 0 && fmt->HasVolumeDate());
+
+	if (show_flags & BASIC_SELECTABLE) {
+		wxBoxSizer *hbox = new wxBoxSizer(wxHORIZONTAL);
+		wxButton *btnForce = new wxButton(this, IDC_BUTTON_FORCE, _("Open Forcely"));
+		hbox->Add(btnForce, flags);
+		szrAll->Add(hbox, flags);
+	}
 
 	int btn_flgs = wxOK | wxCANCEL;
 	wxSizer *szrButtons = CreateButtonSizer(btn_flgs);
@@ -261,6 +275,21 @@ void BasicParamBox::OnOK(wxCommandEvent& event)
 	if (!IsChangedBasic() && !(Validate() && TransferDataFromWindow())) {
 		return;
 	}
+	if (IsModal()) {
+		EndModal(wxID_OK);
+	} else {
+		SetReturnCode(wxID_OK);
+		this->Show(false);
+	}
+}
+
+void BasicParamBox::OnOKForcely(wxCommandEvent& event)
+{
+	if (!IsChangedBasic() && !(Validate() && TransferDataFromWindow())) {
+		return;
+	}
+
+	m_open_forcely = true;
 	if (IsModal()) {
 		EndModal(wxID_OK);
 	} else {
@@ -290,7 +319,7 @@ void BasicParamBox::CommitData()
 /// BASICを変更したか
 bool BasicParamBox::IsChangedBasic() const
 {
-	return (selected_basic != comBasic->GetSelection());
+	return (m_selected_basic != comBasic->GetSelection());
 }
 
 /// 選択したBASICパラメータを返す
@@ -304,4 +333,10 @@ const DiskBasicParam *BasicParamBox::GetBasicParam() const
 	match = params.Item(num);
 
 	return match;
+}
+
+/// 強引に開くか
+bool BasicParamBox::WillOpenForcely() const
+{
+	return m_open_forcely;
 }

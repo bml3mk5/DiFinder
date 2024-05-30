@@ -26,6 +26,7 @@
 		D904F16529423BD200DC7C27 /* hdd_16_new.xpm in Resources */ = {isa = PBXBuildFile; fileRef = D904F15F29423BD100DC7C27 /* hdd_16_new.xpm */; };
 		D904F16729423CC100DC7C27 /* boot_types.xml in Resources */ = {isa = PBXBuildFile; fileRef = D904F16629423CC000DC7C27 /* boot_types.xml */; };
 		D904F1682942404B00DC7C27 /* boot_types.xml in CopyFiles */ = {isa = PBXBuildFile; fileRef = D904F16629423CC000DC7C27 /* boot_types.xml */; };
+		D904F34349423BA900DC7C27 /* bootparser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D904F34329423BA900DC7C27 /* bootparser.cpp */; };
 		D924DDF029530DF30063100E /* mymenu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D924DDEF29530DF30063100E /* mymenu.cpp */; };
 		D9614BE22B80DF6000A19A9B /* basictemplate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D9614BDF2B80DF6000A19A9B /* basictemplate.cpp */; };
 		D9614BE32B80DF6000A19A9B /* basiccategory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D9614BE02B80DF6000A19A9B /* basiccategory.cpp */; };
@@ -37,6 +38,8 @@
 		D99171C1213296F10086F44F /* common.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D991719F213296F10086F44F /* common.cpp */; };
 		D99171C821329CA30086F44F /* file_types.xml in CopyFiles */ = {isa = PBXBuildFile; fileRef = D99171C621329C8A0086F44F /* file_types.xml */; };
 		D996BCF1213CF34000902715 /* logging.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D996BCE6213CF34000902715 /* logging.cpp */; };
+		D9C1D6532BCBBF7000D4C8B0 /* basictype_hfs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D9C1D6512BCBBF7000D4C8B0 /* basictype_hfs.cpp */; };
+		D9C1D6542BCBBF7000D4C8B0 /* basicdiritem_hfs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D9C1D6522BCBBF7000D4C8B0 /* basicdiritem_hfs.cpp */; };
 		D9C49E8E1BF1BDB100831032 /* charcodes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D9C49E7E1BF1BDB100831032 /* charcodes.cpp */; };
 		D9C49E911BF1BDB100831032 /* config.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D9C49E811BF1BDB100831032 /* config.cpp */; };
 		D9C49E9A1BF1BDB100831032 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D9C49E8A1BF1BDB100831032 /* main.cpp */; };
@@ -116,6 +119,7 @@
 		D9C4D09E24275AB2004521A2 /* triangle_down.xpm in Resources */ = {isa = PBXBuildFile; fileRef = D9C4D08C24275AB2004521A2 /* triangle_down.xpm */; };
 		D9C4D09F24275AB2004521A2 /* triangle_up.xpm in Resources */ = {isa = PBXBuildFile; fileRef = D9C4D08D24275AB2004521A2 /* triangle_up.xpm */; };
 		D9C4D0A024275ACD004521A2 /* difinder.icns in Resources */ = {isa = PBXBuildFile; fileRef = D9C49F051BF1D4CB00831032 /* difinder.icns */; };
+		D9C5D16624275986004521A2 /* bootselbox.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D9C5D23824275985004521A2 /* bootselbox.cpp */; };
 		D9DDCEAD2B59750200590D15 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9DDCEAC2B59750200590D15 /* QuartzCore.framework */; };
 		D9DDDE692487971800312CAE /* intnamevalid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D9DDDE672487971800312CAE /* intnamevalid.cpp */; };
 /* End PBXBuildFile section */
@@ -178,6 +182,8 @@
 		D904F15E29423BD100DC7C27 /* hd_part_16_import.xpm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = hd_part_16_import.xpm; sourceTree = "<group>"; };
 		D904F15F29423BD100DC7C27 /* hdd_16_new.xpm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = hdd_16_new.xpm; sourceTree = "<group>"; };
 		D904F16629423CC000DC7C27 /* boot_types.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = boot_types.xml; sourceTree = "<group>"; };
+		D904F34329423BA900DC7C27 /* bootparser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = bootparser.cpp; sourceTree = "<group>"; };
+		D904F34339423BA900DC7C27 /* bootparser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bootparser.h; sourceTree = "<group>"; };
 		D924DDEE29530DF20063100E /* mymenu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mymenu.h; sourceTree = "<group>"; };
 		D924DDEF29530DF30063100E /* mymenu.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mymenu.cpp; sourceTree = "<group>"; };
 		D9614BDE2B80DF6000A19A9B /* basiccategory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = basiccategory.h; sourceTree = "<group>"; };
@@ -195,6 +201,10 @@
 		D99171C621329C8A0086F44F /* file_types.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = file_types.xml; sourceTree = "<group>"; };
 		D996BCE6213CF34000902715 /* logging.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = logging.cpp; sourceTree = "<group>"; };
 		D996BCE7213CF34000902715 /* logging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = logging.h; sourceTree = "<group>"; };
+		D9C1D64F2BCBBF7000D4C8B0 /* basicdiritem_hfs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = basicdiritem_hfs.h; sourceTree = "<group>"; };
+		D9C1D6502BCBBF7000D4C8B0 /* basictype_hfs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = basictype_hfs.h; sourceTree = "<group>"; };
+		D9C1D6512BCBBF7000D4C8B0 /* basictype_hfs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = basictype_hfs.cpp; sourceTree = "<group>"; };
+		D9C1D6522BCBBF7000D4C8B0 /* basicdiritem_hfs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = basicdiritem_hfs.cpp; sourceTree = "<group>"; };
 		D9C49E571BF1BCA200831032 /* difinder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = difinder.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D9C49E7A1BF1BD8700831032 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = ../../src/res/Info.plist; sourceTree = "<group>"; };
 		D9C49E7E1BF1BDB100831032 /* charcodes.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = charcodes.cpp; path = ../../src/charcodes.cpp; sourceTree = SOURCE_ROOT; };
@@ -330,6 +340,8 @@
 		D9C4D08B24275AB2004521A2 /* labelicon_normal.xpm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = labelicon_normal.xpm; sourceTree = "<group>"; };
 		D9C4D08C24275AB2004521A2 /* triangle_down.xpm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = triangle_down.xpm; sourceTree = "<group>"; };
 		D9C4D08D24275AB2004521A2 /* triangle_up.xpm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = triangle_up.xpm; sourceTree = "<group>"; };
+		D9C5D23824275985004521A2 /* bootselbox.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = bootselbox.cpp; sourceTree = "<group>"; };
+		D9C5D23924275985004521A2 /* bootselbox.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bootselbox.h; sourceTree = "<group>"; };
 		D9DDCEAC2B59750200590D15 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		D9DDDE672487971800312CAE /* intnamevalid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = intnamevalid.cpp; sourceTree = "<group>"; };
 		D9DDDE682487971800312CAE /* intnamevalid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = intnamevalid.h; sourceTree = "<group>"; };
@@ -497,6 +509,8 @@
 				D9C4CF4A24275964004521A2 /* basiccommon.h */,
 				D9C4CF4B24275964004521A2 /* basicdir.cpp */,
 				D9C4CF4C24275964004521A2 /* basicdir.h */,
+				D9C1D6522BCBBF7000D4C8B0 /* basicdiritem_hfs.cpp */,
+				D9C1D64F2BCBBF7000D4C8B0 /* basicdiritem_hfs.h */,
 				D9C4CF5F24275964004521A2 /* basicdiritem_hu68k.cpp */,
 				D9C4CF6024275964004521A2 /* basicdiritem_hu68k.h */,
 				D9C4CF6B24275964004521A2 /* basicdiritem_msdos.cpp */,
@@ -521,6 +535,8 @@
 				D9C4CF9824275965004521A2 /* basictype_fat12.h */,
 				D9C4CF9924275965004521A2 /* basictype_fat16.cpp */,
 				D9C4CF9A24275965004521A2 /* basictype_fat16.h */,
+				D9C1D6512BCBBF7000D4C8B0 /* basictype_hfs.cpp */,
+				D9C1D6502BCBBF7000D4C8B0 /* basictype_hfs.h */,
 				D9C4CFA324275965004521A2 /* basictype_hu68k.cpp */,
 				D9C4CFA424275965004521A2 /* basictype_hu68k.h */,
 				D9C4CFAD24275965004521A2 /* basictype_msdos.cpp */,
@@ -538,6 +554,8 @@
 			children = (
 				D904F14129423BA900DC7C27 /* bootparam.cpp */,
 				D904F14329423BA900DC7C27 /* bootparam.h */,
+				D904F34329423BA900DC7C27 /* bootparser.cpp */,
+				D904F34339423BA900DC7C27 /* bootparser.h */,
 				D904F13629423BA700DC7C27 /* diskcommon.cpp */,
 				D904F13429423BA600DC7C27 /* diskcommon.h */,
 				D904F14629423BAA00DC7C27 /* diskhddparser.cpp */,
@@ -579,6 +597,8 @@
 				D9C4D03724275985004521A2 /* basicparambox.h */,
 				D9C4D03824275985004521A2 /* basicselbox.cpp */,
 				D9C4D03924275985004521A2 /* basicselbox.h */,
+				D9C5D23824275985004521A2 /* bootselbox.cpp */,
+				D9C5D23924275985004521A2 /* bootselbox.h */,
 				D9C4D03A24275985004521A2 /* configbox.cpp */,
 				D9C4D03B24275985004521A2 /* configbox.h */,
 				D9C4D03C24275985004521A2 /* diskparambox.cpp */,
@@ -741,6 +761,7 @@
 				D9C49EAD1BF1BDC000831032 /* result.cpp in Sources */,
 				D9C4D07724275986004521A2 /* uidisklist.cpp in Sources */,
 				D9C4D06624275986004521A2 /* basicselbox.cpp in Sources */,
+				D9C5D16624275986004521A2 /* bootselbox.cpp in Sources */,
 				D904F14E29423BAB00DC7C27 /* diskcommon.cpp in Sources */,
 				D996BCF1213CF34000902715 /* logging.cpp in Sources */,
 				D9C4CFF124275965004521A2 /* basictype_fat16.cpp in Sources */,
@@ -766,6 +787,7 @@
 				D9C4D07124275986004521A2 /* uibindump.cpp in Sources */,
 				D9C4D07624275986004521A2 /* uidiskattr.cpp in Sources */,
 				D904F15329423BAB00DC7C27 /* bootparam.cpp in Sources */,
+				D904F34349423BA900DC7C27 /* bootparser.cpp in Sources */,
 				D9C4CFE624275965004521A2 /* basicerror.cpp in Sources */,
 				D9C4D06F24275986004521A2 /* rawsectorbox.cpp in Sources */,
 				D9C4D06C24275986004521A2 /* intnamebox.cpp in Sources */,
@@ -786,9 +808,11 @@
 				D9C4D02F24275975004521A2 /* diskplainparser.cpp in Sources */,
 				D9C4D07024275986004521A2 /* rawtrackbox.cpp in Sources */,
 				D9C4CFEE24275965004521A2 /* basictype_fat_base.cpp in Sources */,
+				D9C1D6532BCBBF7000D4C8B0 /* basictype_hfs.cpp in Sources */,
 				D9C49E911BF1BDB100831032 /* config.cpp in Sources */,
 				D9C4CFE724275965004521A2 /* basicfat.cpp in Sources */,
 				D9C4CFCA24275965004521A2 /* basicdir.cpp in Sources */,
+				D9C1D6542BCBBF7000D4C8B0 /* basicdiritem_hfs.cpp in Sources */,
 				D9C4D03024275975004521A2 /* diskplainwriter.cpp in Sources */,
 				D9C4CFF624275965004521A2 /* basictype_hu68k.cpp in Sources */,
 				D9C4CFD424275965004521A2 /* basicdiritem_hu68k.cpp in Sources */,

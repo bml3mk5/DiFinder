@@ -607,8 +607,6 @@ void UiDiskList::SetFileName(const wxString &filename)
 {
 	DiskImage *image = &frame->GetDiskImage();
 	if (!image) return;
-	DiskImageDisks *disks = image->GetDisks();
-	if (!disks) return;
 
 	DeleteAllItems();
 
@@ -616,14 +614,26 @@ void UiDiskList::SetFileName(const wxString &filename)
 		, new UiDiskPositionData(CD_DISKNUM_ROOT, CD_TYPENUM_NODE, -1, 0, false));
 	m_root_node = node;
 
-	for(size_t i=0; i<disks->Count(); i++) {
-		DiskImageDisk *diskn = disks->Item(i);
-		// ディスク１つ
-		AddTreeContainer(node, diskn->GetName(), ICON_FOR_TREE_SINGLE, ICON_FOR_TREE_NONE
-			, new UiDiskPositionData((int)i, CD_TYPENUM_NODE, CD_TYPENUM_NODE, CD_TYPENUM_NODE, true));
+	DiskImageFile *file = image->GetFile();
+	if (file) {
+		m_selected_disk = NULL;
+		// 全パネルのデータをクリアする
+		frame->ClearAllData();
+		frame->SetDataOnFile(file);
 	}
 
-	Expand(node);
+	DiskImageDisks *disks = image->GetDisks();
+	if (disks) {
+		for(size_t i=0; i<disks->Count(); i++) {
+			DiskImageDisk *diskn = disks->Item(i);
+			// ディスク１つ
+			AddTreeContainer(node, diskn->GetName(), ICON_FOR_TREE_SINGLE, ICON_FOR_TREE_NONE
+				, new UiDiskPositionData((int)i, CD_TYPENUM_NODE, CD_TYPENUM_NODE, CD_TYPENUM_NODE, true));
+		}
+		Expand(node);
+
+	}
+
 	SelectTreeNode(node);
 }
 

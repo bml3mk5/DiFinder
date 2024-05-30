@@ -96,6 +96,10 @@ public:
 	bool IsValidTime() const;
 	/// 日時設定を無視する値か
 	bool Ignorable() const;
+	/// 有効でない日時を初期値にする
+	bool AdjustDateTime();
+	/// 日時の比較
+	static int Compare(const TM &tm1, const TM &tm2);
 
 	int AddYear(int val) { tm.tm_year += val; return tm.tm_year; }
 	int AddMonth(int val) { tm.tm_mon += val; return tm.tm_mon; }

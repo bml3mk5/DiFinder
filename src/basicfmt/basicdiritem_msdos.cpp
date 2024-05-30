@@ -168,7 +168,8 @@ void DiskBasicDirItemMSDOS::SetFileType1(int val)
 /// 使用しているアイテムか
 bool DiskBasicDirItemMSDOS::CheckUsed(bool unuse)
 {
-	return (m_data.Data()->msdos.name[0] != 0 && m_data.Data()->msdos.name[0] != 0xe5);
+	wxUint8 ch = m_data.Data()->msdos.name[0];
+	return (ch != 0 && ch != 0xe5);
 }
 
 /// ファイル名を設定
@@ -894,8 +895,11 @@ bool DiskBasicDirItemVFAT::Check(bool &last)
 
 	bool valid = true;
 	// ファイルサイズが大きい
-	if (CheckUsed(false) && (m_data.Data()->msdos.type & FILETYPE_MASK_MS_LFN) != FILETYPE_MASK_MS_LFN && wxUINT32_SWAP_ON_BE(m_data.Data()->msdos.file_size) > 0xfffffff) {
-		valid = false;
+	if (CheckUsed(false)) {
+		directory_msdos_t *msdos = &m_data.Data()->msdos;
+		if ((msdos->type & FILETYPE_MASK_MS_LFN) != FILETYPE_MASK_MS_LFN && wxUINT32_SWAP_ON_BE(msdos->file_size) > 0xefffffff) {
+			valid = false;
+		}
 	}
 	return valid;
 }

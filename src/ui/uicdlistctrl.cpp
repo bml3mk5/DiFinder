@@ -518,6 +518,7 @@ MyCDListColumn *MyCDListCtrl::FindColumn(wxDataViewColumn *col, int *n_idx, bool
 	return match;
 }
 
+#if 0
 /// カラム用のポップアップメニューを作成する
 void MyCDListCtrl::CreateColumnPopupMenu(wxMenu* &menu, int menu_id, int menu_detail_id)
 {
@@ -557,6 +558,7 @@ void MyCDListCtrl::CreateColumnPopupMenu(wxMenu* &menu, int menu_id, int menu_de
 	menu->AppendSeparator();
 	menu->Append(menu_detail_id, _("Detail..."));
 }
+#endif
 
 /// カラムの表示位置を返す 表示中のカラムを優先
 void MyCDListCtrl::GetListColumnsByCurrentOrder(MyCDListColumns &items) const
