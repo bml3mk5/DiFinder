@@ -30,10 +30,12 @@ add_executable(${PROJECT_NAME}
 	${SRCBASICFMTDIR}/basictype_msdos.cpp
 	${SRCBASICFMTDIR}/basictype_os9.cpp
 	${SRCBASICFMTDIR}/basictype_hu68k.cpp
+	${SRCBASICFMTDIR}/basictype_hfs.cpp
 	${SRCBASICFMTDIR}/basicfat.cpp
 	${SRCBASICFMTDIR}/basicdiritem_msdos.cpp
 	${SRCBASICFMTDIR}/basicdiritem_os9.cpp
 	${SRCBASICFMTDIR}/basicdiritem_hu68k.cpp
+	${SRCBASICFMTDIR}/basicdiritem_hfs.cpp
 	${SRCBASICFMTDIR}/basicdiritem.cpp
 	${SRCBASICFMTDIR}/basicdir.cpp
 	${SRCBASICFMTDIR}/basicfmt.cpp
@@ -63,6 +65,7 @@ add_executable(${PROJECT_NAME}
 	${SRCUIDIR}/fontminibox.cpp
 	${SRCUIDIR}/intnamebox.cpp
 	${SRCUIDIR}/intnamevalid.cpp
+	${SRCUIDIR}/loggingbox.cpp
 	${SRCUIDIR}/partitionbox.cpp
 	${SRCUIDIR}/rawparambox.cpp
 	${SRCUIDIR}/rawexpbox.cpp
@@ -81,6 +84,7 @@ add_executable(${PROJECT_NAME}
 	${SRCUIDIR}/uifatarea.cpp
 	${SRCUIDIR}/uirpanel.cpp
 	${SRCUIDIR}/mymenu.cpp
+	${SRCUIDIR}/mydialog.cpp
 	${SRCDIR}/main.cpp
 )
 

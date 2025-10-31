@@ -120,6 +120,8 @@
 		D9C4D09F24275AB2004521A2 /* triangle_up.xpm in Resources */ = {isa = PBXBuildFile; fileRef = D9C4D08D24275AB2004521A2 /* triangle_up.xpm */; };
 		D9C4D0A024275ACD004521A2 /* difinder.icns in Resources */ = {isa = PBXBuildFile; fileRef = D9C49F051BF1D4CB00831032 /* difinder.icns */; };
 		D9C5D16624275986004521A2 /* bootselbox.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D9C5D23824275985004521A2 /* bootselbox.cpp */; };
+		D9D890562EAF3D5700408CCB /* mydialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D9D890552EAF3D5700408CCB /* mydialog.cpp */; };
+		D9D890572EAF3D5700408CCB /* loggingbox.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D9D890532EAF3D5700408CCB /* loggingbox.cpp */; };
 		D9DDCEAD2B59750200590D15 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9DDCEAC2B59750200590D15 /* QuartzCore.framework */; };
 		D9DDDE692487971800312CAE /* intnamevalid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D9DDDE672487971800312CAE /* intnamevalid.cpp */; };
 /* End PBXBuildFile section */
@@ -342,6 +344,10 @@
 		D9C4D08D24275AB2004521A2 /* triangle_up.xpm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = triangle_up.xpm; sourceTree = "<group>"; };
 		D9C5D23824275985004521A2 /* bootselbox.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = bootselbox.cpp; sourceTree = "<group>"; };
 		D9C5D23924275985004521A2 /* bootselbox.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bootselbox.h; sourceTree = "<group>"; };
+		D9D890522EAF3D5700408CCB /* loggingbox.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = loggingbox.h; sourceTree = "<group>"; };
+		D9D890532EAF3D5700408CCB /* loggingbox.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = loggingbox.cpp; sourceTree = "<group>"; };
+		D9D890542EAF3D5700408CCB /* mydialog.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mydialog.h; sourceTree = "<group>"; };
+		D9D890552EAF3D5700408CCB /* mydialog.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = mydialog.cpp; sourceTree = "<group>"; };
 		D9DDCEAC2B59750200590D15 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		D9DDDE672487971800312CAE /* intnamevalid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = intnamevalid.cpp; sourceTree = "<group>"; };
 		D9DDDE682487971800312CAE /* intnamevalid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = intnamevalid.h; sourceTree = "<group>"; };
@@ -611,6 +617,10 @@
 				D9C4D04524275986004521A2 /* intnamebox.h */,
 				D9DDDE672487971800312CAE /* intnamevalid.cpp */,
 				D9DDDE682487971800312CAE /* intnamevalid.h */,
+				D9D890522EAF3D5700408CCB /* loggingbox.h */,
+				D9D890532EAF3D5700408CCB /* loggingbox.cpp */,
+				D9D890542EAF3D5700408CCB /* mydialog.h */,
+				D9D890552EAF3D5700408CCB /* mydialog.cpp */,
 				D924DDEF29530DF30063100E /* mymenu.cpp */,
 				D924DDEE29530DF20063100E /* mymenu.h */,
 				D9614BE72B80E79600A19A9B /* partitionbox.cpp */,
@@ -789,6 +799,8 @@
 				D904F15329423BAB00DC7C27 /* bootparam.cpp in Sources */,
 				D904F34349423BA900DC7C27 /* bootparser.cpp in Sources */,
 				D9C4CFE624275965004521A2 /* basicerror.cpp in Sources */,
+				D9D890562EAF3D5700408CCB /* mydialog.cpp in Sources */,
+				D9D890572EAF3D5700408CCB /* loggingbox.cpp in Sources */,
 				D9C4D06F24275986004521A2 /* rawsectorbox.cpp in Sources */,
 				D9C4D06C24275986004521A2 /* intnamebox.cpp in Sources */,
 				D9C4CFE824275965004521A2 /* basicfmt.cpp in Sources */,

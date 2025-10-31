@@ -17,7 +17,7 @@ class wxTextCtrl;
 class wxButton;
 class wxChoice;
 class wxCheckBox;
-class wxBoxSizer;
+class wxSizerItem;
 
 class UiDiskFrame;
 class DiskImageFile;
@@ -33,7 +33,8 @@ private:
 	wxTextCtrl *txtAttr;
 	wxButton   *btnChange;
 	wxCheckBox *chkWprotect;
-	wxBoxSizer *szrButtons;
+	wxSizerItem *szriTxt;
+	wxSizerItem *szriBtn;
 
 	DiskImageFile *p_file;
 	DiskImageDisk *p_disk;

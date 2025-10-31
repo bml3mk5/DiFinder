@@ -295,18 +295,18 @@ int BootParser::ParseBoot(wxInputStream &istream, const DiskParam *disk_param, c
 	wxArrayDouble valid_ratios;
 	for(size_t i=st; i<ed; i++) {
 		const BootParam *param = &gBootTemplates.Item(i);
-		myLog.SetInfo("Parsing Boot Type #%d: %s", i, param->GetBootTypeName().t_str());
+		myLog.SetInfo(wxString::Format(wxT("Parsing Boot Type #%d: "), (int)i) + param->GetBootTypeName());
 		double valid_ratio = ParseBoot(ipl, sizeof(ipl), *param);
-		myLog.SetInfo("  Result => %.2f", valid_ratio);
+		myLog.SetInfo(wxT("  Result => %.2f"), valid_ratio);
 		valid_ratios.Add(valid_ratio);
 	}
 
 	if (boot_param) {
 		if (valid_ratios.Item(0) < 0.1) {
-			myLog.SetInfo("Invalid bootstrap");
+			myLog.SetInfo(wxT("Invalid bootstrap"));
 			p_result->SetWarn(DiskResult::ERR_INVALID_BOOTSTRAP);
 		} else {
-			myLog.SetInfo("Decided: #%d => %.2f", (int)st, valid_ratios.Item(0));
+			myLog.SetInfo(wxT("Decided: #%d => %.2f"), (int)st, valid_ratios.Item(0));
 		}
 	} else {
 		// 尤もらしいもの
@@ -322,11 +322,11 @@ int BootParser::ParseBoot(wxInputStream &istream, const DiskParam *disk_param, c
 
 		if (match_pos < 0) {
 			// 一致するものがない
-			myLog.SetInfo("No Bootstrap Decided");
+			myLog.SetInfo(wxT("No Bootstrap Decided"));
 			p_result->SetWarn(DiskResult::ERR_NO_BOOTSTRAP);
 			return p_result->GetValid();
 		} else {
-			myLog.SetInfo("Decided: #%d => %.2f", match_pos, max_valid_ratio);
+			myLog.SetInfo(wxT("Decided: #%d => %.2f"), match_pos, max_valid_ratio);
 		}
 
 		boot_param = &gBootTemplates.Item(match_pos);

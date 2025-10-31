@@ -526,3 +526,11 @@ const BootCategory *BootTemplates::FindCategory(const wxString &n_type_name) con
 	}
 	return match;
 }
+
+/// @brief カテゴリ名を返す
+/// @param[in] n_category_index : カテゴリ番号
+/// @return 名前
+const wxString &BootTemplates::GetCategoryName(size_t n_category_index) const
+{
+	return categories.Item(n_category_index).GetTypeName();
+}

@@ -32,7 +32,7 @@ class wxTextCtrl;
 class wxRadioButton;
 class wxChoice;
 class wxStaticText;
-class wxBoxSizer;
+class wxSizerItem;
 class DiskBasic;
 class DiskBasics;
 class DiskBasicGroupItem;
@@ -162,7 +162,10 @@ private:
 	wxStaticText		*lblCharCode;
 	wxChoice			*comCharCode;
 	UiDiskFileListCtrl	*listCtrl;
-	wxBoxSizer			*szrButtons;
+	wxSizerItem			*szriTxt;
+	wxSizerItem			*szriBtn;
+	wxSizerItem			*szriHed;
+	wxSizerItem			*szriLst;
 
 	MyMenu				*menuPopup;
 	wxMenu				*menuColumnPopup;
@@ -253,18 +256,18 @@ public:
 	void OnButtonChange(wxCommandEvent& event);
 	/// キャラクターコード変更ボタン押下
 	void OnChangeCharCode(wxCommandEvent& event);
-	/// リストのカラムを変更
-	void OnListColumnChange(wxCommandEvent& event);
-//	/// リストのカラム詳細設定
-//	void OnListColumnDetail(wxCommandEvent& event);
-//	/// リストのカラム詳細設定
-//	void OnListColumnDetail(MyFileListEvent& event);
+	/// リストのカラム詳細設定
+	void OnListColumnDetail(wxCommandEvent& event);
+	/// リストのカラム幅リセット
+	void OnListColumnReset(wxCommandEvent& event);
 	//@}
 
 	/// ポップアップメニュー作成
 	void MakePopupMenu();
 	/// ポップアップメニュー表示
 	void ShowPopupMenu();
+	/// リストカラムのポップアップメニュー作成
+	void MakeColumnPopupMenu();
 	/// リストカラムのポップアップメニュー表示
 	void ShowColumnPopupMenu();
 
@@ -353,6 +356,8 @@ public:
 
 	/// カラム変更ダイアログ
 	void ShowListColumnDialog();
+	/// カラムの幅をデフォルトに戻す
+	void ResetAllListColumnWidth();
 
 	/// ディレクトリ作成ダイアログ
 	void ShowMakeDirectoryDialog();
@@ -401,7 +406,7 @@ public:
 		IDC_COMBO_CHAR_CODE,
 		IDC_VIEW_LIST,
 		IDM_COLUMN_DETAIL,
-		IDM_COLUMN_0,
+		IDM_COLUMN_RESET,
 	};
 
 	wxDECLARE_EVENT_TABLE();

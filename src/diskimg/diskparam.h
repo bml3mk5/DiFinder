@@ -258,6 +258,7 @@ protected:
 	DiskParticulars singles;	///< 単密度にするトラック
 	DiskParticulars ptracks;	///< 特殊なトラックを定義
 	DiskParticulars psectors;	///< 特殊なセクタを定義
+	wxArrayString categories;	///< カテゴリ
 	wxString density_name;		///< 密度情報（説明用）
 	wxString description;		///< 説明
 
@@ -299,6 +300,7 @@ public:
 		, const DiskParticulars &n_singles
 		, const DiskParticulars &n_ptracks
 		, const DiskParticulars &n_psectors
+		, const wxArrayString &n_categories
 		, const wxString &n_density_name
 		, const wxString &n_desc
 	);
@@ -331,6 +333,10 @@ public:
 	bool FindParticularSector(int track_num, int side_num, int sector_num, int &sector_size, const wxUint8 **sector_id = NULL) const;
 	/// @brief ブートストラップをさがす
 	const BootParamName *FindBootType(const wxString &type_name, int flags = -1) const;
+	/// @brief ブートストラップが一致するか
+	int  MatchBootType(const wxArrayString &type_names, int flags = -1) const;
+	/// @brief カテゴリ名が一致するか
+	int  MatchCategory(const wxString &category) const;
 
 	/// @brief ディスク種類名を設定 "2D" "2HD" など
 	void SetDiskTypeName(const wxString &str) { disk_type_name = str; }
@@ -366,6 +372,8 @@ public:
 	void SetParticularTracks(const DiskParticulars &arr) { ptracks = arr; }
 	/// @brief 特殊なセクタを設定
 	void SetParticularSectors(const DiskParticulars &arr) { psectors = arr; }
+	/// @brief カテゴリを設定
+	void SetCategories(const wxArrayString &arr) { categories = arr; }
 	/// @brief 密度情報（説明用）を設定
 	void SetDensityName(const wxString &str) { density_name = str; }
 	/// @brief 説明を設定
@@ -412,6 +420,8 @@ public:
 	const DiskParticulars &GetParticularTracks() const { return ptracks; }
 	/// @brief 特殊なセクタを返す
 	const DiskParticulars &GetParticularSectors() const { return psectors; }
+	/// @brief カテゴリを返す
+	const wxArrayString &GetCategories() const { return categories; }
 	/// @brief 密度情報（説明用）を返す
 	const wxString &GetDensityName() const { return density_name; }
 	/// @brief 説明を返す
@@ -454,6 +464,8 @@ public:
 	bool LoadParticularTrack(const wxXmlNode *node, DiskParticular &d, wxString &errmsgs);
 	/// @brief ParticularSectorエレメントをロード
 	bool LoadParticularSector(const wxXmlNode *node, DiskParticular &d, wxString &errmsgs);
+	/// @brief Categoriesエレメントをロード
+	bool LoadCategories(const wxXmlNode *node, wxArrayString &categories, wxString &errmsgs);
 
 	/// @brief タイプ名に一致するテンプレートの番号を返す
 	int IndexOf(const wxString &n_type_name) const;
@@ -477,6 +489,9 @@ public:
 	const DiskParam &Item(size_t index) const { return params[index]; }
 	/// @brief テンプレートの数を返す
 	size_t Count() const { return params.Count(); }
+
+	/// @brief カテゴリ名に一致するタイプ名リストを返す
+	size_t FindCategories(const wxString &n_category_name, wxArrayString &n_type_names);
 };
 
 extern DiskTemplates gDiskTemplates;

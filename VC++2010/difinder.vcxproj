@@ -92,6 +92,8 @@
     <ClCompile Include="..\src\ui\fontminibox.cpp" />
     <ClCompile Include="..\src\ui\intnamebox.cpp" />
     <ClCompile Include="..\src\ui\intnamevalid.cpp" />
+    <ClCompile Include="..\src\ui\loggingbox.cpp" />
+    <ClCompile Include="..\src\ui\mydialog.cpp" />
     <ClCompile Include="..\src\ui\mymenu.cpp" />
     <ClCompile Include="..\src\ui\partitionbox.cpp" />
     <ClCompile Include="..\src\ui\rawexpbox.cpp" />
@@ -167,6 +169,8 @@
     <ClInclude Include="..\src\ui\fontminibox.h" />
     <ClInclude Include="..\src\ui\intnamebox.h" />
     <ClInclude Include="..\src\ui\intnamevalid.h" />
+    <ClInclude Include="..\src\ui\loggingbox.h" />
+    <ClInclude Include="..\src\ui\mydialog.h" />
     <ClInclude Include="..\src\ui\mymenu.h" />
     <ClInclude Include="..\src\ui\partitionbox.h" />
     <ClInclude Include="..\src\ui\rawexpbox.h" />
@@ -355,9 +359,7 @@
       <Command>post_build.bat "$(SolutionDir)" "$(Configuration)\$(Platform)"</Command>
     </PostBuildEvent>
     <Manifest>
-      <AdditionalManifestFiles>
-      </AdditionalManifestFiles>
-      <EnableDPIAwareness>true</EnableDPIAwareness>
+      <AdditionalManifestFiles>$(wxWidgetsDir)include\wx\msw\wx_dpi_aware_pmv2.manifest</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DLLDebug|Win32'">
@@ -382,9 +384,7 @@
       <Command>post_build.bat "$(SolutionDir)" "$(Configuration)\$(Platform)"</Command>
     </PostBuildEvent>
     <Manifest>
-      <AdditionalManifestFiles>
-      </AdditionalManifestFiles>
-      <EnableDPIAwareness>true</EnableDPIAwareness>
+      <AdditionalManifestFiles>$(wxWidgetsDir)include\wx\msw\wx_dpi_aware_pmv2.manifest</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -409,9 +409,7 @@
       <Command>post_build.bat "$(SolutionDir)" "$(Configuration)\$(Platform)"</Command>
     </PostBuildEvent>
     <Manifest>
-      <AdditionalManifestFiles>
-      </AdditionalManifestFiles>
-      <EnableDPIAwareness>true</EnableDPIAwareness>
+      <AdditionalManifestFiles>$(wxWidgetsDir)include\wx\msw\wx_dpi_aware_pmv2.manifest</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DLLDebug|x64'">
@@ -436,9 +434,7 @@
       <Command>post_build.bat "$(SolutionDir)" "$(Configuration)\$(Platform)"</Command>
     </PostBuildEvent>
     <Manifest>
-      <AdditionalManifestFiles>
-      </AdditionalManifestFiles>
-      <EnableDPIAwareness>true</EnableDPIAwareness>
+      <AdditionalManifestFiles>$(wxWidgetsDir)include\wx\msw\wx_dpi_aware_pmv2.manifest</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -467,9 +463,7 @@
       <Command>post_build.bat "$(SolutionDir)" "$(Configuration)\$(Platform)"</Command>
     </PostBuildEvent>
     <Manifest>
-      <AdditionalManifestFiles>
-      </AdditionalManifestFiles>
-      <EnableDPIAwareness>true</EnableDPIAwareness>
+      <AdditionalManifestFiles>$(wxWidgetsDir)include\wx\msw\wx_dpi_aware_pmv2.manifest</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DLLRelease|Win32'">
@@ -498,9 +492,7 @@
       <Command>post_build.bat "$(SolutionDir)" "$(Configuration)\$(Platform)"</Command>
     </PostBuildEvent>
     <Manifest>
-      <AdditionalManifestFiles>
-      </AdditionalManifestFiles>
-      <EnableDPIAwareness>true</EnableDPIAwareness>
+      <AdditionalManifestFiles>$(wxWidgetsDir)include\wx\msw\wx_dpi_aware_pmv2.manifest</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -529,9 +521,7 @@
       <Command>post_build.bat "$(SolutionDir)" "$(Configuration)\$(Platform)"</Command>
     </PostBuildEvent>
     <Manifest>
-      <AdditionalManifestFiles>
-      </AdditionalManifestFiles>
-      <EnableDPIAwareness>true</EnableDPIAwareness>
+      <AdditionalManifestFiles>$(wxWidgetsDir)include\wx\msw\wx_dpi_aware_pmv2.manifest</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DLLRelease|x64'">
@@ -560,9 +550,7 @@
       <Command>post_build.bat "$(SolutionDir)" "$(Configuration)\$(Platform)"</Command>
     </PostBuildEvent>
     <Manifest>
-      <AdditionalManifestFiles>
-      </AdditionalManifestFiles>
-      <EnableDPIAwareness>true</EnableDPIAwareness>
+      <AdditionalManifestFiles>$(wxWidgetsDir)include\wx\msw\wx_dpi_aware_pmv2.manifest</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

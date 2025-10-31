@@ -138,6 +138,7 @@ void DiskParticular::AddExclude(const TrackParam &n_param)
 /// トラックが除外リストに含まれるか
 /// @param [in] n_track_num         トラック番号
 /// @param [in] n_side_num          サイド番号
+/// @return true if match
 bool DiskParticular::FindExclude(int n_track_num, int n_side_num) const
 {
 	TrackParam *match = NULL;
@@ -420,6 +421,7 @@ DiskParam &DiskParam::operator=(const DiskParam &src)
 /// @param[in] n_singles               単密度にするトラック
 /// @param[in] n_ptracks               特殊なトラックを定義 セクタ数がトラックごとに異なる場合
 /// @param[in] n_psectors              特殊なセクタを定義
+/// @param[in] n_categories            カテゴリ
 /// @param[in] n_density_name          密度情報（説明用）
 /// @param[in] n_desc                  説明
 void DiskParam::SetDiskParam(const wxString &n_type_name
@@ -439,6 +441,7 @@ void DiskParam::SetDiskParam(const wxString &n_type_name
 	, const DiskParticulars &n_singles
 	, const DiskParticulars &n_ptracks
 	, const DiskParticulars &n_psectors
+	, const wxArrayString &n_categories
 	, const wxString &n_density_name
 	, const wxString &n_desc
 ) {
@@ -460,6 +463,7 @@ void DiskParam::SetDiskParam(const wxString &n_type_name
 	singles = n_singles;
 	ptracks = n_ptracks;
 	psectors = n_psectors;
+	categories = n_categories;
 	density_name = n_density_name;
 	description = n_desc;
 }
@@ -516,6 +520,7 @@ void DiskParam::SetDiskParam(const DiskParam &src)
 	singles = src.singles;
 	ptracks = src.ptracks;
 	psectors = src.psectors;
+	categories = src.categories;
 	density_name = src.density_name;
 	description = src.description;
 }
@@ -539,6 +544,7 @@ void DiskParam::ClearDiskParam()
 	singles.Empty();
 	ptracks.Empty();
 	psectors.Empty();
+	categories.Empty();
 	density_name.Empty();
 	description.Empty();
 }
@@ -667,7 +673,7 @@ bool DiskParam::MatchNear(int num, int n_sides_per_disk, int n_tracks_per_side, 
 			&& (numbering_sector == n_numbering_sector)	// セクタ番号の付番方法は一致
 			&& (singles == n_singles)	// 単密度のトラックは一致
 			&& (interleave == n_interleave) // インターリーブは一致
-			&& ((n_tracks_per_side - 5) <= tracks_per_side && tracks_per_side <= n_tracks_per_side); // トラック数は-5 - 0の範囲
+			&& ((n_tracks_per_side - 5) <= tracks_per_side && tracks_per_side <= (n_tracks_per_side + 1)); // トラック数は-5 - 1の範囲
 		break;
 	case 3:
 		// インターリーブを除いて、
@@ -677,20 +683,20 @@ bool DiskParam::MatchNear(int num, int n_sides_per_disk, int n_tracks_per_side, 
 			&& (sector_size == n_sector_size) // セクタサイズは一致
 			&& (numbering_sector == n_numbering_sector)	// セクタ番号の付番方法は一致
 			&& (singles == n_singles)	// 単密度のトラックは一致
-			&& ((n_tracks_per_side - 5) <= tracks_per_side && tracks_per_side <= n_tracks_per_side); // トラック数は-5 - 0の範囲
+			&& ((n_tracks_per_side - 5) <= tracks_per_side && tracks_per_side <= (n_tracks_per_side + 1)); // トラック数は-5 - 1の範囲
 		break;
 	case 4:
 		match = (sides_per_disk == n_sides_per_disk) // サイド数は一致
 			&& (sectors_per_track == n_sectors_per_track) // セクタ数は一致
 			&& (sector_size == n_sector_size) // セクタサイズは一致
 			&& (numbering_sector == n_numbering_sector)	// セクタ番号の付番方法は一致
-			&& ((n_tracks_per_side - 5) <= tracks_per_side && tracks_per_side <= n_tracks_per_side); // トラック数は-5 - 0の範囲
+			&& ((n_tracks_per_side - 5) <= tracks_per_side && tracks_per_side <= (n_tracks_per_side + 1)); // トラック数は-5 - 1の範囲
 		break;
 	case 5:
 		match = (sides_per_disk == n_sides_per_disk) // サイド数は一致
 			&& (sector_size == n_sector_size) // セクタサイズは一致
 			&& (numbering_sector == n_numbering_sector)	// セクタ番号の付番方法は一致
-			&& ((n_tracks_per_side - 5) <= tracks_per_side && tracks_per_side <= n_tracks_per_side) // トラック数は-5 - 0の範囲
+			&& ((n_tracks_per_side - 5) <= tracks_per_side && tracks_per_side <= (n_tracks_per_side + 1)) // トラック数は-5 - 1の範囲
 			&& (sectors_per_track <= n_sectors_per_track); // セクタ数は小さければよし
 		break;
 	default:
@@ -913,6 +919,37 @@ const BootParamName *DiskParam::FindBootType(const wxString &type_name, int flag
 	return match;
 }
 
+/// ブートストラップが一致するか
+/// @param[in] type_names タイプ名リスト
+/// @param[in] flags      フラグ
+/// @return wxNOT_FOUND if unmatch
+int DiskParam::MatchBootType(const wxArrayString &type_names, int flags) const
+{
+	int match = wxNOT_FOUND;
+	for(size_t i=0; i<type_names.Count(); i++) {
+		if (FindBootType(type_names.Item(i), flags)) {
+			match = (int)i;
+			break;
+		}
+	}
+	return match;
+}
+
+/// カテゴリ名が一致するか
+/// @param[in] category カテゴリ名
+/// @return wxNOT_FOUND if unmatch
+int DiskParam::MatchCategory(const wxString &category) const
+{
+	int match = wxNOT_FOUND;
+	for(size_t i=0; i<categories.Count(); i++) {
+		if (categories.Item(i) == category) {
+			match = (int)i;
+			break;
+		}
+	}
+	return match;
+}
+
 /// ディスクパラメータを文字列にフォーマットして返す
 /// @return 文字列
 wxString DiskParam::GetDiskParamDetails() const
@@ -1062,6 +1099,12 @@ bool DiskTemplates::Load(const wxString &data_path, const wxString &locale_name,
 						return false;
 					}
 					p.AddParticularSector(d);
+				} else if (itemnode->GetName() == "Categories") {
+					wxArrayString arr;
+					if (!LoadCategories(itemnode, arr, errmsgs)) {
+						return false;
+					}
+					p.SetCategories(arr);
 				} else if (itemnode->GetName() == "DensityName") {
 					LoadDescription(itemnode, locale_name, den_name, den_name_locale);
 				} else if (itemnode->GetName() == "Description") {
@@ -1247,6 +1290,27 @@ bool DiskTemplates::LoadParticularSector(const wxXmlNode *node, DiskParticular &
 	return true;
 }
 
+/// Categoriesエレメントをロード
+/// @param[in]  node        子ノード
+/// @param[out] categories  ロードしたデータ
+/// @param[out] errmsgs     エラーメッセージ
+/// @return true
+bool DiskTemplates::LoadCategories(const wxXmlNode *node, wxArrayString &categories, wxString &errmsgs)
+{
+	wxXmlNode *citemnode = node->GetChildren();
+	while(citemnode) {
+		wxString str = citemnode->GetNodeContent();
+		if (citemnode->GetName() == "Category") {
+			str = str.Trim(false).Trim(true);
+			if (!str.IsEmpty()) {
+				categories.Add(str);
+			}
+		}
+		citemnode = citemnode->GetNext();
+	}
+	return true;
+}
+
 /// タイプ名に一致するテンプレートの番号を返す
 /// @param[in] n_type_name タイプ名
 /// @return ディスクテンプレートの位置 / ないとき-1
@@ -1387,4 +1451,20 @@ int DiskTemplates::Find(int n_sides_per_disk, int n_tracks_per_side, int n_secto
 		}
 	}
 	return (int)n_list.Count();
+}
+
+/// カテゴリ名に一致するタイプ名リストを返す
+/// @param [in]  n_category_name  : カテゴリ名
+/// @param [out] n_type_names     : タイプ名リスト
+/// @return リストの数
+size_t DiskTemplates::FindCategories(const wxString &n_category_name, wxArrayString &n_type_names)
+{
+	n_type_names.Clear();
+	for(size_t i=0; i<params.Count(); i++) {
+		const DiskParam *item = &params[i];
+		if (item->MatchCategory(n_category_name) != wxNOT_FOUND) {
+			n_type_names.Add(item->GetDiskTypeName());
+		}
+	}
+	return n_type_names.Count();
 }

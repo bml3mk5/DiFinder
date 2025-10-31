@@ -106,6 +106,7 @@ OBJS=	$(SRCDIR)/utils.o \
 	$(SRCUIDIR)/fontminibox.o \
 	$(SRCUIDIR)/intnamebox.o \
 	$(SRCUIDIR)/intnamevalid.o \
+	$(SRCUIDIR)/loggingbox.o \
 	$(SRCUIDIR)/partitionbox.o \
 	$(SRCUIDIR)/rawparambox.o \
 	$(SRCUIDIR)/rawexpbox.o \
@@ -124,6 +125,7 @@ OBJS=	$(SRCDIR)/utils.o \
 	$(SRCUIDIR)/uifatarea.o \
 	$(SRCUIDIR)/uirpanel.o \
 	$(SRCUIDIR)/mymenu.o \
+	$(SRCUIDIR)/mydialog.o \
 	$(SRCDIR)/main.o
 
 RESOBJS=$(SRCRESDIR)/difinder.res

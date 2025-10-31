@@ -3,7 +3,7 @@
 #
 CC=g++
 
-APPLICATION_VERSION=0.0.4
+APPLICATION_VERSION=0.0.5
 
 CDEFS=
 DBG_CDEFS=-D_DEBUG -D_DEBUG_LOG
@@ -112,6 +112,7 @@ OBJS=	$(SRCDIR)/utils.o \
 	$(SRCUIDIR)/fontminibox.o \
 	$(SRCUIDIR)/intnamebox.o \
 	$(SRCUIDIR)/intnamevalid.o \
+	$(SRCUIDIR)/loggingbox.o \
 	$(SRCUIDIR)/partitionbox.o \
 	$(SRCUIDIR)/rawparambox.o \
 	$(SRCUIDIR)/rawexpbox.o \
@@ -130,6 +131,7 @@ OBJS=	$(SRCDIR)/utils.o \
 	$(SRCUIDIR)/uifatarea.o \
 	$(SRCUIDIR)/uirpanel.o \
 	$(SRCUIDIR)/mymenu.o \
+	$(SRCUIDIR)/mydialog.o \
 	$(SRCDIR)/main.o
 
 EXE =$(BUILDDIR)/$(EXEFILE)

@@ -28,6 +28,7 @@
 #include "fileselbox.h"
 #include "fontminibox.h"
 #include "configbox.h"
+#include "loggingbox.h"
 #include "partitionbox.h"
 #include "../diskimg/diskplain.h"
 #include "../diskimg/diskwriter.h"
@@ -67,6 +68,7 @@ StatusCounter::StatusCounter()
 StatusCounter::~StatusCounter()
 {
 }
+/// クリア
 void StatusCounter::Clear()
 {
 	m_current = 0;
@@ -74,6 +76,9 @@ void StatusCounter::Clear()
 	m_using = 0;
 	m_message.Empty();
 }
+/// カウント開始
+/// @param[in] count カウント最大値
+/// @param[in] message 開始メッセージ
 void StatusCounter::Start(int count, const wxString &message)
 {
 	m_current = 0;
@@ -81,19 +86,26 @@ void StatusCounter::Start(int count, const wxString &message)
 	m_using = 1;
 	m_message = message;
 }
+/// カウント最大値を加算
+/// @param[in] count 加算値
 void StatusCounter::Append(int count)
 {
 	m_count += count;
 }
+/// カウント＋１
 void StatusCounter::Increase()
 {
 	m_current++;
 }
+/// カウント終了
+/// @param[in] message 終了メッセージ
 void StatusCounter::Finish(const wxString &message)
 {
 	m_message = message;
 	m_using = 3;
 }
+/// カウント値とメッセージ取得
+/// @return フォーマットされたメッセージ
 wxString StatusCounter::GetCurrentMessage() const
 {
 	wxString str = wxString::Format(wxT("%d/%d "), m_current, m_count);
@@ -101,17 +113,24 @@ wxString StatusCounter::GetCurrentMessage() const
 	return str;
 }
 
+//
+// Status Counter List
+//
 StatusCounters::StatusCounters()
 {
 }
 StatusCounters::~StatusCounters()
 {
 }
+/// リストアイテム取得
+/// @param[in] idx インデックス
+/// @return カウンタ
 StatusCounter &StatusCounters::Item(int idx)
 {
 	if (idx < 0 || idx >= StatusCountersMax) idx = 0;
 	return m_sc[idx];
 }
+/// クリア
 void StatusCounters::Clear()
 {
 	for(int idx = 0; idx < StatusCountersMax; idx++) {
@@ -121,6 +140,10 @@ void StatusCounters::Clear()
 		}
 	}
 }
+/// カウント開始
+/// @param[in] count カウント最大値
+/// @param[in] message 開始メッセージ
+/// @return 使用しているカウンタのインデックス
 int StatusCounters::Start(int count, const wxString &message)
 {
 	int decide = -1;
@@ -136,16 +159,25 @@ int StatusCounters::Start(int count, const wxString &message)
 	}
 	return decide;
 }
+/// カウント最大値を加算
+/// @param[in] idx インデックス
+/// @param[in] count 加算値
 void StatusCounters::Append(int idx, int count)
 {
 	if (idx < 0 || idx >= StatusCountersMax) idx = 0;
 	m_sc[idx].Append(count);
 }
+/// カウント＋１
+/// @param[in] idx インデックス
 void StatusCounters::Increase(int idx)
 {
 	if (idx < 0 || idx >= StatusCountersMax) idx = 0;
 	m_sc[idx].Increase();
 }
+/// カウント終了
+/// @param[in] idx インデックス
+/// @param[in] message 終了メッセージ
+/// @param[in] owner イベント送信先(IDT_STATUS_COUNTERを送信)
 void StatusCounters::Finish(int idx, const wxString &message, wxEvtHandler *owner)
 {
 	if (idx < 0 || idx >= StatusCountersMax) idx = 0;
@@ -153,16 +185,25 @@ void StatusCounters::Finish(int idx, const wxString &message, wxEvtHandler *owne
 	m_delay.SetOwner(owner, IDT_STATUS_COUNTER);
 	m_delay.StartOnce(5000);
 }
+/// 現在のカウント値を返す
+/// @param[in] idx インデックス
+/// @return 現在のカウント値
 int StatusCounters::Current(int idx) const
 {
 	if (idx < 0 || idx >= StatusCountersMax) idx = 0;
 	return m_sc[idx].Current();
 }
+/// 最大値を返す
+/// @param[in] idx インデックス
+/// @return 最大値
 int StatusCounters::Count(int idx) const
 {
 	if (idx < 0 || idx >= StatusCountersMax) idx = 0;
 	return m_sc[idx].Count();
 }
+/// カウント値とメッセージ取得
+/// @param[in] idx インデックス
+/// @return フォーマットされたメッセージ
 wxString StatusCounters::GetCurrentMessage(int idx) const
 {
 	if (idx < 0 || idx >= StatusCountersMax) idx = 0;
@@ -212,7 +253,9 @@ wxBEGIN_EVENT_TABLE(UiDiskFrame, wxFrame)
 
 	EVT_MENU(IDM_WINDOW_BINDUMP, UiDiskFrame::OnOpenBinDump)
 	EVT_MENU(IDM_WINDOW_FATAREA, UiDiskFrame::OnOpenFatArea)
+	EVT_MENU(IDM_WINDOW_LOGGING, UiDiskFrame::OnOpenLogging)
 	EVT_MENU(IDM_FILELIST_COLUMN, UiDiskFrame::OnChangeColumnsOfFileList)
+	EVT_MENU(IDM_FILELIST_RESET_COLS, UiDiskFrame::OnResetAllColumnWidthOfFileList)
 	EVT_MENU(IDM_CHANGE_FONT, UiDiskFrame::OnChangeFont)
 
 	EVT_TIMER(StatusCounters::IDT_STATUS_COUNTER, UiDiskFrame::OnTimerStatusCounter)
@@ -224,8 +267,18 @@ wxBEGIN_EVENT_TABLE(UiDiskFrame, wxFrame)
 wxEND_EVENT_TABLE()
 
 // 翻訳用
-#define DIALOG_BUTTON_STRING _("OK"),_("Cancel")
-#define APPLE_MENU_STRING _("Hide difinder"),_("Hide Others"),_("Show All"),_("Quit difinder"),_("Services"),_("Preferences…"),_("Minimize"),_("Zoom"),_("Bring All to Front")
+#define DIALOG_BUTTON_STRING _("&OK"),_("OK"),_("&Cancel"),_("Cancel")
+#define APPLE_MENU_STRING \
+_p("macOS menu item","Hide %s"), \
+_p("macOS menu item","Hide Others"), \
+_p("macOS menu item","Show All"), \
+_p("macOS menu item","Quit %s"), \
+_p("macOS menu item","Services"), \
+_p("macOS menu item","Preferences…"), \
+_p("macOS menu item","Preferences..."), \
+_p("macOS menu item","About %s"), \
+_p("macOS menu item","About..."), \
+_("&Window"),_("Minimize"),_("Zoom"),_("Bring All to Front")
 
 UiDiskFrame::UiDiskFrame(const wxString& title, const wxSize& size)
 #if defined(__WXOSX__)
@@ -261,6 +314,7 @@ UiDiskFrame::UiDiskFrame(const wxString& title, const wxSize& size)
 
 	bindump_frame = NULL;
 	fatarea_frame = NULL;
+	p_loggingbox = NULL;
 
 	// status timer
 	m_status_timer.SetOwner(this, IDT_STATUS_TIMER);
@@ -282,6 +336,8 @@ UiDiskFrame::~UiDiskFrame()
 }
 
 /// フレーム部の初期処理
+/// @param[in] in_file 起動時にオープンするディスクイメージのパス
+/// @return true
 bool UiDiskFrame::Init(const wxString &in_file)
 {
 	bool valid = false;
@@ -329,6 +385,7 @@ void UiDiskFrame::RecreateToolbar()
 	toolBarBitmaps[bmp] = wxBitmap(bmp##_xpm)
 
 /// ツールバーの構築
+/// @param[in,out] toolBar ツールバー
 void UiDiskFrame::PopulateToolbar(wxToolBar* toolBar)
 {
 	// Set up toolbar
@@ -420,6 +477,11 @@ void UiDiskFrame::AdjustStatusBarPosition()
 	delete [] w;
 }
 
+////////////////////////////////////////
+//
+// イベントプロシージャ
+//
+
 #ifdef USE_MENU_OPEN
 /// メニュー更新
 void UiDiskFrame::OnMenuOpen(wxMenuEvent& event)
@@ -444,11 +506,6 @@ void UiDiskFrame::OpenDroppedFile(const wxString &path)
  	if (!CloseDataFile()) return;
 	PreOpenDataFile(path);
 }
-
-////////////////////////////////////////
-//
-// イベントプロシージャ
-//
 
 /// ウィンドウを閉じたとき
 void UiDiskFrame::OnClose(wxCloseEvent& event)
@@ -504,7 +561,6 @@ void UiDiskFrame::OnSaveAsFile(wxCommandEvent& WXUNUSED(event))
 {
 	ShowSaveAsFileDialog();
 }
-
 /// メニュー エクスポート選択
 void UiDiskFrame::OnExportDataFromDisk(wxCommandEvent& WXUNUSED(event))
 {
@@ -609,10 +665,28 @@ void UiDiskFrame::OnOpenFatArea(wxCommandEvent& event)
 	}
 }
 
+/// ログウィンドウ選択
+void UiDiskFrame::OnOpenLogging(wxCommandEvent& event)
+{
+	if (!p_loggingbox) {
+		// ウィンドウを開く
+		OpenLoggingWindow();
+	} else {
+		// ウィンドウを閉じる
+		CloseLoggingWindow();
+	}
+}
+
 /// ファイルリストの列選択
 void UiDiskFrame::OnChangeColumnsOfFileList(wxCommandEvent& event)
 {
 	ChangeColumnsOfFileList();
+}
+
+/// ファイルリストの列の幅をデフォルトに戻す選択
+void UiDiskFrame::OnResetAllColumnWidthOfFileList(wxCommandEvent& event)
+{
+	ResetAllColumnWidthOfFileList();
 }
 
 /// フォント変更選択
@@ -653,11 +727,11 @@ void UiDiskFrame::MakeMenu()
 	MyMenu *sm;
 
 	// file menu
-	menuFile->Append( IDM_OPEN_FILE, _("&Open...\tCTRL+O") );
+	menuFile->Append( IDM_OPEN_FILE, _("&Open...\tCtrl+O") );
 	menuFile->AppendSeparator();
 	menuFile->Append( IDM_CLOSE_FILE, _("&Close") );
 	menuFile->AppendSeparator();
-	menuFile->Append( IDM_SAVE_FILE, _("&Save\tCTRL+S") );
+	menuFile->Append( IDM_SAVE_FILE, _("&Save\tCtrl+S") );
 //	menuFile->Append( IDM_SAVEAS_FILE, _("Save &As...") );
 	menuFile->AppendSeparator();
 		menuRecentFiles = new MyMenu();
@@ -703,8 +777,10 @@ void UiDiskFrame::MakeMenu()
 	// view menu
 	menuView->AppendCheckItem( IDM_WINDOW_BINDUMP, _("&Dump Window") );
 	menuView->AppendCheckItem( IDM_WINDOW_FATAREA, _("&Availability Window") );
+	menuView->AppendCheckItem( IDM_WINDOW_LOGGING, _("&Log Window") );
 	menuView->AppendSeparator();
 	menuView->Append( IDM_FILELIST_COLUMN, _("Columns of File &List...") );
+	menuView->Append( IDM_FILELIST_RESET_COLS, _("&Reset Width of File List") );
 	menuView->AppendSeparator();
 	menuView->Append( IDM_CHANGE_FONT, _("&Font...") );
 #if defined(__WXOSX__) && wxCHECK_VERSION(3,1,2)
@@ -725,6 +801,14 @@ void UiDiskFrame::MakeMenu()
 	menuBar->Append( new wxMenu(), _("&Window") );
 #endif
 	menuBar->Append( menuHelp, _("&Help") );
+
+#if defined(__WXOSX__) && wxCHECK_VERSION(3,1,2)
+	wxMenu *menuAppli = menuBar->OSXGetAppleMenu();
+	if (menuAppli) {
+		menuAppli->Insert(1, IDM_CONFIGURE, _("Preferences…\tCtrl+,") );
+		menuAppli->InsertSeparator(1);
+	}
+#endif
 
 	SetMenuBar( menuBar );
 }
@@ -807,16 +891,19 @@ void UiDiskFrame::UpdateToolBar()
 }
 
 /// メニューのディスク項目を更新
+/// @param[in] list ディスクリスト
 void UiDiskFrame::UpdateMenuDiskList(UiDiskList *list)
 {
 }
 
 /// ツールバーのディスク項目を更新
+/// @param[in] list ディスクリスト
 void UiDiskFrame::UpdateToolBarDiskList(UiDiskList *list)
 {
 }
 
 /// メニューとツールバーのディスク項目を更新
+/// @param[in] list ディスクリスト
 void UiDiskFrame::UpdateMenuAndToolBarDiskList(UiDiskList *list)
 {
 	UpdateMenuDiskList(list);
@@ -824,6 +911,7 @@ void UiDiskFrame::UpdateMenuAndToolBarDiskList(UiDiskList *list)
 }
 
 /// メニューのファイルリスト項目を更新
+/// @param[in] list ファイルリスト
 void UiDiskFrame::UpdateMenuFileList(UiDiskFileList *list)
 {
 	UiDiskList *lpanel = GetLPanel();
@@ -849,6 +937,7 @@ void UiDiskFrame::UpdateMenuFileList(UiDiskFileList *list)
 }
 
 /// ツールバーのファイルリスト項目を更新
+/// @param[in] list ファイルリスト
 void UiDiskFrame::UpdateToolBarFileList(UiDiskFileList *list)
 {
 	wxToolBar *toolBar = GetToolBar();
@@ -868,6 +957,7 @@ void UiDiskFrame::UpdateToolBarFileList(UiDiskFileList *list)
 }
 
 /// メニューとツールバーのファイルリスト項目を更新
+/// @param[in] list ファイルリスト
 void UiDiskFrame::UpdateMenuAndToolBarFileList(UiDiskFileList *list)
 {
 	UpdateMenuFileList(list);
@@ -875,6 +965,7 @@ void UiDiskFrame::UpdateMenuAndToolBarFileList(UiDiskFileList *list)
 }
 
 /// メニューの生ディスク項目を更新
+/// @param[in] rawpanel 生ディスクパネル
 void UiDiskFrame::UpdateMenuRawDisk(UiDiskRawPanel *rawpanel)
 {
 	UiDiskList *lpanel = GetLPanel();
@@ -895,6 +986,7 @@ void UiDiskFrame::UpdateMenuRawDisk(UiDiskRawPanel *rawpanel)
 }
 
 /// ツールバーの生ディスク項目を更新
+/// @param[in] rawpanel 生ディスクパネル
 void UiDiskFrame::UpdateToolBarRawDisk(UiDiskRawPanel *rawpanel)
 {
 	wxToolBar *toolBar = GetToolBar();
@@ -911,6 +1003,7 @@ void UiDiskFrame::UpdateToolBarRawDisk(UiDiskRawPanel *rawpanel)
 }
 
 /// メニューとツールバーの生ディスク項目を更新
+/// @param[in] rawpanel 生ディスクパネル
 void UiDiskFrame::UpdateMenuAndToolBarRawDisk(UiDiskRawPanel *rawpanel)
 {
 	UpdateMenuRawDisk(rawpanel);
@@ -918,6 +1011,8 @@ void UiDiskFrame::UpdateMenuAndToolBarRawDisk(UiDiskRawPanel *rawpanel)
 }
 
 /// ウィンドウ上のデータを更新 タイトルバーにファイルパスを表示
+/// @param[in] path オープンしたファイルパス
+/// @param[in] keep リストを選択している時その位置を保持する
 void UiDiskFrame::UpdateDataOnWindow(const wxString &path, bool keep)
 {
 	// update window
@@ -929,6 +1024,7 @@ void UiDiskFrame::UpdateDataOnWindow(const wxString &path, bool keep)
 }
 
 /// ウィンドウ上のデータを更新
+/// @param[in] keep リストを選択している時その位置を保持する
 void UiDiskFrame::UpdateDataOnWindow(bool keep)
 {
 	int dl_num = -1;
@@ -962,6 +1058,7 @@ void UiDiskFrame::UpdateSavedDataOnWindow()
 }
 
 /// 保存後のウィンドウ上のデータを更新
+/// @param[in] path ファイルパス
 void UiDiskFrame::UpdateSavedDataOnWindow(const wxString &path)
 {
 	// 左パネルのパスを更新
@@ -971,6 +1068,7 @@ void UiDiskFrame::UpdateSavedDataOnWindow(const wxString &path)
 }
 
 /// ウィンドウ上のファイルパスを更新
+/// @param[in] path ファイルパス
 void UiDiskFrame::UpdateFilePathOnWindow(const wxString &path)
 {
 	if (!path.IsEmpty()) {
@@ -984,6 +1082,7 @@ void UiDiskFrame::UpdateFilePathOnWindow(const wxString &path)
 }
 
 /// キャラクターコード選択
+/// @param[in] name キャラクターコード番号
 void UiDiskFrame::ChangeCharCode(const wxString &name)
 {
 	if (GetCharCode() == name) return;
@@ -1001,6 +1100,7 @@ void UiDiskFrame::ChangeCharCode(const wxString &name)
 }
 
 /// キャラクターコード番号を返す
+/// @return キャラクターコード番号
 const wxString &UiDiskFrame::GetCharCode() const
 {
 	return gConfig.GetCharCode();
@@ -1044,6 +1144,7 @@ void UiDiskFrame::ShowListFontDialog()
 }
 
 /// リストウィンドウのフォント変更
+/// @param[in] font フォント
 void UiDiskFrame::SetListFont(const wxFont &font)
 {
 	UiDiskList *rlist = GetDiskListPanel();
@@ -1054,6 +1155,7 @@ void UiDiskFrame::SetListFont(const wxFont &font)
 }
 
 /// リストウィンドウのフォント設定
+/// @param[out] font フォント
 void UiDiskFrame::GetDefaultListFont(wxFont &font) const
 {
 	wxFont def_font = GetFont();
@@ -1071,6 +1173,13 @@ void UiDiskFrame::ChangeColumnsOfFileList()
 {
 	UiDiskFileList *llist = GetFileListPanel(true);
 	if (llist) llist->ShowListColumnDialog();
+}
+
+/// ファイルリストの列の幅をデフォルトに戻す
+void UiDiskFrame::ResetAllColumnWidthOfFileList()
+{
+	UiDiskFileList *llist = GetFileListPanel(true);
+	if (llist) llist->ResetAllListColumnWidth();
 }
 
 /// 選択しているModeメニュー BASICかRAW DISKか
@@ -1101,9 +1210,9 @@ void UiDiskFrame::SetDataOnFile(DiskImageFile *file)
 ///
 /// ディスク選択orツリー展開で、ルートディレクトリをアサインする。
 /// refresh_listをtrueにすればファイルリストを更新する
-/// @param [in] disk         ディスク
-/// @param [in] side_number  AB面ありの時、サイド番号
-/// @param [in] refresh_list 右パネルのディスクを選択した時、左パネルのファイルリストを更新
+/// @param[in] disk         ディスク
+/// @param[in] side_number  AB面ありの時、サイド番号
+/// @param[in] refresh_list 右パネルのディスクを選択した時、左パネルのファイルリストを更新
 void UiDiskFrame::SetDataOnDisk(DiskImageDisk *disk, int side_number, bool refresh_list)
 {
 	AttachDiskBasicOnFileList(disk, side_number);
@@ -1129,6 +1238,8 @@ void UiDiskFrame::ClearAllData()
 }
 
 /// 全パネルのデータをクリアしてRAW DISKパネルだけデータをセット
+/// @param[in] disk         ディスク
+/// @param[in] side_number  未使用
 void UiDiskFrame::ClearAllAndSetRawData(DiskImageDisk *disk, int side_number)
 {
 	ClearFileListData();
@@ -1138,6 +1249,7 @@ void UiDiskFrame::ClearAllAndSetRawData(DiskImageDisk *disk, int side_number)
 }
 
 /// タイトル名を設定
+/// @param[in] path パス名
 wxString UiDiskFrame::MakeTitleName(const wxString &path)
 {
 	wxString title;
@@ -1209,6 +1321,10 @@ bool UiDiskFrame::PreOpenDataFile(const wxString &path)
 	wxString   file_format;
 	DiskParam  param_hint;
 
+	//
+	wxFileName fn(path);
+	myLog.SetInfo(wxT("Open the disk image: ") + fn.GetFullName());
+
 	int rc = CheckOpeningDataFile(path, file_path.GetExt(), file_format, param_hint);
 	if (rc < 0) {
 		// エラー終了
@@ -1225,10 +1341,10 @@ bool UiDiskFrame::PreOpenDataFile(const wxString &path)
 ///
 /// 拡張子からファイル種別を判別し、必要なら選択ダイアログを表示する。
 ///
-/// @param [in]     path        ファイルパス
-/// @param [in]     ext         拡張子
-/// @param [in,out] file_format ファイルの形式名("d88","plain"など)
-/// @param [out]    param_hint  ディスクパラメータヒント(plain時のみ)
+/// @param[in]     path        ファイルパス
+/// @param[in]     ext         拡張子
+/// @param[in,out] file_format ファイルの形式名("d88","plain"など)
+/// @param[out]    param_hint  ディスクパラメータヒント(plain時のみ)
 /// @retval  0     候補あり正常
 /// @retval -1     エラー終了
 /// @retval -32767 キャンセルで終了
@@ -1241,6 +1357,7 @@ int UiDiskFrame::CheckOpeningDataFile(const wxString &path, const wxString &ext,
 	const FileParam *fitem = gFileTypes.FindExt(ext);
 	if (!fitem) {
 		// 不明の拡張子なのでファイル種類を選択してもらう
+		myLog.SetInfo(wxT("Unknown disk image."));
 		rc = ShowFileSelectDialog(path, file_format) ? 1 : 0;
 	}
 	if (rc == 1) {
@@ -1282,9 +1399,6 @@ bool UiDiskFrame::OpenDataFile(const wxString &path, const wxString &file_format
 	// open disk
 	int rc = p_image->Open(path, file_format, param_hint);
 	if (rc >= 0) {
-		//
-		wxFileName fn(path);
-		myLog.SetInfo("Opened the disk image: %s", fn.GetFullName().t_str());
 		// update window
 		UpdateDataOnWindow(path, false);
 		valid = true;
@@ -2170,6 +2284,44 @@ void UiDiskFrame::FatAreaWindowClosed()
 
 	if (!IsBeingDeleted()) {
 		wxMenuItem *mitem = menuView->FindItem(IDM_WINDOW_FATAREA);
+		if (mitem) {
+			mitem->Check(false);
+		}
+	}
+}
+
+////////////////////////////////////////
+//
+// ログウィンドウ
+//
+
+/// ログウィンドウを開く
+void UiDiskFrame::OpenLoggingWindow()
+{
+	if (p_loggingbox) return;
+
+	// ウィンドウを開く
+	p_loggingbox = new LoggingBox(this);
+	p_loggingbox->Show();
+	p_loggingbox->SetFocus();
+}
+
+/// ログウィンドウを閉じる
+void UiDiskFrame::CloseLoggingWindow()
+{
+	if (!p_loggingbox) return;
+
+	p_loggingbox->Close();
+	p_loggingbox = NULL;
+}
+
+/// ログウィンドウを閉じる時にウィンドウ側から呼ばれるコールバック
+void UiDiskFrame::LoggingWindowClosed()
+{
+	p_loggingbox = NULL;
+
+	if (!IsBeingDeleted()) {
+		wxMenuItem *mitem = menuView->FindItem(IDM_WINDOW_LOGGING);
 		if (mitem) {
 			mitem->Check(false);
 		}

@@ -200,6 +200,12 @@
     <ClCompile Include="..\src\ui\intnamevalid.cpp">
       <Filter>Source Files\ui</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\ui\loggingbox.cpp">
+      <Filter>Source Files\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ui\mydialog.cpp">
+      <Filter>Source Files\ui</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\ui\mymenu.cpp">
       <Filter>Source Files\ui</Filter>
     </ClCompile>
@@ -419,6 +425,12 @@
       <Filter>Header Files\ui</Filter>
     </ClInclude>
     <ClInclude Include="..\src\ui\intnamevalid.h">
+      <Filter>Header Files\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ui\loggingbox.h">
+      <Filter>Header Files\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ui\mydialog.h">
       <Filter>Header Files\ui</Filter>
     </ClInclude>
     <ClInclude Include="..\src\ui\mymenu.h">

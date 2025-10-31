@@ -15,6 +15,7 @@
 #include "fileparam.h"
 #include "bootparam.h"
 #include "diskresult.h"
+#include "../logging.h"
 
 
 /// コンストラクタ
@@ -108,7 +109,7 @@ int DiskParser::Check(wxString &file_format, DiskParamPtrs &disk_params, DiskPar
 		wxString ext = m_filepath.GetExt();
 
 		// サポートしているファイルか
-		FileParam *fitem = gFileTypes.FindExt(ext);
+		const FileParam *fitem = gFileTypes.FindExt(ext);
 		if (!fitem) {
 			p_result->SetError(DiskResult::ERR_UNSUPPORTED);
 			return p_result->GetValid();
@@ -118,6 +119,7 @@ int DiskParser::Check(wxString &file_format, DiskParamPtrs &disk_params, DiskPar
 		const FileParamFormats *formats = &fitem->GetFormats();
 		for(size_t i=0; i<formats->Count(); i++) {
 			const FileParamFormat *param_format = &formats->Item(i);
+			myLog.SetInfo(wxT("Parsing image: ") + param_format->GetType()); 
 			rc = SelectChecker(param_format->GetType(), &param_format->GetHints(), NULL, disk_params, manual_param, mod_flags, support);
 			if (rc >= 0) {
 				file_format = param_format->GetType();
@@ -127,6 +129,7 @@ int DiskParser::Check(wxString &file_format, DiskParamPtrs &disk_params, DiskPar
 
 	} else {
 		// ファイル形式の指定あり
+		myLog.SetInfo(wxT("Parsing image: ") + file_format); 
 
 		rc = SelectChecker(file_format, NULL, NULL, disk_params, manual_param, mod_flags, support);
 
@@ -135,6 +138,8 @@ int DiskParser::Check(wxString &file_format, DiskParamPtrs &disk_params, DiskPar
 		p_result->SetError(DiskResult::ERR_UNSUPPORTED);
 		return p_result->GetValid();
 	}
+
+	myLog.SetInfo(wxT("Decided image: ") + file_format); 
 	return rc;
 }
 

@@ -9,11 +9,8 @@
 #define CONFIGBOX_H
 
 #include "../common.h"
-#include <wx/dialog.h>
-#include <wx/dynarray.h>
+#include "mydialog.h"
 
-
-class wxCheckBox;
 class wxTextCtrl;
 class wxChoice;
 class wxStaticText;
@@ -21,7 +18,7 @@ class wxSpinCtrl;
 class Config;
 
 /// 設定ボックス
-class ConfigBox : public wxDialog
+class ConfigBox : public MyDialog
 {
 private:
 	Config *ini;

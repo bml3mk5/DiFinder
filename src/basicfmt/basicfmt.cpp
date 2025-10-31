@@ -224,7 +224,7 @@ int DiskBasic::ParseBasic(DiskImageDisk *newdisk, int newside, const DiskBasicPa
 	p_disk = newdisk;
 	m_formatted = false;
 
-	myLog.SetInfo("Parsing Disk #%d ...", newdisk->GetNumber());
+	myLog.SetInfo(wxT("Parsing Disk #%d ..."), newdisk->GetNumber());
 
 	// 新しいディスクにあるBASICヒント
 	DiskImageFile *file = newdisk->GetFile();
@@ -255,9 +255,9 @@ int DiskBasic::ParseBasic(DiskImageDisk *newdisk, int newside, const DiskBasicPa
 			match = gDiskBasicTemplates.FindType(hint, types.Item(n).GetName());
 			if (match) {
 				// フォーマットされているか？
-				myLog.SetInfo("Parsing format: %s", match->GetBasicTypeName().t_str());
+				myLog.SetInfo(wxT("Parsing format: ") + match->GetBasicTypeName());
 				valid_ratio = ParseFormattedDisk(newdisk, match, is_formatting);
-				myLog.SetInfo("  Result => %.2f", valid_ratio);
+				myLog.SetInfo(wxT("  Result => %.2f"), valid_ratio);
 				if (valid_ratio >= 0.0) {
 					// 候補にする
 					valid_params.Add(match);
@@ -273,15 +273,15 @@ int DiskBasic::ParseBasic(DiskImageDisk *newdisk, int newside, const DiskBasicPa
 			if (idx < 0) idx = 0;
 			match = valid_params.Item(idx);
 			// 再度チェックする
-			myLog.SetInfo("Decided format: %s", match->GetBasicTypeName().t_str());
+			myLog.SetInfo(wxT("Decided format: ") + match->GetBasicTypeName());
 			valid_ratio = ParseFormattedDisk(newdisk, match, is_formatting);
-			myLog.SetInfo("  Result => %.2f", valid_ratio);
+			myLog.SetInfo(wxT("  Result => %.2f"), valid_ratio);
 		}
 	} else {
 		// すでにフォーマット済み
-		myLog.SetInfo("Known format: %s", match->GetBasicTypeName().t_str());
+		myLog.SetInfo(wxT("Known format: ") + match->GetBasicTypeName());
 		valid_ratio = ParseFormattedDisk(newdisk, match, is_formatting);
-		myLog.SetInfo("  Result => %.2f", valid_ratio);
+		myLog.SetInfo(wxT("  Result => %.2f"), valid_ratio);
 	}
 	if (valid_ratio >= 0.6) {
 		errinfo.Clear();

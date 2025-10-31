@@ -73,7 +73,8 @@ private:
 	DiskImageFile *p_file;
 	bool now_manual_setting;
 
-	wxArrayString m_type_names;
+	wxArrayString m_boot_type_names;	///< 指定したカテゴリにマッチするブート種類
+	wxString	  m_category_name;		///< 指定したカテゴリ名
 
 	int FindTemplate(DiskImageFile *file);
 	void SetParamFromTemplate(const DiskParam *item);
@@ -127,6 +128,7 @@ public:
 	bool GetParam(DiskParam &param);
 	bool GetParamToFile(DiskImageFile &file);
 	wxString GetCategory() const;
+	wxString GetBootCategory() const;
 	int GetTracksPerSide() const;
 	int GetSidesPerDisk() const;
 	int GetSectorsPerTrack() const;

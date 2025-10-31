@@ -237,6 +237,8 @@ public:
 	size_t Count() const { return params.Count(); }
 	/// @brief タイプ名に一致するカテゴリを返す
 	const BootCategories &GetCategories() const { return categories; }
+	/// @brief カテゴリ名を返す
+	const wxString &GetCategoryName(size_t index) const;
 };
 
 extern BootTemplates gBootTemplates;

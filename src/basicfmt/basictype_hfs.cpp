@@ -263,7 +263,7 @@ double DiskBasicTypeHFS::CheckDirectory(bool is_root, const DiskBasicGroups &gro
 
 	for(size_t idx = 0; idx < end_idx; idx++) {
 		const DiskBasicGroupItem *gitem = group_items.ItemPtr(idx);
-		wxUint32 grp_num = gitem->GetGroup();
+//		wxUint32 grp_num = gitem->GetGroup();
 		int block_num = gitem->GetSectorStart();
 
 		DiskImageSector *sector = basic->GetSector(block_num);
@@ -389,7 +389,7 @@ bool DiskBasicTypeHFS::AssignDirectory(bool is_root, const DiskBasicGroups &grou
 
 	for(size_t idx = 0; idx < end_idx; idx++) {
 		const DiskBasicGroupItem *gitem = group_items.ItemPtr(idx);
-		wxUint32 grp_num = gitem->GetGroup();
+//		wxUint32 grp_num = gitem->GetGroup();
 		int block_num = gitem->GetSectorStart();
 
 		DiskImageSector *sector = basic->GetSector(block_num);
@@ -440,7 +440,7 @@ bool DiskBasicTypeHFS::AssignDirectory(bool is_root, const DiskBasicGroups &grou
 				continue;
 			}
 			wxUint32 p_id = wxUINT32_SWAP_ON_LE(rec_key->parentID);
-			if (p_id != parent_id) {
+			if (p_id != (wxUint32)parent_id) {
 				// 親ID一致しない
 				continue;
 			}

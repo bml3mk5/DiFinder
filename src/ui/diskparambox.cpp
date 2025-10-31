@@ -368,14 +368,20 @@ bool DiskParamBox::ValidateAllParam()
 	return (valid >= 0);
 }
 
+/// カテゴリを変更した
 void DiskParamBox::OnCategoryChanged(wxCommandEvent& event)
 {
+	m_category_name.Empty();
 	int pos = event.GetSelection();
 	if (pos <= 0) {
 		// All items
-		m_type_names.Clear();
+		m_boot_type_names.Clear();
 	} else {
-		gBootTemplates.FindTypeNames(pos - 1, m_type_names);
+		// カテゴリと一致するブート種類名リストを得る
+		if (gBootTemplates.FindTypeNames(pos - 1, m_boot_type_names) <= 0) {
+			// 一致するものがないのでカテゴリ名を保持
+			m_category_name = gBootTemplates.GetCategoryName(pos - 1);
+		}
 	}
 	SetTemplateValues(pos <= 0);
 }
@@ -417,24 +423,30 @@ void DiskParamBox::SetTemplateValuesFromGlobals(bool all)
 /// @param[in] flags -1:すべて  1:推奨データ  0:一般データ
 void DiskParamBox::SetTemplateValuesFromGlobalsSub(int flags)
 {
-	for(size_t i=0; i < gDiskTemplates.Count(); i++) {
-		const DiskParam *item = gDiskTemplates.ItemPtr(i);
-		if (m_type_names.Count() > 0) {
-			const BootParamName *match = NULL;
-			for(size_t n=0; n<m_type_names.Count(); n++) {
-				match = item->FindBootType(m_type_names.Item(n), flags);
-				if (match) {
-					break;
-				}
+	bool list_all = (m_boot_type_names.Count() <= 0 && m_category_name.IsEmpty());
+	if (list_all) {
+		// 全てを候補にする
+		for(size_t i=0; i < gDiskTemplates.Count(); i++) {
+			const DiskParam *item = gDiskTemplates.ItemPtr(i);
+			wxString str = item->GetDiskParamDetails();
+			comTemplate->Append(str, (void *)i);
+		}
+	} else {
+		// 一致するものを候補にする
+		for(size_t i=0; i < gDiskTemplates.Count(); i++) {
+			const DiskParam *item = gDiskTemplates.ItemPtr(i);
+			// ブート種類が一致するか
+			bool match = (item->MatchBootType(m_boot_type_names, flags) != wxNOT_FOUND);
+			// カテゴリ名が設定されている場合
+			if (!match && flags == 0 && !m_category_name.IsEmpty()) {
+				match = (item->MatchCategory(m_category_name) != wxNOT_FOUND);
 			}
 			if (!match) {
 				continue;
 			}
+			wxString str = item->GetDiskParamDetails();
+			comTemplate->Append(str, (void *)i);
 		}
-
-		wxString str = item->GetDiskParamDetails();
-
-		comTemplate->Append(str, (void *)i);
 	}
 }
 
@@ -677,6 +689,7 @@ void DiskParamBox::GetParamForManual(DiskParam &param)
 		sd,
 		dummy.GetParticularTracks(),
 		dummy.GetParticularSectors(),
+		wxArrayString(),
 		wxT(""),
 		wxT("")
 	);
@@ -698,6 +711,17 @@ wxString DiskParamBox::GetCategory() const
 			const BootCategories *categories = &gBootTemplates.GetCategories();
 			str = categories->Item(num-1).GetTypeName();
 		}
+	}
+	return str;
+}
+
+/// 選択したブートカテゴリタイプを返す
+wxString DiskParamBox::GetBootCategory() const
+{
+	wxString str = GetCategory();
+	if (str == m_category_name) {
+		// ブート種類にないカテゴリはカテゴリ名を空にする
+		str.Empty();
 	}
 	return str;
 }

@@ -41,23 +41,23 @@ UiDiskDiskAttr::UiDiskDiskAttr(UiDiskFrame *parentframe, wxWindow *parentwindow)
 
 	wxSizerFlags flagsW = wxSizerFlags().Expand().Border(wxALL, 2);
 	wxBoxSizer *vbox = new wxBoxSizer(wxVERTICAL);
-	wxBoxSizer *hbox = new wxBoxSizer(wxHORIZONTAL);
-	szrButtons = new wxBoxSizer(wxHORIZONTAL);
+	wxBoxSizer *szrHed = new wxBoxSizer(wxHORIZONTAL);
+	wxBoxSizer *szrBtn = new wxBoxSizer(wxHORIZONTAL);
 	wxSize size(TEXT_ATTR_SIZE, -1);
 
 	txtAttr = new wxTextCtrl(this, IDC_TXT_ATTR, wxT(""), wxDefaultPosition, size, wxTE_READONLY | wxTE_LEFT);
-	hbox->Add(txtAttr, flagsW);
+	szriTxt = szrHed->Add(txtAttr, wxSizerFlags().Expand().Border(wxBOTTOM | wxTOP, 2));
 
 	size.x = 60;
 	btnChange = new wxButton(this, IDC_BTN_CHANGE, _("Change"), wxDefaultPosition, size);
 	btnChange->Enable(false);
-	szrButtons->Add(btnChange, flagsW);
+	szrBtn->Add(btnChange, flagsW);
 
 	chkWprotect = new wxCheckBox(this, IDC_CHK_WPROTECT, _("Write Protect"));
-	szrButtons->Add(chkWprotect, flagsW);
+	szrBtn->Add(chkWprotect, flagsW);
 
-	hbox->Add(szrButtons);
-	vbox->Add(hbox);
+	szriBtn = szrHed->Add(szrBtn);
+	vbox->Add(szrHed);
 
 	wxFont font;
 	frame->GetDefaultListFont(font);
@@ -73,38 +73,35 @@ UiDiskDiskAttr::UiDiskDiskAttr(UiDiskFrame *parentframe, wxWindow *parentwindow)
 UiDiskDiskAttr::~UiDiskDiskAttr()
 {
 }
+
 /// サイズ変更
 void UiDiskDiskAttr::OnSize(wxSizeEvent& event)
 {
-	wxSize size = event.GetSize();
-	wxSize sizz = szrButtons->GetSize();
-	if (sizz.x == 0) return;
-
-	int pos_x = size.x - sizz.x;
-	if (pos_x < 0) return;
-
-	wxPoint bp;
-	bp = btnChange->GetPosition();
-
-	pos_x -= bp.x;
-
-	wxSize tz = txtAttr->GetSize();
-	tz.x += pos_x;
-	if (tz.x < TEXT_ATTR_SIZE) return;
-
-	txtAttr->SetSize(tz);
-
-	wxSizerItemList *slist = &szrButtons->GetChildren();
-	wxSizerItemList::iterator it;
-	for(it = slist->begin(); it != slist->end(); it++) {
-		wxSizerItem *item = *it;
-		if (item->IsWindow()) {
-			wxWindow *win = item->GetWindow();
-			bp = win->GetPosition();
-			bp.x += pos_x;
-			win->SetPosition(bp);
-		}
+	if (!GetSizer()) {
+		event.Skip();
+		return;
 	}
+
+	wxSize szCli = GetClientSize();
+	if (szCli.x < 32) return;
+
+	// コントロールのサイズを計算
+	wxSize szTxt = szriTxt->CalcMin();
+	wxSize szBtn = szriBtn->CalcMin();
+
+	// テキストエリアのサイズを変更
+	szTxt.SetWidth(szCli.GetWidth() - szBtn.GetWidth());
+	int text_attr_size = FromDIP(TEXT_ATTR_SIZE);
+	if (szTxt.GetWidth() < text_attr_size) {
+		// 最小サイズ
+		szTxt.SetWidth(text_attr_size);
+	}
+
+	// コントロールの再配置
+	wxPoint pt;
+	szriTxt->SetDimension(pt, szTxt);
+	pt.x += szTxt.GetWidth();
+	szriBtn->SetDimension(pt, szBtn);
 }
 
 /// 変更ボタンを押した
@@ -147,6 +144,7 @@ void UiDiskDiskAttr::ShowChangeBootParam()
 }
 
 /// ディスクイメージ選択時の情報を設定
+/// @param[in] n_file 新イメージファイル
 void UiDiskDiskAttr::SetAttr(DiskImageFile *n_file)
 {
 	p_file = n_file;
@@ -158,7 +156,9 @@ void UiDiskDiskAttr::SetAttr(DiskImageFile *n_file)
 	btnChange->Enable(true);
 	SetWriteProtect(p_file->IsWriteProtected());
 }
+
 /// パーティション選択時の情報を設定
+/// @param[in] n_disk 新パーティション
 void UiDiskDiskAttr::SetAttr(DiskImageDisk *n_disk)
 {
 	p_disk = n_disk;
@@ -171,22 +171,26 @@ void UiDiskDiskAttr::SetAttr(DiskImageDisk *n_disk)
 //	DiskImageFile *file = p_disk->GetFile();
 //	SetWriteProtect(file->IsWriteProtected());
 }
+
 /// 情報を設定
 void UiDiskDiskAttr::SetAttrText(const wxString &val)
 {
 	txtAttr->SetValue(val);
 }
+
 /// 書き込み禁止を設定
 void UiDiskDiskAttr::SetWriteProtect(bool val, bool enable)
 {
 	chkWprotect->Enable(enable);
 	chkWprotect->SetValue(val);
 }
+
 /// 書き込み禁止を返す
 bool UiDiskDiskAttr::GetWriteProtect() const
 {
 	return chkWprotect->GetValue();
 }
+
 /// 情報をクリア
 void UiDiskDiskAttr::ClearData()
 {
@@ -194,6 +198,7 @@ void UiDiskDiskAttr::ClearData()
 	btnChange->Enable(false);
 	SetWriteProtect(false, false);
 }
+
 /// フォントを設定
 void UiDiskDiskAttr::SetListFont(const wxFont &font)
 {

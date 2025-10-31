@@ -539,7 +539,7 @@ void DiskBasicDirItemHFS::GetUnitGroupsFileExt(int fileunit_num, int fork_type, 
 
 			// レコードのキー部分
 			hfs_ext_key_rec_t* rec_key = (hfs_ext_key_rec_t *)&buffer[rpos];
-			if ((fork_type & 0xff) != rec_key->forkType || file_id != wxUINT32_SWAP_ON_LE(rec_key->id)) {
+			if ((fork_type & 0xff) != rec_key->forkType || (wxUint32)file_id != wxUINT32_SWAP_ON_LE(rec_key->id)) {
 				continue;
 			}
 			if (rec_key->keyLength > 7) {
