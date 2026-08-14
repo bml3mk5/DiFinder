@@ -311,6 +311,8 @@ public:
 
 	/// @name 初期設定
 	//@{
+	/// @brief 初期状態に戻す
+	virtual void	Reset();
 //	/// @brief アイテムへのポインタを設定
 //	virtual void	SetDataPtr(int n_num, const DiskBasicGroupItem *n_gitem, int n_block_num, int n_position, wxUint8 *n_data, const int *n_next = NULL);
 	/// @brief アイテムへのポインタを設定
@@ -345,6 +347,8 @@ public:
 	virtual bool	Check(bool &last) = 0;
 	/// @brief ディレクトリアイテムのチェック
 	static bool		CheckData(const wxUint8 *buf, size_t len, bool &last);
+	/// @brief ディレクトリアイテムをアサインした後の追加処理（機種依存）
+	virtual void	AdditionalProcessAfterAssigned() {}
 	/// @brief アイテムを削除できるか
 	virtual bool	IsDeletable() const;
 	/// @brief 削除（要実装）
@@ -388,7 +392,7 @@ public:
 	/// @brief ファイル名と拡張子を得る
 	virtual void	GetNativeFileName(wxUint8 *name, size_t &nlen, wxUint8 *ext, size_t &elen) const;
 	/// @brief ファイル名(拡張子除く)が一致するか
-	bool			IsSameName(const wxString &name, bool icase) const;
+	virtual bool	IsSameName(const wxString &name, bool icase) const;
 	/// @brief ファイル名が一致するか
 	virtual bool	IsSameFileName(const DiskBasicFileName &filename, bool icase) const;
 	/// @brief 同じファイル名か
@@ -747,7 +751,7 @@ public:
 	/// @brief ファイルサイズが適正か
 	virtual bool	IsFileValidSize(const IntNameBox *parent, int size, int *limit) { return true; }
 	/// @brief ダイアログ入力後のファイル名チェック
-	virtual bool	ValidateFileName(const wxWindow *parent, const wxString &filename, wxString &errormsg) { return true; }
+	virtual bool	ValidateFileName(const wxString &filename, wxString &errormsg) { return true; }
 	/// @brief ファイル名に付随する拡張属性をセットする
 	/// @see GetOptionalName()
 	virtual int		GetOptionalNameInAttrDialog(const IntNameBox *parent) { return 0; }

@@ -9,14 +9,18 @@
 #define PARTITIONBOX_H
 
 #include "../common.h"
+
+class UiDiskProcess;
+class DiskImageFile;
+class DiskImageDisk;
+
+#ifndef USE_CONSOLE
+
 #include <wx/dialog.h>
 
 class wxSizer;
 class wxTextCtrl;
 class wxListCtrl;
-class UiDiskProcess;
-class DiskImageFile;
-class DiskImageDisk;
 
 /// パーティション情報ボックス
 class PartitionBox : public wxDialog
@@ -55,5 +59,6 @@ public:
 	wxDECLARE_EVENT_TABLE();
 };
 
-#endif /* PARTITIONBOX_H */
+#endif /* !USE_CONSOLE */
 
+#endif /* PARTITIONBOX_H */

@@ -3,9 +3,9 @@
 <DiskBasicFormats version="1.0">
 	<DiskBasicFormat type="3" name="MSDOS">
 		<HasVolumeName>true</HasVolumeName>
-		<GroupFinalCode>0xffff</GroupFinalCode>
-		<GroupSystemCode>0xfff8</GroupSystemCode>
-		<GroupUnusedCode>0x0000</GroupUnusedCode>
+		<GroupFinalCode>0x0fffffff</GroupFinalCode>
+		<GroupSystemCode>0x0ffffff8</GroupSystemCode>
+		<GroupUnusedCode>0x00000000</GroupUnusedCode>
 		<FillCodeOnFormat>0xe5</FillCodeOnFormat>
 		<FillCodeOnFAT>0x00</FillCodeOnFAT>
 		<DeleteCodeOnDir>0xe5</DeleteCodeOnDir>

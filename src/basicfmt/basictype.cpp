@@ -854,6 +854,8 @@ bool DiskBasicType::AssignDirectory(bool is_root, const DiskBasicGroups &group_i
 				nitem->SetParent(dir_item);
 				// 子ディレクトリに追加
 				dir_item->AddChild(nitem);
+				// 必要なら追加処理
+				nitem->AdditionalProcessAfterAssigned();
 
 				pos    += nitem->GetDataSize();
 //				buffer += nitem->GetDataSize();
@@ -1007,7 +1009,7 @@ void DiskBasicType::GetEndNumOnRootDirectory(int &block_num, int &sector_pos) co
 /// 使用可能なディスクサイズを得る
 /// @param [out] disk_size  ディスクサイズ
 /// @param [out] group_size グループ数
-void DiskBasicType::GetUsableDiskSize(int &disk_size, int &group_size) const
+void DiskBasicType::GetUsableDiskSize(wxInt64 &disk_size, wxInt64 &group_size) const
 {
 	group_size = 0;
 	for(wxUint32 pos = 0; pos <= basic->GetFatEndGroup(); pos++) {
@@ -1053,20 +1055,20 @@ void DiskBasicType::ClearDiskFreeSize()
 }
 
 /// 残りディスクサイズを得る(CalcDiskFreeSize()で計算した結果)
-void DiskBasicType::GetFreeDiskSize(int &disk_size, int &group_size) const
+void DiskBasicType::GetFreeDiskSize(wxInt64 &disk_size, wxInt64 &group_size) const
 {
 	disk_size = fat_availability.GetFreeSize();
 	group_size = fat_availability.GetFreeGroups();
 }
 
 /// 残りディスクサイズを得る(CalcDiskFreeSize()で計算した結果)
-int DiskBasicType::GetFreeDiskSize() const
+wxInt64 DiskBasicType::GetFreeDiskSize() const
 {
 	return fat_availability.GetFreeSize();
 }
 
 /// 残りグループ数を得る(CalcDiskFreeSize()で計算した結果)
-int DiskBasicType::GetFreeGroupSize() const
+wxInt64 DiskBasicType::GetFreeGroupSize() const
 {
 	return fat_availability.GetFreeGroups();
 }
@@ -1393,7 +1395,8 @@ bool DiskBasicType::ConvertDataForVerify(DiskBasicDirItem *item, wxInputStream &
 /// @param [out] ostream      出力先ストリーム
 bool DiskBasicType::ConvertDataForSave(DiskBasicDirItem *item, wxInputStream &istream, wxOutputStream &ostream)
 {
-	ostream.Write(istream);
+// コピーしない
+//	ostream.Write(istream);
 	return true;
 }
 
@@ -1413,12 +1416,12 @@ wxUint32 DiskBasicType::CalcLastGroupNumber(wxUint32 group_num, int &size_remain
 /// @param [in]  size			書き込み先バッファサイズ
 /// @param [in]  remain			残りのデータサイズ
 /// @param [in]  sector_num		セクタ番号
-/// @param [in]  group_num		現在のグループ番号
-/// @param [in]  next_group		次のグループ番号
+/// @param [in]  group_item		現在のグループアイテム
+/// @param [in]  next_group		次のグループアイテム
 /// @param [in]  sector_end		最終セクタ番号
 /// @param [in]  seq_num		通し番号(0...)
 /// @return 書き込んだバイト数
-int DiskBasicType::WriteFile(DiskBasicDirItem *item, wxInputStream &istream, wxUint8 *buffer, int size, int remain, int sector_num, wxUint32 group_num, wxUint32 next_group, int sector_end, int seq_num)
+int DiskBasicType::WriteFile(DiskBasicDirItem *item, wxInputStream &istream, wxUint8 *buffer, int size, int remain, int sector_num, DiskBasicGroupItem *group_item, DiskBasicGroupItem *next_group, int sector_end, int seq_num)
 {
 	bool need_eof_code = item->NeedCheckEofCode();
 

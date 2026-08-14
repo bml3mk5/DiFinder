@@ -610,26 +610,26 @@ void DiskPlainDisk::SetWriteProtect(bool val)
 }
 
 /// ディスクサイズ（ヘッダサイズ含む）
-wxUint32 DiskPlainDisk::GetSize() const
+wxUint64 DiskPlainDisk::GetSize() const
 {
 	return m_disk_size;
 }
 
 /// ディスクサイズ（ヘッダサイズ含む）を設定
 /// @param [in] val サイズ（ヘッダサイズ含む）
-void DiskPlainDisk::SetSize(wxUint32 val)
+void DiskPlainDisk::SetSize(wxUint64 val)
 {
 	m_disk_size = val;
 }
 
 /// ディスクサイズ（ヘッダサイズを除く）
-wxUint32 DiskPlainDisk::GetSizeWithoutHeader() const
+wxUint64 DiskPlainDisk::GetSizeWithoutHeader() const
 {
 	return m_disk_size;
 }
 
 /// @param [in] val サイズ（ヘッダサイズを除く）を設定
-void DiskPlainDisk::SetSizeWithoutHeader(wxUint32 val)
+void DiskPlainDisk::SetSizeWithoutHeader(wxUint64 val)
 {
 	m_disk_size = val;
 }
@@ -686,13 +686,13 @@ void DiskPlainDisk::SetNumberOfSectors(wxUint32 val)
 wxString DiskPlainDisk::GetNumberOfSectorsStr(int show_type) const
 {
 	wxString str;
-	long size;
+	wxUint64 size;
 	switch(show_type) {
 	case 1:
-		size = (long)m_block_size * GetSectorSize();
+		size = (wxUint64)m_block_size * GetSectorSize();
 		break;
 	default:
-		size = (long)m_block_size;
+		size = (wxUint64)m_block_size;
 		break;
 	}
 	str = wxNumberFormatter::ToString(size);

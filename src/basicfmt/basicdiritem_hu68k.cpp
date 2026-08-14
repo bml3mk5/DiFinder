@@ -52,6 +52,12 @@ DiskBasicDirItemHU68K::DiskBasicDirItemHU68K(DiskBasic *basic, int n_num, const 
 {
 }
 
+/// 初期状態に戻す
+void DiskBasicDirItemHU68K::Reset()
+{
+	DiskBasicDirItemMSDOS::Reset();
+}
+
 /// アイテムへのポインタを設定
 /// @param [in]  n_num        通し番号
 /// @param [in]  n_gitem      トラック番号などのデータ
@@ -91,6 +97,8 @@ size_t DiskBasicDirItemHU68K::GetDataSize() const
 {
 	return sizeof(directory_hu68k_t);
 }
+
+#ifndef USE_CONSOLE
 
 //
 // ダイアログ用
@@ -140,3 +148,5 @@ void DiskBasicDirItemHU68K::SetInternalDataInAttrDialog(KeyValArray &vals)
 	vals.Add(wxT("START_GROUP"), m_data.Data()->hu68k.start_group);
 	vals.Add(wxT("FILE_SIZE"), m_data.Data()->hu68k.file_size);
 }
+
+#endif /* !USE_CONSOLE */

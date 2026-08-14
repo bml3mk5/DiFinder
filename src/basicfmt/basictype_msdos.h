@@ -12,6 +12,7 @@
 #include "basiccommon.h"
 #include "basictype_fat12.h"
 #include "basictype_fat16.h"
+#include "basictype_fat32.h"
 
 #pragma pack(1)
 /// FAT BPB
@@ -31,6 +32,35 @@ typedef struct st_fat_bpb {
 	wxUint32 BPB_HiddSec;
 	wxUint32 BPB_TotSec32;
 } fat_bpb_t;
+
+typedef struct st_fat16_bs {
+	wxUint8  BS_DrvNum;
+	wxUint8  BS_Reserved;
+	wxUint8  BS_BootSig;
+	wxUint32 BS_VolID;
+	wxUint8  BS_VolLab[11];
+	wxUint8  BS_FilSysType[8];
+	wxUint8  BS_BootCode[448];
+	wxUint16 BS_Sign;
+} fat16_bs_t;
+
+typedef struct st_fat32_bs {
+	wxUint32 BPB_FatSz32;
+	wxUint16 BPB_ExtFlags;
+	wxUint16 BPB_FSVer;
+	wxUint32 BPB_RootClus;
+	wxUint16 BPB_FSInfo;
+	wxUint16 BPB_BkBootSec;
+	wxUint8  BPB_Reserved[12];
+	wxUint8  BS_DrvNum;
+	wxUint8  BS_Reserved;
+	wxUint8  BS_BootSig;
+	wxUint32 BS_VolID;
+	wxUint8  BS_VolLab[11];
+	wxUint8  BS_FilSysType[8];
+	wxUint8  BS_BootCode[420];
+	wxUint16 BS_Sign;
+} fat32_bs_t;
 #pragma pack()
 
 
@@ -43,13 +73,11 @@ DiskBasicParam 固有のパラメータ
 @li IgnoreParameter : セクタ1のパラメータを無視するか
 
 */
-class DiskBasicTypeMSDOS : public DiskBasicTypeFAT16
+class DiskBasicTypeMSDOS : public DiskBasicTypeFAT32
 {
 protected:
-	int m_fat_type;	// FAT12 = 0 / 16 = 1
-
-	DiskBasicTypeMSDOS() : DiskBasicTypeFAT16() {}
-	DiskBasicTypeMSDOS(const DiskBasicType &src) : DiskBasicTypeFAT16(src) {}
+	DiskBasicTypeMSDOS() : DiskBasicTypeFAT32() {}
+	DiskBasicTypeMSDOS(const DiskBasicType &src) : DiskBasicTypeFAT32(src) {}
 
 	/// ボリュームラベルを更新 なければ作成
 	bool			ModifyOrMakeVolumeLabel(const wxString &filename);
@@ -75,6 +103,14 @@ public:
 	virtual double	ParseParamOnDisk(bool is_formatting);
 	/// @brief ディスクからMSDOSパラメータを取得
 	double			ParseMSDOSParamOnDisk(DiskImageDisk *disk, bool is_formatting);
+	//@}
+
+	/// @name check / assign directory area
+	//@{
+	/// @brief ルートディレクトリのチェック
+	virtual double	CheckRootDirectory(int start_sector, int end_sector, DiskBasicGroups &group_items, bool is_formatting);
+	/// @brief ルートディレクトリをアサイン
+	virtual bool	AssignRootDirectory(int start_sector, int end_sector, DiskBasicGroups &group_items, DiskBasicDirItem *dir_item);
 	//@}
 
 	/// @name disk size

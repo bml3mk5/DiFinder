@@ -27,6 +27,7 @@ add_executable(${PROJECT_NAME}
 	${SRCBASICFMTDIR}/basictype_fat_base.cpp
 	${SRCBASICFMTDIR}/basictype_fat12.cpp
 	${SRCBASICFMTDIR}/basictype_fat16.cpp
+	${SRCBASICFMTDIR}/basictype_fat32.cpp
 	${SRCBASICFMTDIR}/basictype_msdos.cpp
 	${SRCBASICFMTDIR}/basictype_os9.cpp
 	${SRCBASICFMTDIR}/basictype_hu68k.cpp
@@ -56,11 +57,13 @@ add_executable(${PROJECT_NAME}
 	${SRCDISKIMGDIR}/diskwriter.cpp
 	${SRCDISKIMGDIR}/diskresult.cpp
 	${SRCDISKIMGDIR}/fileparam.cpp
+	${SRCUIDIR}/aboutbox.cpp
 	${SRCUIDIR}/basicselbox.cpp
 	${SRCUIDIR}/basicparambox.cpp
 	${SRCUIDIR}/bootselbox.cpp
 	${SRCUIDIR}/configbox.cpp
 	${SRCUIDIR}/diskparambox.cpp
+	${SRCUIDIR}/filedirbox.cpp
 	${SRCUIDIR}/fileselbox.cpp
 	${SRCUIDIR}/fontminibox.cpp
 	${SRCUIDIR}/intnamebox.cpp
@@ -79,6 +82,7 @@ add_executable(${PROJECT_NAME}
 	${SRCUIDIR}/uidisklist.cpp
 	${SRCUIDIR}/uifilelist.cpp
 	${SRCUIDIR}/uimainframe.cpp
+	${SRCUIDIR}/uimainpanel.cpp
 	${SRCUIDIR}/uimainprocess.cpp
 	${SRCUIDIR}/uirawdisk.cpp
 	${SRCUIDIR}/uifatarea.cpp

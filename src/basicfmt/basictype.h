@@ -205,6 +205,8 @@ public:
 	virtual wxUint32 GetNextEmptyGroupNumber(wxUint32 curr_group);
 	/// @brief システムグループ番号を返す
 	virtual wxUint32 GetGroupSystemCode() const;
+	/// @brief FAT種類を返す（機種依存）
+	virtual int GetFatType() const { return 0; }
 	//@}
 
 	/// @name check / assign FAT area
@@ -231,7 +233,7 @@ public:
 	/// @brief ルートディレクトリのセクタリストを計算
 	virtual bool	CalcGroupsOnRootDirectory(int start_sector, int end_sector, DiskBasicGroups &group_items);
 	/// @brief ルートディレクトリのチェック
-	double			CheckRootDirectory(int start_sector, int end_sector, DiskBasicGroups &group_items, bool is_formatting);
+	virtual double	CheckRootDirectory(int start_sector, int end_sector, DiskBasicGroups &group_items, bool is_formatting);
 	/// @brief ルートディレクトリをアサイン
 	virtual bool	AssignRootDirectory(int start_sector, int end_sector, DiskBasicGroups &group_items, DiskBasicDirItem *dir_item);
 	/// @brief ディレクトリのチェック
@@ -264,17 +266,17 @@ public:
 	/// @name disk size
 	//@{
 	/// @brief 使用可能なディスクサイズを得る
-	virtual void	GetUsableDiskSize(int &disk_size, int &group_size) const;
+	virtual void	GetUsableDiskSize(wxInt64 &disk_size, wxInt64 &group_size) const;
 	/// @brief 残りディスクサイズを計算
 	virtual void	CalcDiskFreeSize(bool wrote);
 	/// @brief 残りディスクサイズをクリア
 	void			ClearDiskFreeSize();
 	/// @brief 残りディスクサイズを得る(CalcDiskFreeSize()で計算した結果)
-	void			GetFreeDiskSize(int &disk_size, int &group_size) const;
+	void			GetFreeDiskSize(wxInt64 &disk_size, wxInt64 &group_size) const;
 	/// @brief 残りディスクサイズを得る(CalcDiskFreeSize()で計算した結果)
-	int				GetFreeDiskSize() const;
+	wxInt64			GetFreeDiskSize() const;
 	/// @brief 残りグループ数を得る(CalcDiskFreeSize()で計算した結果)
-	int				GetFreeGroupSize() const;
+	wxInt64			GetFreeGroupSize() const;
 	/// @brief FATの空き状況を配列で返す
 	void			GetFatAvailability(wxUint32 *offset, const wxArrayInt **arr) const;
 	//@}
@@ -355,7 +357,7 @@ public:
 	/// @brief 書き込み可能か
 	virtual bool	SupportWriting() const { return true; }
 	/// @brief 指定したサイズが十分書き込めるか
-	virtual bool	IsEnoughFileSize(int size) const { return true; }
+	virtual bool	IsEnoughFileSize(wxInt64 size) const { return true; }
 	/// @brief ファイルをセーブする前にデータを変換
 	virtual bool	ConvertDataForSave(DiskBasicDirItem *item, wxInputStream &istream, wxOutputStream &ostream);
 	/// @brief グループ確保時に最後のグループ番号を計算する
@@ -363,7 +365,7 @@ public:
 	/// @brief ファイルをセーブする前の準備を行う
 	virtual bool	PrepareToSaveFile(wxInputStream &istream, int &file_size, DiskBasicDirItem *pitem, DiskBasicDirItem *nitem, DiskBasicError &errinfo) { return true; }
 	/// @brief データの書き込み処理
-	virtual int		WriteFile(DiskBasicDirItem *item, wxInputStream &istream, wxUint8 *buffer, int size, int remain, int sector_num, wxUint32 group_num, wxUint32 next_group, int sector_end, int seq_num);
+	virtual int		WriteFile(DiskBasicDirItem *item, wxInputStream &istream, wxUint8 *buffer, int size, int remain, int sector_num, DiskBasicGroupItem *group_item, DiskBasicGroupItem *next_group, int sector_end, int seq_num);
 	/// @brief データの書き込み終了後の処理
 	virtual void	AdditionalProcessOnSavedFile(DiskBasicDirItem *item) {}
 

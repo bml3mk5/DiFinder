@@ -40,14 +40,16 @@ DiskBasicIdentifiedData::DiskBasicIdentifiedData()
 	m_volume_name_maxlen = 0;
 	m_volume_number = 0;
 	m_volume_number_hexa = false;
+	m_volume_skew = 1;
 }
-DiskBasicIdentifiedData::DiskBasicIdentifiedData(const wxString &volume_name, int volume_number, const wxString &volume_date)
+DiskBasicIdentifiedData::DiskBasicIdentifiedData(const wxString &volume_name, int volume_number, const wxString &volume_date, int volume_skew)
 {
 	m_volume_name = volume_name;
 	m_volume_name_maxlen = 0;
 	m_volume_number = volume_number;
 	m_volume_number_hexa = false;
 	m_volume_date = volume_date;
+	m_volume_skew = volume_skew;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -387,14 +389,14 @@ wxString DiskBasic::GetSelectedSideStr() const
 wxString DiskBasic::GetDescriptionDetails() const
 {
 	wxString desc = DiskBasicParam::GetBasicDescription();
-	int free_size = type ? (int)type->GetFreeDiskSize() : -1;
-	int free_groups = type ? (int)type->GetFreeGroupSize() : -1;
+	wxInt64 free_size = type ? type->GetFreeDiskSize() : -1;
+	wxInt64 free_groups = type ? type->GetFreeGroupSize() : -1;
 	if (!m_parsed) {
 		desc += wxT(" ?");
 	}
 	desc += wxString::Format(_(" [Free:%sbytes(%sgroups)]")
-		, free_size >= 0 ? wxNumberFormatter::ToString((long)free_size) : wxT("---")
-		, free_groups >= 0 ? wxNumberFormatter::ToString((long)free_groups) : wxT("---")
+		, free_size >= 0 ? wxNumberFormatter::ToString((long long)free_size) : wxT("---")
+		, free_groups >= 0 ? wxNumberFormatter::ToString((long long)free_groups) : wxT("---")
 	);
 	return desc;
 }
@@ -416,14 +418,14 @@ DiskBasicDirItem *DiskBasic::GetDirItem(size_t pos)
 /// DISK BASICで使用できる残りディスクサイズに足りるか
 /// @param [in] size 指定サイズ
 /// @return true 足りる / false 足りない
-bool DiskBasic::HasFreeDiskSize(int size)
+bool DiskBasic::HasFreeDiskSize(wxInt64 size)
 {
 	bool enough = true;
 	// ディスクに空きがあるか
-	if (size > (int)p_disk->GetSizeWithoutHeader()) {
+	if (size > (wxInt64)p_disk->GetSizeWithoutHeader()) {
 		errinfo.SetError(DiskBasicError::ERR_FILE_TOO_LARGE);
 		enough = false;
-	} else if (size > (int)type->GetFreeDiskSize()) {
+	} else if (size > (wxInt64)type->GetFreeDiskSize()) {
 		errinfo.SetError(DiskBasicError::ERR_NOT_ENOUGH_FREE);
 		enough = false;
 	} else if (!type->IsEnoughFileSize(size)) {
@@ -434,7 +436,7 @@ bool DiskBasic::HasFreeDiskSize(int size)
 }
 
 /// DISK BASICで使用できる残りディスクサイズを返す
-int DiskBasic::GetFreeDiskSize() const
+wxInt64 DiskBasic::GetFreeDiskSize() const
 {
 	return type->GetFreeDiskSize();
 }
@@ -1015,13 +1017,17 @@ bool DiskBasic::SaveUnitData(int fileunit_num, wxInputStream &istream, int isize
 
 	// セクタに書き込む
 	int block_num = 0;
-	wxUint32 group_num, next_group;
+//	wxUint32 group_num, next_group;
 	int sector_start, sector_end;
 	int seq_num = 0;
 	for(int gidx = 0; gidx < (int)gitems.Count(); gidx++) {
 		DiskBasicGroupItem *gitem = &gitems.Item(gidx);
-		group_num = gitem->GetGroup();
-		next_group = gitem->GetNextGroup();
+		DiskBasicGroupItem *next_gitem = NULL;
+		if (gidx + 1 < (int)gitems.Count()) {
+			next_gitem = &gitems.Item(gidx + 1);
+		}
+//		group_num = gitem->GetGroup();
+//		next_group = gitem->GetNextGroup();
 
 		sector_start = gitem->GetSectorStart();
 		sector_end = gitem->GetSectorEnd();
@@ -1039,7 +1045,7 @@ bool DiskBasic::SaveUnitData(int fileunit_num, wxInputStream &istream, int isize
 //			buf += (bufsize * gitem->div_num);
 
 			// ディスク内に書き込む
-			int last_size = type->WriteFile(item, istream, buf, bufsize, isize, block_num, group_num, next_group, sector_end, seq_num);
+			int last_size = type->WriteFile(item, istream, buf, bufsize, isize, block_num, gitem, next_gitem, sector_end, seq_num);
 			isize -= last_size;
 			file_size += last_size;
 			seq_num++;

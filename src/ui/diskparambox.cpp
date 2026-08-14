@@ -6,6 +6,13 @@
 ///
 
 #include "diskparambox.h"
+#include "../basicfmt/basicparam.h"
+#include "../diskimg/bootparam.h"
+#include "../diskimg/diskimage.h"
+#include "../diskimg/fileparam.h"
+
+#ifndef USE_CONSOLE
+
 #include <wx/numformatter.h>
 #include <wx/stattext.h>
 #include <wx/checkbox.h>
@@ -17,12 +24,8 @@
 #include <wx/sizer.h>
 #include <wx/valtext.h>
 #include <wx/msgdlg.h>
-#include "../main.h"
+#include "filedirbox.h"
 #include "uimainframe.h"
-#include "../diskimg/bootparam.h"
-#include "../basicfmt/basicparam.h"
-#include "../diskimg/diskimage.h"
-#include "../diskimg/fileparam.h"
 
 
 // Attach Event
@@ -47,8 +50,10 @@ END_EVENT_TABLE()
 DiskParamBox::DiskParamBox(wxWindow* parent, wxWindowID id, OpeFlags ope_flags, int select_number, DiskImageFile *file, const DiskParamPtrs *params, const DiskParam *manual_param, int show_flags)
 	: wxDialog(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
-	wxSizerFlags flags = wxSizerFlags().Expand().Border(wxALL, 4);
-//	wxSizerFlags flagsH = wxSizerFlags().Expand().Border(wxLEFT | wxRIGHT, 4);
+	int p4 = FromDIP(4);
+	int p2 = FromDIP(2);
+	wxSizerFlags flags = wxSizerFlags().Expand().Border(wxALL, p4);
+	wxSizerFlags flags_p2 = wxSizerFlags().Expand().Border(wxALL, p2);
 	wxSize size;
 	long style = 0;
 	m_ope_flags = ope_flags;
@@ -60,7 +65,7 @@ DiskParamBox::DiskParamBox(wxWindow* parent, wxWindowID id, OpeFlags ope_flags, 
 	wxTextValidator validigits(wxFILTER_EMPTY | wxFILTER_DIGITS);
 	wxTextValidator valialpha(wxFILTER_ASCII);
 	bool use_template = ((show_flags & SHOW_TEMPLATE_ALL) != 0);
-
+	wxSize fsize = GetTextExtent(wxT("00"));
 	wxBoxSizer *szrAll = new wxBoxSizer(wxVERTICAL);
 
 	//
@@ -100,11 +105,13 @@ DiskParamBox::DiskParamBox(wxWindow* parent, wxWindowID id, OpeFlags ope_flags, 
 	//
 	//
 
+	vbox = new wxBoxSizer(wxVERTICAL);
+
 	wxBoxSizer *hboxAll = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer *hbox = new wxBoxSizer(wxHORIZONTAL);
 
 	hbox->Add(new wxStaticText(this, wxID_ANY, _("Sector Size")), flags);
-	size.x = 80; size.y = -1;
+	size.x = fsize.x * 4 + FromDIP(16); size.y = -1;
 	comSecSize = new wxComboBox(this, IDC_COMBO_SECSIZE, wxEmptyString, wxDefaultPosition, size, 0, NULL, wxCB_DROPDOWN | wxCB_READONLY);
 	for(int i=0; gSectorSizes[i] != 0; i++) {
 		comSecSize->Append(wxString::Format(wxT("%d"), gSectorSizes[i]));
@@ -112,8 +119,11 @@ DiskParamBox::DiskParamBox(wxWindow* parent, wxWindowID id, OpeFlags ope_flags, 
 	comSecSize->SetSelection(0);
 	hbox->Add(comSecSize, 0);
 	hbox->Add(new wxStaticText(this, wxID_ANY, _("bytes")), flags);
+//	hbox->AddSpacer(fsize.x);
 
-	hboxAll->Add(hbox, flags);
+	vbox->Add(hbox, flags);
+
+	hboxAll->Add(vbox, flags);
 
 	//
 
@@ -121,27 +131,28 @@ DiskParamBox::DiskParamBox(wxWindow* parent, wxWindowID id, OpeFlags ope_flags, 
 
 	hbox = new wxBoxSizer(wxHORIZONTAL);
 
-	size.x = 40; size.y = -1;
+	size.x = fsize.x * 6; size.y = -1;
 	txtTracks = new wxTextCtrl(this, IDC_TEXT_TRACKS, wxEmptyString, wxDefaultPosition, size, style, validigits);
-	txtTracks->SetMaxLength(4);
+	txtTracks->SetMaxLength(12);
 	hbox->Add(txtTracks, 0);
 	hbox->Add(new wxStaticText(this, wxID_ANY, _("Tracks/Side")), flags);
-	hbox->Add(new wxStaticText(this, wxID_ANY, wxT(" ")), flags);
+	hbox->AddSpacer(fsize.x);
 
+	size.x = fsize.x * 3; size.y = -1;
 	txtSides = new wxTextCtrl(this, IDC_TEXT_SIDES, wxEmptyString, wxDefaultPosition, size, style, validigits);
 	txtSides->SetMaxLength(2);
 	hbox->Add(txtSides, 0);
 	hbox->Add(new wxStaticText(this, wxID_ANY, _("Side(s)/Disk")), flags);
-	hbox->Add(new wxStaticText(this, wxID_ANY, wxT(" ")), flags);
+	hbox->AddSpacer(fsize.x);
 
 	txtSectors = new wxTextCtrl(this, IDC_TEXT_SECTORS, wxEmptyString, wxDefaultPosition, size, style, validigits);
-	txtSectors->SetMaxLength(3);
+	txtSectors->SetMaxLength(4);
 	hbox->Add(txtSectors, 0);
 	hbox->Add(new wxStaticText(this, wxID_ANY, _("Sectors/Track")), flags);
 
 	txtSecIntl = NULL;
 #if 0
-	hbox->Add(new wxStaticText(this, wxID_ANY, wxT(" ")), flags);
+	hbox->AddSpacer(fsize.x);
 	hbox->Add(new wxStaticText(this, wxID_ANY, _("Interleave")), flags);
 	txtSecIntl = new wxTextCtrl(this, IDC_TEXT_INTERLEAVE, wxEmptyString, wxDefaultPosition, size, style, validigits);
 	txtSecIntl->SetMaxLength(2);
@@ -154,7 +165,7 @@ DiskParamBox::DiskParamBox(wxWindow* parent, wxWindowID id, OpeFlags ope_flags, 
 
 	hbox = new wxBoxSizer(wxHORIZONTAL);
 
-	size.x = 80; size.y = -1;
+	size.x = fsize.x * 8; size.y = -1;
 	hbox->Add(new wxStaticText(this, wxID_ANY, _("Number of Sectors:")), flags);
 	txtBlocks = new wxTextCtrl(this, IDC_TEXT_BLOCKS, wxEmptyString, wxDefaultPosition, size, style, validigits);
 	hbox->Add(txtBlocks, 0);
@@ -170,7 +181,7 @@ DiskParamBox::DiskParamBox(wxWindow* parent, wxWindowID id, OpeFlags ope_flags, 
 	hbox = new wxBoxSizer(wxHORIZONTAL);
 
 	hbox->Add(new wxStaticText(this, wxID_ANY, _("Data Size")), flags);
-	size.x = 120; size.y = -1;
+	size.x = fsize.x * 12; size.y = -1;
 	txtDiskSize = new wxTextCtrl(this, IDC_TEXT_DISKSIZE, wxEmptyString, wxDefaultPosition, size, wxTE_RIGHT | wxTE_READONLY);
 	hbox->Add(txtDiskSize, 0);
 	hbox->Add(new wxStaticText(this, wxID_ANY, _("bytes")), flags);
@@ -187,9 +198,9 @@ DiskParamBox::DiskParamBox(wxWindow* parent, wxWindowID id, OpeFlags ope_flags, 
 	if ((show_flags & SHOW_DISKLABEL_ALL) != 0) {
 		hbox = new wxBoxSizer(wxHORIZONTAL);
 		hbox->Add(new wxStaticText(this, wxID_ANY, _("Image File Path")), flags);
-		size.x = 360; size.y = -1;
+		size.x = fsize.x * 32; size.y = -1;
 		txtDiskName = new wxTextCtrl(this, IDC_TEXT_DISKNAME, wxEmptyString, wxDefaultPosition, size, style);
-		hbox->Add(txtDiskName, flags);
+		hbox->Add(txtDiskName, flags_p2);
 		btnFile = new wxButton(this, IDC_BTN_FILE, _("File..."));
 		hbox->Add(btnFile, flags);
 
@@ -584,7 +595,7 @@ void DiskParamBox::SetParamToControl(const DiskParam *item)
 	if (txtSecIntl) txtSecIntl->SetValue(wxString::Format(wxT("%d"), item->GetInterleave()));
 	txtBlocks->SetValue(wxString::Format(wxT("%d"), item->CalcNumberOfBlocks()));
 
-	txtDiskSize->SetValue(wxNumberFormatter::ToString((long)item->CalcDiskSize()));
+	txtDiskSize->SetValue(wxNumberFormatter::ToString(item->CalcDiskSize()));
 
 //	int single_secs = 0;
 //	int single_size = 0;
@@ -783,3 +794,22 @@ wxString DiskParamBox::GetDiskName() const
 {
 	return txtDiskName ? txtDiskName->GetValue() : wxT("");
 }
+
+// ----------------------------------------------------------------------------
+
+DiskParamDiskCreateBox::DiskParamDiskCreateBox(wxWindow* parent, wxWindowID id, int show_flags)
+	: DiskParamBox(parent, id, DiskParamBox::CREATE_NEW_DISK, 0, NULL, NULL, NULL, show_flags)
+{
+}
+
+DiskParamDiskAddBox::DiskParamDiskAddBox(wxWindow* parent, wxWindowID id, int select_number, int show_flags)
+	: DiskParamBox(parent, id, DiskParamBox::ADD_NEW_DISK, select_number, NULL, NULL, NULL, show_flags)
+{
+}
+
+DiskParamDiskSelectBox::DiskParamDiskSelectBox(wxWindow* parent, wxWindowID id, const DiskParamPtrs* params, const DiskParam* manual_param, int show_flags)
+	: DiskParamBox(parent, id, DiskParamBox::SELECT_DISK_TYPE, 0, NULL, params, manual_param, show_flags)
+{
+}
+
+#endif /* USE_CONSOLE */

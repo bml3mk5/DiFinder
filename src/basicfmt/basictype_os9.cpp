@@ -480,7 +480,7 @@ int DiskBasicTypeOS9::FinishAssigningDirectory(int &pos, int &size, int &size_re
 }
 
 /// 使用可能なディスクサイズを得る
-void DiskBasicTypeOS9::GetUsableDiskSize(int &disk_size, int &group_size) const
+void DiskBasicTypeOS9::GetUsableDiskSize(wxInt64 &disk_size, wxInt64 &group_size) const
 {
 	group_size = basic->GetFatEndGroup() + 1;
 	disk_size = group_size * basic->GetDisk()->GetSectorSize();
@@ -813,9 +813,9 @@ void DiskBasicTypeOS9::AdditionalProcessOnMadeDirectory(DiskBasicDirItem *item, 
 	newitem->SetFileNamePlain(wxT("."));
 
 	// ディレクトリサイズを更新
-	int dir_size = dir->CalcSize();
 	DiskBasicDirItem *dir_item = item->GetParent();
 	if (dir_item) {
+		int dir_size = dir->CalcSize(dir_item);
 		dir_item->SetFileSize(dir_size);
 	}
 
@@ -962,16 +962,15 @@ bool DiskBasicTypeOS9::AdditionalProcessOnFormatted(const DiskBasicIdentifiedDat
 }
 
 /// データの書き込み終了後の処理
+/// @param [in]	item        ディレクトリアイテム
 void DiskBasicTypeOS9::AdditionalProcessOnSavedFile(DiskBasicDirItem *item)
 {
 	// ディレクトリサイズを更新
-	int dir_size = dir->CalcSize();
 	DiskBasicDirItem *dir_item = item->GetParent();
-	if (!dir_item) {
-		// Why?
-		return;
+	if (dir_item) {
+		int dir_size = dir->CalcSize(dir_item);
+		dir_item->SetFileSize(dir_size);
 	}
-	dir_item->SetFileSize(dir_size);
 }
 
 /// FAT領域を削除する
@@ -988,14 +987,11 @@ bool DiskBasicTypeOS9::AdditionalProcessOnDeletedFile(DiskBasicDirItem *item)
 	SetGroupNumber(item->GetStartGroup(0), 0);
 
 	// ディレクトリサイズを更新
-	int dir_size = dir->CalcSize();
 	DiskBasicDirItem *dir_item = item->GetParent();
-	if (!dir_item) {
-		// Why?
-		return true;
+	if (dir_item) {
+		int dir_size = dir->CalcSize(dir_item);
+		dir_item->SetFileSize(dir_size);
 	}
-	dir_item->SetFileSize(dir_size);
-
 	return true;
 }
 

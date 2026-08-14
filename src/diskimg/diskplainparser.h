@@ -30,7 +30,7 @@ protected:
 	wxUint32 ParseSector(wxInputStream &istream, int disk_number, const DiskParam *disk_param, int block_number, int sector_size, bool single_density, bool is_dummy, DiskImageDisk *disk);
 	DiskImageDisk *ParseDisk(wxInputStream &istream, int disk_number, wxUint32 start_block, wxUint32 block_size, const DiskParam *disk_param);
 
-	void CalcParamFromSize(int disk_size, DiskParam &disk_param);
+	void CalcParamFromSize(wxFileOffset disk_size, DiskParam &disk_param);
 
 	DiskPlainParser();
 	DiskPlainParser(const DiskPlainParser &src);

@@ -97,7 +97,7 @@ union st_pcat_chs_h {
 struct st_pcat_mbr_partition_h {
 	wxUint8  boot_flag;
 	union st_pcat_chs_h start_chs;	// CHS指定
-	wxUint8  ident;
+	wxUint8  ident;					// 種類
 	union st_pcat_chs_h last_chs;	// CHS指定
 	wxUint32 start_lba;	// LBA指定(LE)
 	wxUint32 blocks;	// LBA指定(LE)
@@ -131,7 +131,7 @@ BootParser::~BootParser()
 /// @param [in] ipl_len バッファ長さ
 /// @param [in] boot_param ブートストラップ種類
 /// @return 0.0 - 1.0 尤もらしい:1.0
-double BootParser::ParseBoot(const wxUint8 *ipl_buf, size_t ipl_len, const BootParam &boot_param) const
+double BootParser::ParseBootKeywords(const wxUint8 *ipl_buf, size_t ipl_len, const BootParam &boot_param) const
 {
 	double valid_ratio = 0.0;
 	const BootKeywords *keywords = &boot_param.GetKeywords();
@@ -272,16 +272,90 @@ int BootParser::ParseBoot(wxInputStream &istream, const DiskParam *disk_param, c
 	// MBRを解析
 	wxUint8 ipl[0x4000];
 
-	// 先頭から1KBが読めるか
-	size_t len = istream.Read(ipl, 0x400).LastRead();
-	if (len < 0x400) {
-		p_result->SetError(DiskResult::ERRV_DISK_TOO_SMALL, 0);
+	size_t ipl_len = ReadHead(istream, ipl, sizeof(ipl));
+	if (!ipl_len) {
 		return p_result->GetValid();
 	}
-	// のこりを読む
-	memset(&ipl[0x400], 0, sizeof(ipl) - 0x400);
-	len = istream.Read(&ipl[0x400], sizeof(ipl) - 0x400).LastRead();
 
+	boot_param = ParseBootStrap(ipl, ipl_len, disk_param, boot_param);
+	if (!boot_param) {
+		return p_result->GetValid();
+	}
+
+	p_file->SetDescription(boot_param->GetDescription());
+
+	// 決定したブートストラップを解析
+	switch(boot_param->GetBootType()) {
+	case BT_PC98_IPL:
+		// maybe PC-98x1
+		ParsePC98x1IPL(istream, disk_param, boot_param, ipl, sizeof(ipl));
+		break;
+	case BT_OS9_X68K_24_IPL:
+		ParseOS9X68K24IPL(istream, disk_param, boot_param, ipl, sizeof(ipl));
+		break;
+	case BT_OS9_X68K_24_SCSI_IPL:
+		ParseOS9X68K24SCSIIPL(istream, disk_param, boot_param, ipl, sizeof(ipl));
+		break;
+	case BT_HU68K_IPL:
+		// maybe Human68k
+		ParseHu68kIPL(istream, disk_param, boot_param, ipl, sizeof(ipl));
+		break;
+	case BT_HU68K_SCSI_IPL:
+		// maybe Human68k SCSI
+		ParseHu68kSCSIIPL(istream, disk_param, boot_param, ipl, sizeof(ipl));
+		break;
+	case BT_FMR_IPL:
+		// maybe FMR / FM Towns
+		ParseFMRIPL(istream, disk_param, boot_param, ipl, sizeof(ipl));
+		break;
+	case BT_MAC_HFS:
+		// maybe MAC HFS volume
+		ParseMacHFSVolume(istream, disk_param, boot_param, ipl, sizeof(ipl));
+		break;
+	case BT_SUPER_FD:
+		// maybe super floppy type (FAT)
+		ParseSuperFloppyVolume(istream, disk_param, boot_param, ipl, sizeof(ipl));
+		break;
+	case BT_PCAT_MBR:
+		// maybe master boot record
+		ParsePCATMBR(istream, disk_param, boot_param, ipl, sizeof(ipl));
+		break;
+	default:
+		break;
+	}
+
+	p_file->SetDiskParam(*disk_param);
+
+	return p_result->GetValid();
+}
+
+/// ディスク先頭の1KBを読む
+/// @param [in] istream    解析対象データ
+/// @param [out] ipl_buf   ディスク先頭データ
+/// @param [in] ipl_size   ディスク先頭データのサイズ
+size_t BootParser::ReadHead(wxInputStream &istream, wxUint8 *ipl_buf, size_t ipl_size)
+{
+	// 先頭から1KBが読めるか
+	size_t len = istream.Read(ipl_buf, 0x400).LastRead();
+	if (len < 0x400) {
+		p_result->SetError(DiskResult::ERRV_DISK_TOO_SMALL, 0);
+		return 0;
+	}
+	// のこりを読む
+	memset(&ipl_buf[0x400], 0, ipl_size - 0x400);
+	len += istream.Read(&ipl_buf[0x400], ipl_size - 0x400).LastRead();
+	return len;
+}
+
+/// ディスク先頭にあるブートストラップを解析
+/// @param [in] ipl_buf    ディスク先頭データ
+/// @param [in] ipl_size   ディスク先頭データのサイズ
+/// @param [in] disk_param ディスクパラメータ
+/// @param [in] boot_param ブートストラップ種類(nullable)
+/// @note boot_param が NULL のときは、尤もらしいものを検索する
+/// @return ブートストラップ
+const BootParam *BootParser::ParseBootStrap(const wxUint8 *ipl_buf, size_t ipl_size, const DiskParam *disk_param, const BootParam *boot_param)
+{
 	// MBR領域を検索
 	size_t st;
 	size_t ed; 
@@ -296,7 +370,7 @@ int BootParser::ParseBoot(wxInputStream &istream, const DiskParam *disk_param, c
 	for(size_t i=st; i<ed; i++) {
 		const BootParam *param = &gBootTemplates.Item(i);
 		myLog.SetInfo(wxString::Format(wxT("Parsing Boot Type #%d: "), (int)i) + param->GetBootTypeName());
-		double valid_ratio = ParseBoot(ipl, sizeof(ipl), *param);
+		double valid_ratio = ParseBootKeywords(ipl_buf, ipl_size, *param);
 		myLog.SetInfo(wxT("  Result => %.2f"), valid_ratio);
 		valid_ratios.Add(valid_ratio);
 	}
@@ -324,7 +398,7 @@ int BootParser::ParseBoot(wxInputStream &istream, const DiskParam *disk_param, c
 			// 一致するものがない
 			myLog.SetInfo(wxT("No Bootstrap Decided"));
 			p_result->SetWarn(DiskResult::ERR_NO_BOOTSTRAP);
-			return p_result->GetValid();
+			return NULL;
 		} else {
 			myLog.SetInfo(wxT("Decided: #%d => %.2f"), match_pos, max_valid_ratio);
 		}
@@ -332,282 +406,507 @@ int BootParser::ParseBoot(wxInputStream &istream, const DiskParam *disk_param, c
 		boot_param = &gBootTemplates.Item(match_pos);
 	}
 
-	p_file->SetDescription(boot_param->GetDescription());
+	return boot_param;
+}
 
-	// 決定したブートストラップを解析
-	switch(boot_param->GetBootType()) {
-	case BT_PC98_IPL:
-		// maybe PC-98x1
-		{
-			// パーティション情報
-			wxUint32 addr = (wxUint32)disk_param->GetSectorSize();
-			if (addr < 256) addr = 512;
+/// PC-98x1 IPL 解析
+/// @param [in] istream     解析対象データ
+/// @param [in] disk_param  ディスクパラメータ
+/// @param [in] boot_param  ブートストラップ種類
+/// @param [in] ipl         ディスク先頭データ
+/// @param [in] ipl_size    ディスク先頭データのサイズ
+/// @return false:パーティションがない
+bool BootParser::ParsePC98x1IPL(wxInputStream &istream, const DiskParam *disk_param, const BootParam *boot_param, wxUint8 *ipl, size_t ipl_size)
+{
+	// パーティション情報
+	wxUint32 addr = (wxUint32)disk_param->GetSectorSize();
+	if (addr < 256) addr = 512;
 
-			int disk_number = 0;
-			wxUint32 total_block = 0;
-			wxUint32 start_block = 0;
-			wxUint32 block_size = 0;
-//			wxUint32 tracks = (wxUint32)disk_param->GetTracksPerSide();
-			wxUint32 sides = (wxUint32)disk_param->GetSidesPerDisk();
-			wxUint32 sectors = (wxUint32)disk_param->GetSectorsPerTrack();
-			do {
-				struct st_pc98_partition_h *p = (struct st_pc98_partition_h *)&ipl[addr];
-				if (p->boot == 0 && p->syss == 0) {
-					break;
-				}
-
-				start_block = sectors * (sides * wxUINT16_SWAP_ON_BE(p->ipl_c) + p->ipl_h) + p->ipl_r;
-				if (start_block == 0) {
-					break;
-				}
-
-				block_size = sectors * (sides * wxUINT16_SWAP_ON_BE(p->end_c) + p->end_h) + p->end_r;
-				total_block = block_size;
-
-				block_size -= start_block;
-
-				DiskImageDisk *disk = ParseDisk(istream, disk_number, start_block, block_size, disk_param);
-				if (disk) {
-					disk->SetName(p->sig, sizeof(p->sig));
-					disk->SetDescription(p->sig, sizeof(p->sig));
-					disk->SetBasicTypes(boot_param->GetBasicTypes());
-				}
-
-				disk_number++;
-				addr+=(wxUint32)sizeof(struct st_pc98_partition_h);
-			} while (start_block != 0 && disk_number < 10);
-
-			p_file->SetBlockSize(total_block);
-
-			if (disk_number <= 0) {
-				// パーティション情報がない
-				p_result->SetWarn(DiskResult::ERR_NO_PARTITION);
-			}
+	int disk_number = 0;
+	wxUint32 total_block = 0;
+	wxUint32 start_block = 0;
+	wxUint32 block_size = 0;
+//	wxUint32 tracks = (wxUint32)disk_param->GetTracksPerSide();
+	wxUint32 sides = (wxUint32)disk_param->GetSidesPerDisk();
+	wxUint32 sectors = (wxUint32)disk_param->GetSectorsPerTrack();
+	do {
+		struct st_pc98_partition_h *p = (struct st_pc98_partition_h *)&ipl[addr];
+		if (p->boot == 0 && p->syss == 0) {
+			break;
 		}
-		break;
-	case BT_OS9_X68K_24_IPL:
-		{
-			// maybe OS-9/X68000 v2.4 one partition
-			wxUint32 block_size = disk_param->GetTracksPerSide() * disk_param->GetSidesPerDisk() * disk_param->GetSectorsPerTrack();
-			DiskImageDisk *disk = ParseDisk(istream, 0, 0, block_size, disk_param);
-			if (disk) {
-				disk->SetName(&ipl[2], 11);
-				disk->SetDescription(&ipl[2], 11);
-				disk->SetBasicTypes(boot_param->GetBasicTypes());
-			}
+
+		start_block = sectors * (sides * wxUINT16_SWAP_ON_BE(p->ipl_c) + p->ipl_h) + p->ipl_r;
+		if (start_block == 0) {
+			break;
 		}
-		break;
-	case BT_OS9_X68K_24_SCSI_IPL:
-		{
-			// maybe OS-9/X68000 v2.4 one partition
-			int start_block = 0x400 / disk_param->GetSectorSize();
-			wxUint32 block_size = disk_param->GetTracksPerSide() * disk_param->GetSidesPerDisk() * disk_param->GetSectorsPerTrack();
-			DiskImageDisk *disk = ParseDisk(istream, 0, start_block, block_size, disk_param);
-			if (disk) {
-				disk->SetName(&ipl[0x402], 11);
-				disk->SetDescription(&ipl[0x402], 11);
-				disk->SetBasicTypes(boot_param->GetBasicTypes());
-			}
+
+		block_size = sectors * (sides * wxUINT16_SWAP_ON_BE(p->end_c) + p->end_h) + p->end_r;
+		total_block = block_size;
+
+		block_size -= start_block;
+
+		DiskImageDisk *disk = ParseDisk(istream, disk_number, start_block, block_size, disk_param);
+		if (disk) {
+			disk->SetName(p->sig, sizeof(p->sig));
+			disk->SetDescription(p->sig, sizeof(p->sig));
+			disk->SetBasicTypes(boot_param->GetBasicTypes());
 		}
-		break;
-	case BT_HU68K_IPL:
-		// maybe Human68k
-		{
-			// パーティション情報
-			struct st_human68k_partition_h *h = (struct st_human68k_partition_h *)&ipl[0x400];
-			p_file->SetBlockSize(wxUINT32_SWAP_ON_LE(h->block_size));
 
-			int disk_number = 0;
-			wxUint32 start_block = 0;
-			wxUint32 block_size = 0;
-			wxUint32 addr = 0x410;
-			do {
-				struct st_human68k_partition_1 *p = (struct st_human68k_partition_1 *)&ipl[addr];
-				start_block = (wxUint32)p->start_block[0] << 16 | (wxUint32)p->start_block[1] << 8 | p->start_block[2];
-				if (start_block == 0) {
-					break;
-				}
-				block_size = wxUINT32_SWAP_ON_LE(p->block_size);
+		disk_number++;
+		addr+=(wxUint32)sizeof(struct st_pc98_partition_h);
+	} while (start_block != 0 && disk_number < 10);
 
-				DiskImageDisk *disk = ParseDisk(istream, disk_number, start_block, block_size, disk_param);
-				if (disk) {
-					disk->SetName(p->sig, sizeof(p->sig));
-					disk->SetDescription(p->sig, sizeof(p->sig));
-					disk->SetBasicTypes(boot_param->GetBasicTypes());
-				}
+	p_file->SetBlockSize(total_block);
 
-				disk_number++;
-				addr+=(wxUint32)sizeof(struct st_human68k_partition_1);
-			} while (start_block != 0);
+	if (disk_number <= 0) {
+		// パーティション情報がない
+		p_result->SetWarn(DiskResult::ERR_NO_PARTITION);
+		return false;
+	}
+	return true;
+}
 
-			if (disk_number <= 0) {
-				// パーティション情報がない
-				p_result->SetWarn(DiskResult::ERR_NO_PARTITION);
-			}
+/// OS-9/X68000 SASI IPL 解析
+/// @param [in] istream     解析対象データ
+/// @param [in] disk_param  ディスクパラメータ
+/// @param [in] boot_param  ブートストラップ種類
+/// @param [in] ipl         ディスク先頭データ
+/// @param [in] ipl_size    ディスク先頭データのサイズ
+/// @return false:パーティションがない
+bool BootParser::ParseOS9X68K24IPL(wxInputStream &istream, const DiskParam *disk_param, const BootParam *boot_param, wxUint8 *ipl, size_t ipl_size)
+{
+	// maybe OS-9/X68000 v2.4 one partition
+	wxUint32 block_size = disk_param->GetTracksPerSide() * disk_param->GetSidesPerDisk() * disk_param->GetSectorsPerTrack();
+	DiskImageDisk *disk = ParseDisk(istream, 0, 0, block_size, disk_param);
+	if (disk) {
+		disk->SetName(&ipl[2], 11);
+		disk->SetDescription(&ipl[2], 11);
+		disk->SetBasicTypes(boot_param->GetBasicTypes());
+		return true;
+	}
+	return false;
+}
+
+/// OS-9/X68000 SCSI IPL 解析
+/// @param [in] istream     解析対象データ
+/// @param [in] disk_param  ディスクパラメータ
+/// @param [in] boot_param  ブートストラップ種類
+/// @param [in] ipl         ディスク先頭データ
+/// @param [in] ipl_size    ディスク先頭データのサイズ
+/// @return false:パーティションがない
+bool BootParser::ParseOS9X68K24SCSIIPL(wxInputStream &istream, const DiskParam *disk_param, const BootParam *boot_param, wxUint8 *ipl, size_t ipl_size)
+{
+	// maybe OS-9/X68000 v2.4 one partition
+	int start_block = 0x400 / disk_param->GetSectorSize();
+	wxUint32 block_size = disk_param->GetTracksPerSide() * disk_param->GetSidesPerDisk() * disk_param->GetSectorsPerTrack();
+	DiskImageDisk *disk = ParseDisk(istream, 0, start_block, block_size, disk_param);
+	if (disk) {
+		disk->SetName(&ipl[0x402], 11);
+		disk->SetDescription(&ipl[0x402], 11);
+		disk->SetBasicTypes(boot_param->GetBasicTypes());
+		return true;
+	}
+	return false;
+}
+
+/// Human68k SASI IPL 解析
+/// @param [in] istream     解析対象データ
+/// @param [in] disk_param  ディスクパラメータ
+/// @param [in] boot_param  ブートストラップ種類
+/// @param [in] ipl         ディスク先頭データ
+/// @param [in] ipl_size    ディスク先頭データのサイズ
+/// @return false:パーティションがない
+bool BootParser::ParseHu68kIPL(wxInputStream &istream, const DiskParam *disk_param, const BootParam *boot_param, wxUint8 *ipl, size_t ipl_size)
+{
+	// パーティション情報
+	struct st_human68k_partition_h *h = (struct st_human68k_partition_h *)&ipl[0x400];
+	p_file->SetBlockSize(wxUINT32_SWAP_ON_LE(h->block_size));
+
+	int disk_number = 0;
+	wxUint32 start_block = 0;
+	wxUint32 block_size = 0;
+	wxUint32 addr = 0x410;
+	do {
+		struct st_human68k_partition_1 *p = (struct st_human68k_partition_1 *)&ipl[addr];
+		start_block = (wxUint32)p->start_block[0] << 16 | (wxUint32)p->start_block[1] << 8 | p->start_block[2];
+		if (start_block == 0) {
+			break;
 		}
-		break;
-	case BT_HU68K_SCSI_IPL:
-		// maybe Human68k SCSI
-		{
-			// ヘッダ
-//			struct st_x68k_scsi_h *h0 = (struct st_x68k_scsi_h *)&ipl[0];
-			// パーティション情報
-			struct st_human68k_partition_h *h = (struct st_human68k_partition_h *)&ipl[0x800];
-			p_file->SetBlockSize(wxUINT32_SWAP_ON_LE(h->block_size));
+		block_size = wxUINT32_SWAP_ON_LE(p->block_size);
 
-			int disk_number = 0;
-			wxUint32 start_block = 0;
-			wxUint32 block_size = 0;
-			wxUint32 addr = 0x810;
-			wxUint32 sector_mag = 1024 / disk_param->GetSectorSize();
-			do {
-				struct st_human68k_partition_1 *p = (struct st_human68k_partition_1 *)&ipl[addr];
-				start_block = (wxUint32)p->start_block[0] << 16 | (wxUint32)p->start_block[1] << 8 | p->start_block[2];
-				if (start_block == 0) {
-					break;
-				}
-				start_block *= sector_mag;
-
-				block_size = wxUINT32_SWAP_ON_LE(p->block_size);
-				block_size *= sector_mag;
-
-				DiskImageDisk *disk = ParseDisk(istream, disk_number, start_block, block_size, disk_param);
-				if (disk) {
-					disk->SetName(p->sig, sizeof(p->sig));
-					disk->SetDescription(p->sig, sizeof(p->sig));
-					disk->SetBasicTypes(boot_param->GetBasicTypes());
-				}
-
-				disk_number++;
-				addr+=(wxUint32)sizeof(struct st_human68k_partition_1);
-			} while (start_block != 0);
-
-			if (disk_number <= 0) {
-				// パーティション情報がない
-				p_result->SetWarn(DiskResult::ERR_NO_PARTITION);
-			}
+		DiskImageDisk *disk = ParseDisk(istream, disk_number, start_block, block_size, disk_param);
+		if (disk) {
+			disk->SetName(p->sig, sizeof(p->sig));
+			disk->SetDescription(p->sig, sizeof(p->sig));
+			disk->SetBasicTypes(boot_param->GetBasicTypes());
 		}
-		break;
-	case BT_FMR_IPL:
-		// maybe FMR / FM Towns
-		{
-			// パーティション情報
-			struct st_fmr_partition_h *h = (struct st_fmr_partition_h *)ipl;
 
-			int disk_number = 0;
-			wxUint32 start_block = 0;
-			wxUint32 block_size = 0;
-			do {
-				struct st_fmr_partition_1 *p = &h->p[disk_number];
-				if (p->system_id == 0) {
-					break;
-				}
+		disk_number++;
+		addr+=(wxUint32)sizeof(struct st_human68k_partition_1);
+	} while (start_block != 0);
 
-				start_block = wxUINT32_SWAP_ON_BE(p->start_block);
-				if (start_block == 0) {
-					break;
-				}
-				block_size = wxUINT32_SWAP_ON_BE(p->block_size);
-				if (block_size == 0) {
-					break;
-				}
+	if (disk_number <= 0) {
+		// パーティション情報がない
+		p_result->SetWarn(DiskResult::ERR_NO_PARTITION);
+		return false;
+	}
+	return true;
+}
 
-				DiskImageDisk *disk = ParseDisk(istream, disk_number, start_block, block_size, disk_param);
-				if (disk) {
-					disk->SetName(p->desc, sizeof(p->desc));
-					disk->SetDescription(p->desc, sizeof(p->desc));
-					disk->SetBasicTypes(boot_param->GetBasicTypes());
-				}
+/// Human68k SCSI IPL 解析
+/// @param [in] istream     解析対象データ
+/// @param [in] disk_param  ディスクパラメータ
+/// @param [in] boot_param  ブートストラップ種類
+/// @param [in] ipl         ディスク先頭データ
+/// @param [in] ipl_size    ディスク先頭データのサイズ
+/// @return false:パーティションがない
+bool BootParser::ParseHu68kSCSIIPL(wxInputStream &istream, const DiskParam *disk_param, const BootParam *boot_param, wxUint8 *ipl, size_t ipl_size)
+{
+	// ヘッダ
+	// struct st_x68k_scsi_h *h0 = (struct st_x68k_scsi_h *)&ipl[0];
+	// パーティション情報
+	struct st_human68k_partition_h *h = (struct st_human68k_partition_h *)&ipl[0x800];
+	p_file->SetBlockSize(wxUINT32_SWAP_ON_LE(h->block_size));
 
-				disk_number++;
-			} while (disk_number < 10);
-
-			if (disk_number <= 0) {
-				// パーティション情報がない
-				p_result->SetWarn(DiskResult::ERR_NO_PARTITION);
-			}
+	int disk_number = 0;
+	wxUint32 start_block = 0;
+	wxUint32 block_size = 0;
+	wxUint32 addr = 0x810;
+	wxUint32 sector_mag = 1024 / disk_param->GetSectorSize();
+	do {
+		struct st_human68k_partition_1 *p = (struct st_human68k_partition_1 *)&ipl[addr];
+		start_block = (wxUint32)p->start_block[0] << 16 | (wxUint32)p->start_block[1] << 8 | p->start_block[2];
+		if (start_block == 0) {
+			break;
 		}
-		break;
-	case BT_MAC_HFS:
-		// maybe MAC HFS volume
-		{
-			int disk_number = 0;
-			wxUint32 start_block = 0;
-			wxUint32 block_size = disk_param->CalcNumberOfBlocks();
-			DiskImageDisk *disk = ParseDisk(istream, disk_number, start_block, block_size, disk_param);
-			if (disk) {
-				disk->SetName(_("HFS"));
-				disk->SetDescription(_("HFS Volume"));
-				disk->SetBasicTypes(boot_param->GetBasicTypes());
-			}
+		start_block *= sector_mag;
+
+		block_size = wxUINT32_SWAP_ON_LE(p->block_size);
+		block_size *= sector_mag;
+
+		DiskImageDisk *disk = ParseDisk(istream, disk_number, start_block, block_size, disk_param);
+		if (disk) {
+			disk->SetName(p->sig, sizeof(p->sig));
+			disk->SetDescription(p->sig, sizeof(p->sig));
+			disk->SetBasicTypes(boot_param->GetBasicTypes());
 		}
-		break;
-	case BT_SUPER_FD:
-		// maybe super floppy type (FAT)
-		{
-			int disk_number = 0;
-			wxUint32 start_block = 0;
-			wxUint32 block_size = disk_param->CalcNumberOfBlocks();
-			DiskImageDisk *disk = ParseDisk(istream, disk_number, start_block, block_size, disk_param);
-			if (disk) {
-				disk->SetName(_("FAT"));
-				disk->SetDescription(_("FAT"));
-				disk->SetBasicTypes(boot_param->GetBasicTypes());
-			}
+
+		disk_number++;
+		addr+=(wxUint32)sizeof(struct st_human68k_partition_1);
+	} while (start_block != 0);
+
+	if (disk_number <= 0) {
+		// パーティション情報がない
+		p_result->SetWarn(DiskResult::ERR_NO_PARTITION);
+		return false;
+	}
+	return true;
+}
+
+/// FMR / FMTowns IPL 解析
+/// @param [in] istream     解析対象データ
+/// @param [in] disk_param  ディスクパラメータ
+/// @param [in] boot_param  ブートストラップ種類
+/// @param [in] ipl         ディスク先頭データ
+/// @param [in] ipl_size    ディスク先頭データのサイズ
+/// @return false:パーティションがない
+bool BootParser::ParseFMRIPL(wxInputStream &istream, const DiskParam *disk_param, const BootParam *boot_param, wxUint8 *ipl, size_t ipl_size)
+{
+	// パーティション情報
+	struct st_fmr_partition_h *h = (struct st_fmr_partition_h *)ipl;
+
+	int disk_number = 0;
+	wxUint32 start_block = 0;
+	wxUint32 block_size = 0;
+	do {
+		struct st_fmr_partition_1 *p = &h->p[disk_number];
+		if (p->system_id == 0) {
+			break;
 		}
-		break;
-	case BT_PCAT_MBR:
-		// maybe master boot record
-		{
-			wxUint64 disk_size = (wxUint64)istream.GetLength();
-			// ヘッダ
-			struct st_pcat_mbr_h *h = (struct st_pcat_mbr_h *)ipl;
 
-			int disk_number = 0;
-			wxUint32 start_block = 0;
-			wxUint32 block_size = 0;
-			for(int n=0; n<4; n++) {
-				struct st_pcat_mbr_partition_h *p = &h->p[n];
-				start_block = wxUINT32_SWAP_ON_BE(p->start_lba);
-				if (start_block == 0) {
-					start_block = ConvToLBA(disk_size, p->start_chs.b);
-				}
-				if (start_block == 0) {
-					continue;
-				}
-
-				block_size = wxUINT32_SWAP_ON_BE(p->blocks);
-				if (block_size == 0) {
-					block_size = ConvToLBA(disk_size, p->last_chs.b);
-					block_size -= start_block;
-				}
-				if (block_size == 0) {
-					continue;
-				}
-
-				DiskImageDisk *disk = ParseDisk(istream, disk_number, start_block, block_size, disk_param);
-				if (disk) {
-					disk->SetName(wxString::Format(_("Partiton %d"), disk_number));
-					disk->SetDescription(wxString::Format(_("Partiton %d"), disk_number));
-					disk->SetBasicTypes(boot_param->GetBasicTypes());
-				}
-
-				disk_number++;
-			}
-
-			if (disk_number <= 0) {
-				// パーティション情報がない
-				p_result->SetWarn(DiskResult::ERR_NO_PARTITION);
-			}
+		start_block = wxUINT32_SWAP_ON_BE(p->start_block);
+		if (start_block == 0) {
+			break;
 		}
-		break;
-	default:
-		break;
+		block_size = wxUINT32_SWAP_ON_BE(p->block_size);
+		if (block_size == 0) {
+			break;
+		}
+
+		DiskImageDisk *disk = ParseDisk(istream, disk_number, start_block, block_size, disk_param);
+		if (disk) {
+			disk->SetName(p->desc, sizeof(p->desc));
+			disk->SetDescription(p->desc, sizeof(p->desc));
+			disk->SetBasicTypes(boot_param->GetBasicTypes());
+		}
+
+		disk_number++;
+	} while (disk_number < 10);
+
+	if (disk_number <= 0) {
+		// パーティション情報がない
+		p_result->SetWarn(DiskResult::ERR_NO_PARTITION);
+		return false;
+	}
+	return true;
+}
+
+/// Mac HFS 解析
+/// @param [in] istream     解析対象データ
+/// @param [in] disk_param  ディスクパラメータ
+/// @param [in] boot_param  ブートストラップ種類
+/// @param [in] ipl         ディスク先頭データ
+/// @param [in] ipl_size    ディスク先頭データのサイズ
+/// @return false:パーティションがない
+bool BootParser::ParseMacHFSVolume(wxInputStream &istream, const DiskParam *disk_param, const BootParam *boot_param, wxUint8 *ipl, size_t ipl_size)
+{
+	int disk_number = 0;
+	wxUint32 start_block = 0;
+	wxUint32 block_size = disk_param->CalcNumberOfBlocks();
+	DiskImageDisk *disk = ParseDisk(istream, disk_number, start_block, block_size, disk_param);
+	if (disk) {
+		disk->SetName(_("HFS"));
+		disk->SetDescription(_("HFS Volume"));
+		disk->SetBasicTypes(boot_param->GetBasicTypes());
+		return true;
+	}
+	return false;
+}
+
+/// スーパーフロッピー形式 解析
+/// @param [in] istream     解析対象データ
+/// @param [in] disk_param  ディスクパラメータ
+/// @param [in] boot_param  ブートストラップ種類
+/// @param [in] ipl         ディスク先頭データ
+/// @param [in] ipl_size    ディスク先頭データのサイズ
+/// @return false:パーティションがない
+bool BootParser::ParseSuperFloppyVolume(wxInputStream &istream, const DiskParam *disk_param, const BootParam *boot_param, wxUint8 *ipl, size_t ipl_size)
+{
+	int disk_number = 0;
+	wxUint32 start_block = 0;
+	wxUint32 block_size = disk_param->CalcNumberOfBlocks();
+	DiskImageDisk *disk = ParseDisk(istream, disk_number, start_block, block_size, disk_param);
+	if (disk) {
+		disk->SetName(_("FAT"));
+		disk->SetDescription(_("FAT"));
+		disk->SetBasicTypes(boot_param->GetBasicTypes());
+		return true;
+	}
+	return false;
+}
+
+/// PC-AT MBR 解析
+/// @param [in] istream     解析対象データ
+/// @param [in] disk_param  ディスクパラメータ
+/// @param [in] boot_param  ブートストラップ種類
+/// @param [in] ipl         ディスク先頭データ
+/// @param [in] ipl_size    ディスク先頭データのサイズ
+/// @return false:パーティションがない
+bool BootParser::ParsePCATMBR(wxInputStream &istream, const DiskParam *disk_param, const BootParam *boot_param, wxUint8 *ipl, size_t ipl_size)
+{
+	wxUint64 disk_size = (wxUint64)istream.GetLength();
+	// ヘッダ
+	struct st_pcat_mbr_h *h = (struct st_pcat_mbr_h *)ipl;
+
+	int disk_number = 0;
+	wxUint32 start_block = 0;
+	wxUint32 block_size = 0;
+	for(int n=0; n<4; n++) {
+		struct st_pcat_mbr_partition_h *p = &h->p[n];
+		start_block = wxUINT32_SWAP_ON_BE(p->start_lba);
+		if (start_block == 0) {
+			start_block = ConvToLBA(disk_size, p->start_chs.b);
+		}
+		if (start_block == 0) {
+			continue;
+		}
+
+		block_size = wxUINT32_SWAP_ON_BE(p->blocks);
+		if (block_size == 0) {
+			block_size = ConvToLBA(disk_size, p->last_chs.b);
+			block_size -= start_block;
+		}
+		if (block_size == 0) {
+			continue;
+		}
+
+		switch(p->ident) {
+		case 0x05:
+		case 0x15:
+		case 0x0f:
+		case 0x1f:
+			// 拡張DOSパーティション
+			disk_number = ParsePCATExtPartition(istream, n, disk_number, disk_param, boot_param, p->ident, start_block, block_size);
+			break;
+		default:
+			// 基本パーティション
+			disk_number = ParsePCATOnePartition(istream, disk_number, disk_param, boot_param, p->ident, start_block, block_size
+				, wxString::Format(_("#%d Standard"), n));
+			break;
+		}
 	}
 
-	p_file->SetDiskParam(*disk_param);
+	if (disk_number <= 0) {
+		// パーティション情報がない
+		p_result->SetWarn(DiskResult::ERR_NO_PARTITION);
+		return false;
+	}
+	return true;
+}
 
-	return p_result->GetValid();
+/// パーティション１つ解析(PC-AT)
+/// @param [in] istream     解析対象データ
+/// @param [in] disk_number ディスク番号
+/// @param [in] disk_param  ディスクパラメータ
+/// @param [in] boot_param  ブートストラップ種類
+/// @param [in] ident       パーティション種類
+/// @param [in] start_block 開始ブロック番号
+/// @param [in] block_size  ブロックサイズ
+/// @param [in] prefix      説明
+/// @return 解析後の最大ディスク番号
+int BootParser::ParsePCATOnePartition(wxInputStream &istream, int disk_number, const DiskParam *disk_param, const BootParam *boot_param, wxUint8 ident, wxUint32 start_block, wxUint32 block_size, const wxString &prefix)
+{
+	DiskImageDisk *disk = ParseDisk(istream, disk_number, start_block, block_size, disk_param);
+	if (disk) {
+		wxString desc;
+		switch(ident) {
+		case 0x00:
+			desc = _("Empty");
+			break;
+		case 0x05:
+		case 0x15:
+		case 0x0f:
+		case 0x1f:
+			desc = _("Extended DOS");
+			break;
+		case 0x01:
+		case 0x11:
+			desc = wxT("FAT12");
+			break;
+		case 0x04:
+		case 0x14:
+		case 0x06:
+		case 0x16:
+		case 0x0e:
+		case 0x1e:
+			desc = wxT("FAT16");
+			break;
+		case 0x0b:
+		case 0x1b:
+		case 0x0c:
+		case 0x1c:
+			desc = wxT("FAT32");
+			break;
+		case 0x07:
+		case 0x17:
+			desc = wxT("HPFS/NTFS/exFAT");
+			break;
+		case 0x82:
+			desc = _("Linux swap");
+			break;
+		case 0x83:
+		case 0x93:
+			desc = wxT("Linux");
+			break;
+		case 0x85:
+			desc = _("Extended Linux");
+			break;
+		case 0xa5:
+			desc = _("FreeBSD");
+			break;
+		default:
+			desc = _("Partition");
+			break;
+		}
+		desc += wxString::Format(wxT(" (%02Xh)"), ident);
+		desc = prefix + wxT(" (") + desc + wxT(")");
+
+		disk->SetName(desc);
+		disk->SetDescription(desc);
+		disk->SetBasicTypes(boot_param->GetBasicTypes());
+	}
+
+	disk_number++;
+
+	return disk_number;
+}
+
+/// 拡張パーティション内部のパーティション解析(PC-AT)
+/// @param [in] istream     解析対象データ
+/// @param [in] disk_param  ディスクパラメータ
+/// @param [in] boot_param  ブートストラップ種類
+/// @param [in] num         MBRパーティション番号
+/// @param [in] idx         拡張パーティション番号
+/// @param [in,out] disk_number ディスク番号
+/// @param [in] ident       パーティション種類
+/// @param [in] start_block 開始ブロック番号
+/// @param [in] next_block  次パーティションの開始ブロック番号
+/// @return true:次パーティションあり false:最終パーティション
+bool BootParser::ParsePCATEBR(wxInputStream &istream, const DiskParam *disk_param, const BootParam *boot_param, int num, int idx, int &disk_number, wxUint32 start_block, wxUint32 &next_block)
+{
+	wxUint8 ebr[0x200];
+	int sector_size = disk_param->GetSectorSize();
+
+	istream.SeekI(((wxFileOffset)start_block + next_block) * sector_size);
+	if (istream.Read(ebr, sizeof(ebr)).LastRead() < sizeof(ebr)) {
+		return false;
+	}
+	struct st_pcat_mbr_h *h = (struct st_pcat_mbr_h *)ebr;
+	// check ident
+	if (h->signature != wxUINT32_SWAP_ON_BE(0xaa55)) {
+		return false;
+	}
+	// partition info
+	struct st_pcat_mbr_partition_h *p = &h->p[0];
+	wxUint32 ext_start_block = wxUINT32_SWAP_ON_BE(p->start_lba);
+	wxUint32 ext_block_size = wxUINT32_SWAP_ON_BE(p->blocks);
+
+	ext_start_block += start_block;
+	ext_start_block += next_block;
+	disk_number = ParsePCATOnePartition(istream, disk_number, disk_param, boot_param, p->ident, ext_start_block, ext_block_size
+		, wxString::Format(_("#%d Extended#%d"), num, idx));
+
+	// next entry
+	struct st_pcat_mbr_partition_h *next = &h->p[1];
+	wxUint32 next_start_block = wxUINT32_SWAP_ON_BE(next->start_lba);
+	if (next_start_block == 0) {
+		// end of partition list
+		return false;
+	}
+	wxUint32 next_block_size = wxUINT32_SWAP_ON_BE(next->blocks);
+	if (next_block_size == 0) {
+		// end of partition list
+		return false;
+	}
+
+	next_block = next_start_block;
+	return true;
+}
+
+/// 拡張パーティション解析(PC-AT)
+/// @param [in] istream     解析対象データ
+/// @param [in] num         MBRパーティション番号
+/// @param [in] disk_number ディスク番号
+/// @param [in] disk_param  ディスクパラメータ
+/// @param [in] boot_param  ブートストラップ種類
+/// @param [in] ident       パーティション種類
+/// @param [in] start_block 開始ブロック番号
+/// @param [in] block_size  ブロックサイズ
+/// @return 解析後の最大ディスク番号
+int BootParser::ParsePCATExtPartition(wxInputStream &istream, int num, int disk_number, const DiskParam *disk_param, const BootParam *boot_param, wxUint8 ident, wxUint32 start_block, wxUint32 block_size)
+{
+	wxUint32 next_block = 0;
+	bool keep = true;
+	int idx = 0;
+	while(keep && idx < 100) {
+		keep = ParsePCATEBR(istream, disk_param, boot_param, num, idx, disk_number, start_block, next_block);
+		if (!keep && idx == 0) {
+			disk_number = ParsePCATOnePartition(istream, disk_number, disk_param, boot_param, ident, start_block, block_size
+				, wxString::Format(_("#%d"), num));
+		}
+		idx++;
+	}
+	return disk_number;
 }
 
 wxUint32 BootParser::ConvToLBA(wxUint64 disk_size, const wxUint8 *chs)

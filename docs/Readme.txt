@@ -1,9 +1,9 @@
 ==============================================================================
     Disk Image Finder
-                                                              Version 0.0.5
-                                                                2025/11/01
+                                                              Version 0.0.6
+                                                                2026/08/14
 
-                            Copyright(C) Sasaji 2015-2025 All Rights Reserved.
+                            Copyright(C) Sasaji 2015-2026 All Rights Reserved.
 ==============================================================================
 
 ● はじめに
@@ -21,6 +21,7 @@
   ・NEC PC-9801 MS-DOS (FAT12/FAT16)
   ・富士通 FM TOWNS MS-DOS (FAT12/FAT16)
   ・Apple Macintosh HFS (※読み出しのみ)
+  ・PC-AT MS-DOS (FAT12/FAT16/FAT32)
 
   ※ 一部制限があります。詳細はBasicSpec.txtを参照ください。
 

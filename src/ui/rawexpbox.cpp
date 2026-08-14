@@ -6,6 +6,9 @@
 ///
 
 #include "rawexpbox.h"
+
+#ifndef USE_CONSOLE
+
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 #include <wx/checkbox.h>
@@ -27,9 +30,9 @@ RawExpBox::RawExpBox(wxWindow* parent, wxWindowID id, const wxString &caption, D
 {
 	p_file = file;
 
-	wxSizerFlags flags = wxSizerFlags().Expand().Border(wxALL, 4);
+	wxSizerFlags flags = wxSizerFlags().Expand().Border(wxALL, FromDIP(4));
 	long style = 0;
-	wxSize size(32,-1);
+	wxSize size(FromDIP(32),-1);
 	wxTextValidator validate(wxFILTER_EMPTY | wxFILTER_DIGITS);
 
 	wxBoxSizer *szrAll = new wxBoxSizer(wxVERTICAL);
@@ -111,3 +114,5 @@ int RawExpBox::GetSectorNumber(int num) const
 	str.ToLong(&val);
 	return (int)val;
 }
+
+#endif /* !USE_CONSOLE */

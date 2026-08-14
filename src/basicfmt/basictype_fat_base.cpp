@@ -16,6 +16,7 @@
 DiskBasicTypeFATBase::DiskBasicTypeFATBase(DiskBasic *basic, DiskBasicFat *fat, DiskBasicDir *dir)
 	: DiskBasicType(basic, fat, dir)
 {
+	m_fat_type = FAT_TYPE_12; // FAT12 default
 }
 
 /// 次の空き位置を返す
@@ -87,7 +88,7 @@ wxUint32 DiskBasicTypeFATBase::CalcManagedStartGroup()
 }
 
 /// 使用可能なディスクサイズを得る(MS-DOS用)
-void DiskBasicTypeFATBase::GetUsableDiskSize(int &disk_size, int &group_size) const
+void DiskBasicTypeFATBase::GetUsableDiskSize(wxInt64 &disk_size, wxInt64 &group_size) const
 {
 	group_size = basic->GetFatEndGroup() - 1;
 	disk_size = group_size * basic->GetDisk()->GetSectorSize() * basic->GetSectorsPerGroup();
@@ -116,7 +117,7 @@ void DiskBasicTypeFATBase::CalcDiskFreeSizeBase(bool wrote, wxUint32 start_group
 			fsize = (basic->GetDisk()->GetSectorSize() * basic->GetSectorsPerGroup());
 			grps  = 1;
 			fsts = FAT_AVAIL_FREE;
-		} else if (gnum >= used_group) { // 0xff8 0xfff8 0xfffffff8
+		} else if (gnum >= used_group) { // 0xff8 0xfff8 0x0ffffff8
 			fsts = FAT_AVAIL_USED_LAST;
 		}
 		fat_availability.Add(fsts, fsize, grps);

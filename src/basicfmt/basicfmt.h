@@ -42,10 +42,11 @@ private:
 	int		 m_volume_number;		///< ボリューム番号
 	bool	 m_volume_number_hexa;	///< ボリューム番号が16進か
 	wxString m_volume_date;			///< ボリューム日付
+	int		 m_volume_skew;			///< ボリュームスキュ
 
 public:
 	DiskBasicIdentifiedData();
-	DiskBasicIdentifiedData(const wxString &volume_name, int volume_number, const wxString &volume_date);
+	DiskBasicIdentifiedData(const wxString &volume_name, int volume_number, const wxString &volume_date, int volume_skew);
 	~DiskBasicIdentifiedData() {}
 
 	const wxString &GetVolumeName() const { return m_volume_name; }
@@ -53,12 +54,14 @@ public:
 	int GetVolumeNumber() const { return m_volume_number; }
 	bool IsVolumeNumberHexa() const { return m_volume_number_hexa; }
 	const wxString &GetVolumeDate() const { return m_volume_date; }
+	int GetVolumeSkew() const { return m_volume_skew; }
 
 	void SetVolumeName(const wxString &val) { m_volume_name = val; }
 	void SetVolumeNameMaxLength(size_t val) { m_volume_name_maxlen = val; }
 	void SetVolumeNumber(int val) { m_volume_number = val; }
 	void VolumeNumberIsHexa(bool val) { m_volume_number_hexa = val; }
 	void SetVolumeDate(const wxString &val) { m_volume_date = val; }
+	void SetVolumeSkew(int val) { m_volume_skew = val; }
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -92,6 +95,9 @@ public:
 #endif
 #ifdef GetCurrentDirectory
 #undef GetCurrentDirectory
+#endif
+#ifdef SetCurrentDirectory
+#undef SetCurrentDirectory
 #endif
 
 //////////////////////////////////////////////////////////////////////
@@ -190,9 +196,9 @@ public:
 	bool			CheckFile(const wxString &srcpath, int *file_size);
 
 	/// DISK BASICで使用できる残りディスクサイズ内か
-	bool			HasFreeDiskSize(int size);
+	bool			HasFreeDiskSize(wxInt64 size);
 	/// DISK BASICで使用できる残りディスクサイズを返す
-	int				GetFreeDiskSize() const;
+	wxInt64			GetFreeDiskSize() const;
 
 	/// FATエリアの空き状況を取得
 	void			GetFatAvailability(wxUint32 *offset, const wxArrayInt **arr) const;

@@ -46,8 +46,6 @@ DiskBasicParam 固有のパラメータ
 class DiskBasicTypeHU68K : public DiskBasicTypeFAT16BE
 {
 protected:
-	int m_fat_type;	// FAT12 = 0 / 16 = 1
-
 	DiskBasicTypeHU68K() : DiskBasicTypeFAT16BE() {}
 	DiskBasicTypeHU68K(const DiskBasicType &src) : DiskBasicTypeFAT16BE(src) {}
 

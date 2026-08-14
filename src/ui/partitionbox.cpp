@@ -7,12 +7,15 @@
 
 #include "partitionbox.h"
 #include <wx/string.h>
-#include <wx/textctrl.h>
-#include <wx/listctrl.h>
-#include <wx/sizer.h>
 #include "uimainprocess.h"
 #include "../diskimg/diskimage.h"
 #include "../utils.h"
+
+#ifndef USE_CONSOLE
+
+#include <wx/textctrl.h>
+#include <wx/listctrl.h>
+#include <wx/sizer.h>
 
 // Attach Event
 BEGIN_EVENT_TABLE(PartitionBox, wxDialog)
@@ -25,7 +28,7 @@ PartitionBox::PartitionBox(UiDiskProcess *frame, wxWindow* parent, wxWindowID id
 {
 	m_initialized = false;
 
-	wxSizerFlags flags = wxSizerFlags().Expand().Border(wxALL, 4);
+	wxSizerFlags flags = wxSizerFlags().Expand().Border(wxALL, FromDIP(4));
 
 	wxBoxSizer *szrAll = new wxBoxSizer(wxVERTICAL);
 
@@ -37,15 +40,16 @@ PartitionBox::PartitionBox(UiDiskProcess *frame, wxWindow* parent, wxWindowID id
 
 	int w = 0;
 	int cw;
-	cw =  16; lstPartition->InsertColumn(0, wxT(""), wxLIST_FORMAT_LEFT, cw); w += cw;
-	cw =  32; lstPartition->InsertColumn(1, wxT("#"), wxLIST_FORMAT_RIGHT, cw); w += cw;
-	cw = 128; lstPartition->InsertColumn(2, _("Description"), wxLIST_FORMAT_LEFT, cw); w += cw;
-	cw =  96; lstPartition->InsertColumn(3, _("Start Sector"), wxLIST_FORMAT_RIGHT, cw); w += cw;
-	cw =  96; lstPartition->InsertColumn(4, _("Start Position"), wxLIST_FORMAT_LEFT, cw); w += cw;
-	cw =  96; lstPartition->InsertColumn(5, _("Size (Sectors)"), wxLIST_FORMAT_RIGHT, cw); w += cw;
-	cw =  96; lstPartition->InsertColumn(6, _("Size (Bytes)"), wxLIST_FORMAT_RIGHT, cw); w += cw;
+	cw =  16; lstPartition->InsertColumn(0, wxT(""), wxLIST_FORMAT_LEFT, FromDIP(cw)); w += cw;
+	cw =  32; lstPartition->InsertColumn(1, wxT("#"), wxLIST_FORMAT_RIGHT, FromDIP(cw)); w += cw;
+	cw = 144; lstPartition->InsertColumn(2, _("Description"), wxLIST_FORMAT_LEFT, FromDIP(cw)); w += cw;
+	cw = 128; lstPartition->InsertColumn(3, _("Start Sector"), wxLIST_FORMAT_RIGHT, FromDIP(cw)); w += cw;
+	cw = 128; lstPartition->InsertColumn(4, _("Start Position"), wxLIST_FORMAT_LEFT, FromDIP(cw)); w += cw;
+	cw =  96; lstPartition->InsertColumn(5, _("Size (Sectors)"), wxLIST_FORMAT_RIGHT, FromDIP(cw)); w += cw;
+	cw = 128; lstPartition->InsertColumn(6, _("Size (Bytes)"), wxLIST_FORMAT_RIGHT, FromDIP(cw)); w += cw;
 
-	lstPartition->SetSizeHints(w, 128);
+	w += 24;
+	lstPartition->SetSizeHints(FromDIP(wxSize(w, 128)));
 
 	const DiskImageDisks *disks = file->GetDisks();
 	if (disks) {
@@ -140,3 +144,5 @@ void PartitionBox::OnSize(wxSizeEvent& event)
 
 	m_oldsize = event.GetSize();
 }
+
+#endif /* !USE_CONSOLE */

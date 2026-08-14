@@ -62,44 +62,44 @@ public:
 	virtual void Clear();
 
 	/// セクタのデータを置き換える
-	bool	Replace(DiskImageSector *src_sector);
+	bool	Replace(DiskImageSector *src_sector) wxOVERRIDE;
 	/// セクタのデータを埋める
-	bool	Fill(wxUint8 code, int len = -1, int start = 0); 
+	bool	Fill(wxUint8 code, int len = -1, int start = 0) wxOVERRIDE;
 	/// セクタのデータを上書き
-	bool	Copy(const void *buf, int len, int start = 0); 
+	bool	Copy(const void *buf, int len, int start = 0) wxOVERRIDE;
 	/// セクタのデータに指定したバイト列があるか
-	int		Find(const void *buf, size_t len); 
+	int		Find(const void *buf, size_t len) wxOVERRIDE;
 	/// 指定位置のセクタデータを返す
-	wxUint8	Get(int pos) const;
+	wxUint8	Get(int pos) const wxOVERRIDE;
 	/// 指定位置のセクタデータを返す
-	wxUint16 Get16(int pos, bool big_endian = false) const;
+	wxUint16 Get16(int pos, bool big_endian = false) const wxOVERRIDE;
 	/// 指定位置にセクタデータを設定
-	void	Set(int pos, wxUint8 val);
+	void	Set(int pos, wxUint8 val) wxOVERRIDE;
 	/// 指定位置のセクタデータを設定
-	void	Set16(int pos, wxUint16 val, bool big_endian = false);
+	void	Set16(int pos, wxUint16 val, bool big_endian = false) wxOVERRIDE;
 
 	/// 同じセクタか
-	bool	IsSameSector(int sector_number, bool deleted_mark = false);
+	bool	IsSameSector(int sector_number, bool deleted_mark = false) wxOVERRIDE;
 	/// セクタサイズを返す
-	int		GetSectorSize() const;
+	int		GetSectorSize() const wxOVERRIDE;
 	/// セクタサイズを設定
-	void	SetSectorSize(int val);
+	void	SetSectorSize(int val) wxOVERRIDE;
 	/// セクタサイズ（バッファのサイズ）を返す
-	int		GetSectorBufferSize() const;
+	int		GetSectorBufferSize() const wxOVERRIDE;
 	/// セクタサイズ（ヘッダ＋バッファのサイズ）を返す
-	int		GetSize() const;
+	int		GetSize() const wxOVERRIDE;
 	/// セクタデータへのポインタを返す
-	virtual wxUint8 *GetSectorBuffer();
+	virtual wxUint8 *GetSectorBuffer() wxOVERRIDE;
 	/// セクタデータへのポインタを返す
-	virtual wxUint8 *GetSectorBuffer(int offset);
+	virtual wxUint8 *GetSectorBuffer(int offset) wxOVERRIDE;
 
 	/// ファイルオフセットを返す
 	wxFileOffset GetFileOffset() const { return m_offset; }
 
 	/// 変更されているか
-	bool	IsModified() const;
+	bool	IsModified() const wxOVERRIDE;
 	/// 変更済みをクリア
-	void	ClearModify();
+	void	ClearModify() wxOVERRIDE;
 
 	/// セクタ番号の比較
 	static int Compare(DiskPlainSector *item1, DiskPlainSector *item2);
@@ -111,14 +111,14 @@ public:
 	/// アクセス時間
 	static time_t GetTimeNow();
 
-	/// リファレンス数
-	virtual int GetRefs() const { return 0; }
-	/// リファレンス数をクリア
-	virtual void ClearRefs() {}
-	/// リファレンス数を増やす
-	virtual void IncRefs() {}
-	/// リファレンス数を減らす
-	virtual void DecRefs() {}
+//	/// リファレンス数
+//	virtual int GetRefs() const { return 0; }
+//	/// リファレンス数をクリア
+//	virtual void ClearRefs() {}
+//	/// リファレンス数を増やす
+//	virtual void IncRefs() {}
+//	/// リファレンス数を減らす
+//	virtual void DecRefs() {}
 };
 
 // ----------------------------------------------------------------------
@@ -229,7 +229,7 @@ class DiskPlainDisk : public DiskImageDisk
 private:
 	wxUint32 m_start_block;	///< 開始セクタ番号
 	wxUint32 m_block_size;	///< number of sectors (セクタ数)
-	wxUint32 m_disk_size;	///< in bytes
+	wxUint64 m_disk_size;	///< in bytes
 
 	wxString m_name;		///< パーティション名
 	wxString m_desc;		///< 説明
@@ -247,92 +247,92 @@ public:
 	~DiskPlainDisk();
 
 	/// ディスクの内容を置き換える
-	int		Replace(DiskImageDisk *src_disk, int src_side_number);
+	int		Replace(DiskImageDisk *src_disk, int src_side_number) wxOVERRIDE;
 	/// ディスクサイズ計算（ディスクヘッダ分を除く）
-	size_t	CalcSizeWithoutHeader();
+	size_t	CalcSizeWithoutHeader() wxOVERRIDE;
 
 	/// ヘッダをコピー
-	bool	CopyHeaderTo(DiskImageDiskHeader &dst);
+	bool	CopyHeaderTo(DiskImageDiskHeader &dst) wxOVERRIDE;
 
 	/// ディスク名を返す
-	wxString GetName(bool real = false) const;
+	wxString GetName(bool real = false) const wxOVERRIDE;
 	/// ディスク名を設定
-	void	SetName(const wxString &val);
+	void	SetName(const wxString &val) wxOVERRIDE;
 	/// ディスク名を設定
-	void	SetName(const wxUint8 *buf, size_t len);
+	void	SetName(const wxUint8 *buf, size_t len) wxOVERRIDE;
 
 	/// 指定セクタを返す
-	DiskImageSector *GetSector(int sector_pos);
+	DiskImageSector *GetSector(int sector_pos) wxOVERRIDE;
 	/// キャッシュを更新する
-	void	RefreshCache(int sector_pos);
+	void	RefreshCache(int sector_pos) wxOVERRIDE;
 
 	/// 書き込み禁止かどうかを返す
-	bool IsWriteProtected() const;
+	bool IsWriteProtected() const wxOVERRIDE;
 	/// 書き込み禁止かどうかを設定
-	void SetWriteProtect(bool val);
+	void SetWriteProtect(bool val) wxOVERRIDE;
 
 	/// ディスクサイズ（ヘッダサイズ含む）
-	wxUint32 GetSize() const;
+	wxUint64 GetSize() const wxOVERRIDE;
 	/// ディスクサイズ（ヘッダサイズ含む）を設定
-	void	SetSize(wxUint32 val);
+	void	SetSize(wxUint64 val) wxOVERRIDE;
 	/// ディスクサイズ（ヘッダサイズを除く）
-	wxUint32 GetSizeWithoutHeader() const;
+	wxUint64 GetSizeWithoutHeader() const wxOVERRIDE;
 	/// ディスクサイズ（ヘッダサイズを除く）を設定
-	void	SetSizeWithoutHeader(wxUint32 val);
+	void	SetSizeWithoutHeader(wxUint64 val) wxOVERRIDE;
 	/// ヘッダサイズを返す
-	wxUint32 GetHeaderSize() const;
+	wxUint32 GetHeaderSize() const wxOVERRIDE;
 
 	/// 開始セクタ番号を返す
-	wxUint32 GetStartSectorNumber() const;
+	wxUint32 GetStartSectorNumber() const wxOVERRIDE;
 	/// 開始セクタ番号を設定
-	void	SetStartSectorNumber(wxUint32 val);
+	void	SetStartSectorNumber(wxUint32 val) wxOVERRIDE;
 	/// 開始セクタ番号(文字列)を返す
-	wxString GetStartSectorNumberStr(int show_type) const;
+	wxString GetStartSectorNumberStr(int show_type) const wxOVERRIDE;
 	/// セクタ数を返す
-	wxUint32 GetNumberOfSectors() const;
+	wxUint32 GetNumberOfSectors() const wxOVERRIDE;
 	/// セクタ数を設定
-	void	SetNumberOfSectors(wxUint32 val);
+	void	SetNumberOfSectors(wxUint32 val) wxOVERRIDE;
 	/// セクタ数(文字列)を返す
-	wxString GetNumberOfSectorsStr(int show_type) const;
+	wxString GetNumberOfSectorsStr(int show_type) const wxOVERRIDE;
 
 	/// ディスクの内容を初期化する(0パディング)
-	bool	Initialize();
+	bool	Initialize() wxOVERRIDE;
 
 	/// ディスクの説明
-	wxString GetDescription() const { return m_desc; }
+	wxString GetDescription() const wxOVERRIDE { return m_desc; }
 	/// ファイルの説明詳細
-	wxString GetDescriptionDetails() const;
+	wxString GetDescriptionDetails() const wxOVERRIDE;
 	/// ディスクの説明
-	void	SetDescription(const wxString &desc) { m_desc = desc; }
+	void	SetDescription(const wxString &desc) wxOVERRIDE { m_desc = desc; }
 	/// ディスクの説明
-	void	SetDescription(const wxUint8 *buf, size_t len);
+	void	SetDescription(const wxUint8 *buf, size_t len) wxOVERRIDE;
 
 	/// 変更されているか
-	bool	IsModified();
+	bool	IsModified() wxOVERRIDE;
 	/// 変更済みをクリア
-	void	ClearModify();
+	void	ClearModify() wxOVERRIDE;
 
 	/// データをすべて出力	
-	void	Flush();
+	void	Flush() wxOVERRIDE;
 
 	/// パラメータ変更フラグを設定
-	void	SetParamChanged(bool val) {}
+	void	SetParamChanged(bool val) wxOVERRIDE {}
 	/// パラメータ変更フラグを返す
-	bool	GetParamChanged() const { return false; }
+	bool	GetParamChanged() const wxOVERRIDE { return false; }
 
 	/// DISK BASIC領域を確保
-	void	AllocDiskBasics();
+	void	AllocDiskBasics() wxOVERRIDE;
 	/// DISK BASICを返す
-	DiskBasic *GetDiskBasic(int idx);
+	DiskBasic *GetDiskBasic(int idx) wxOVERRIDE;
 	/// DISK BASICを返す
-	DiskBasics *GetDiskBasics() { return p_basics; }
+	DiskBasics *GetDiskBasics() wxOVERRIDE { return p_basics; }
 	/// DISK BASICをクリア
-	void	ClearDiskBasics();
+	void	ClearDiskBasics() wxOVERRIDE;
 	/// キャラクターコードマップ設定
-	void	SetCharCode(const wxString &name);
+	void	SetCharCode(const wxString &name) wxOVERRIDE;
 
 	// セクタ位置からトラック、サイド、セクタ番号を得る(オフセットを考慮)
-	bool	GetNumberFromBlockNum(int block_num, int &track_num, int &side_num, int &sector_num) const;
+	bool	GetNumberFromBlockNum(int block_num, int &track_num, int &side_num, int &sector_num) const wxOVERRIDE;
 
 	/// ディスク番号を比較
 	static int Compare(DiskPlainDisk *item1, DiskPlainDisk *item2);
@@ -548,75 +548,75 @@ public:
 	~DiskPlainFile();
 
 	/// インスタンス作成
-	DiskImageDisk *NewImageDisk(int disk_number, wxUint32 start_block, wxUint32 block_size);
+	DiskImageDisk *NewImageDisk(int disk_number, wxUint32 start_block, wxUint32 block_size) wxOVERRIDE;
 	/// インスタンス作成
-	DiskImageDisk *NewImageDisk(int disk_number, DiskImageDiskHeader &n_header);
+	DiskImageDisk *NewImageDisk(int disk_number, DiskImageDiskHeader &n_header) wxOVERRIDE;
 
 	void SetFileStream(wxFileStream *stream);
 	wxFileStream *GetFileStream();
 
-	size_t Add(DiskImageDisk *newdisk, short mod_flags);
-	void Clear();
-	size_t Count() const;
-	bool Delete(size_t idx);
+	size_t Add(DiskImageDisk *newdisk, short mod_flags) wxOVERRIDE;
+	void Clear() wxOVERRIDE;
+	size_t Count() const wxOVERRIDE;
+	bool Delete(size_t idx) wxOVERRIDE;
 
-	void ClearDisks();
-	DiskImageDisks *GetDisks() { return p_disks; }
-	const DiskImageDisks *GetDisks() const { return p_disks; }
-	DiskImageDisk  *GetDisk(size_t idx);
+	void ClearDisks() wxOVERRIDE;
+	DiskImageDisks *GetDisks() wxOVERRIDE { return p_disks; }
+	const DiskImageDisks *GetDisks() const wxOVERRIDE { return p_disks; }
+	DiskImageDisk *GetDisk(size_t idx) wxOVERRIDE;
 
 	/// ファイル開始位置までのオフセット in bytes
-	void SetStartOffset(wxUint32 val) { m_start_offset = val; }
+	void SetStartOffset(wxUint32 val) wxOVERRIDE { m_start_offset = val; }
 	/// ファイル開始位置までのオフセット in bytes
-	wxUint32 GetStartOffset() const { return m_start_offset; }
+	wxUint32 GetStartOffset() const wxOVERRIDE { return m_start_offset; }
 
 	/// ディスクイメージブロック数
-	void SetBlockSize(wxUint32 val) { m_block_size = val; }
+	void SetBlockSize(wxUint32 val) wxOVERRIDE { m_block_size = val; }
 	/// ディスクイメージブロック数
-	wxUint32 GetBlockSize() const { return m_block_size; }
+	wxUint32 GetBlockSize() const wxOVERRIDE { return m_block_size; }
 
 	/// 指定セクタを返す
-	DiskImageSector *GetSector(int sector_pos);
+	DiskImageSector *GetSector(int sector_pos) wxOVERRIDE;
 	/// キャッシュを更新する
-	void RefreshCache(int sector_pos);
+	void RefreshCache(int sector_pos) wxOVERRIDE;
 	/// キャッシュをクリア ファイル更新もしない
-	void ClearCacheAll();
+	void ClearCacheAll() wxOVERRIDE;
 	/// キャッシュをクリアする
-	void ClearCache(wxUint32 start, wxUint32 size);
+	void ClearCache(wxUint32 start, wxUint32 size) wxOVERRIDE;
 	/// キャッシュのリファレンス数ををクリアする
-	void ClearCacheRefs(wxUint32 start, wxUint32 size);
+	void ClearCacheRefs(wxUint32 start, wxUint32 size) wxOVERRIDE;
 
 	/// 変更されているか
-	bool IsModified();
+	bool IsModified() wxOVERRIDE;
 	/// 変更をクリア
-	void ClearModify();
+	void ClearModify() wxOVERRIDE;
 	/// 範囲内のセクタが変更されているか
-	bool IsModified(wxUint32 start, wxUint32 size);
+	bool IsModified(wxUint32 start, wxUint32 size) wxOVERRIDE;
 	/// 範囲内のセクタ変更をクリア
-	void ClearModify(wxUint32 start, wxUint32 size);
+	void ClearModify(wxUint32 start, wxUint32 size) wxOVERRIDE;
 
 	/// データをすべて出力	
-	void Flush();
+	void Flush() wxOVERRIDE;
 	/// 範囲内のデータを出力
-	void Flush(wxUint32 start, wxUint32 size);
+	void Flush(wxUint32 start, wxUint32 size) wxOVERRIDE;
 
 	/// 書き込み禁止かどうかを返す
-	bool IsWriteProtected() const;
+	bool IsWriteProtected() const wxOVERRIDE;
 	/// 書き込み禁止かどうかを設定
-	void SetWriteProtect(bool val);
+	void SetWriteProtect(bool val) wxOVERRIDE;
 
 	/// ファイルストリームを返す
 	wxFileStream *GetStream() { return p_stream; }
 
 	/// ファイルの説明
-	wxString GetDescription() const { return m_desc; }
+	wxString GetDescription() const wxOVERRIDE { return m_desc; }
 	/// ファイルの説明詳細
-	wxString GetDescriptionDetails() const;
+	wxString GetDescriptionDetails() const wxOVERRIDE;
 	/// ファイルの説明
-	void	SetDescription(const wxString &desc);
+	void	SetDescription(const wxString &desc) wxOVERRIDE;
 
 	/// ステータスメッセージ
-	void GetStatusMessage(wxString &str) const;
+	void GetStatusMessage(wxString &str) const wxOVERRIDE;
 };
 
 /// ベタディスクイメージ入出力
@@ -637,39 +637,39 @@ public:
 	~DiskPlain();
 
 	/// インスタンス作成
-	DiskImageFile *NewImageFile();
+	DiskImageFile *NewImageFile() wxOVERRIDE;
 
 	/// 新規作成
-	int Create(const wxString &diskname, const DiskParam &param, bool write_protect, const wxString &basic_hint);
+	int Create(const wxString &diskname, const DiskParam &param, bool write_protect, const wxString &basic_hint) wxOVERRIDE;
 	/// ファイルを開く
-	int Open(const wxString &filepath, const wxString &file_format, const DiskParam &param_hint);
+	int Open(const wxString &filepath, const wxString &file_format, const DiskParam &param_hint) wxOVERRIDE;
 	/// ファイルを開く前のチェック
-	int Check(const wxString &filepath, wxString &file_format, DiskParamPtrs &params, DiskParam &manual_param);
+	int Check(const wxString &filepath, wxString &file_format, DiskParamPtrs &params, DiskParam &manual_param) wxOVERRIDE;
 	/// 既に開いているファイルを開きなおす
-	int ReOpen(const BootParam &boot_param);
+	int ReOpen(const BootParam &boot_param) wxOVERRIDE;
 	/// 閉じる
-	void Close();
+	void Close() wxOVERRIDE;
 	/// ファイルを開いているか
-	bool IsOpened() const;
+	bool IsOpened() const wxOVERRIDE;
 	/// ストリームの内容をファイルに保存できるか
-	int CanSave(const wxString &filepath, const wxString &file_format);
+	int CanSave(const wxString &filepath, const wxString &file_format) wxOVERRIDE;
 	/// ストリームの内容をファイルに保存
-	int Save(const wxString &filepath, const wxString &file_format, const DiskWriteOptions &options);
+	int Save(const wxString &filepath, const wxString &file_format, const DiskWriteOptions &options) wxOVERRIDE;
 	/// ストリームの内容をファイルに保存
-	int SaveDisk(int disk_number, const wxString &filepath, const wxString &file_format, const DiskWriteOptions &options);
+	int SaveDisk(int disk_number, const wxString &filepath, const wxString &file_format, const DiskWriteOptions &options) wxOVERRIDE;
 	/// ディスクを削除
-	bool Delete(int disk_number);
+	bool Delete(int disk_number) wxOVERRIDE;
 	/// 置換元のディスクを解析
-	int ParseForReplace(int disk_number, const wxString &filepath, const wxString &file_format, const DiskParam &param_hint, DiskImageFile &src_file, DiskImageDisk* &tag_disk);
+	int ParseForReplace(int disk_number, const wxString &filepath, const wxString &file_format, const DiskParam &param_hint, DiskImageFile &src_file, DiskImageDisk* &tag_disk) wxOVERRIDE;
 	/// ファイルでディスクを置換
-	int ReplaceDisk(int disk_number, DiskImageDisk *src_disk, int src_side_number, DiskImageDisk *tag_disk);
+	int ReplaceDisk(int disk_number, DiskImageDisk *src_disk, int src_side_number, DiskImageDisk *tag_disk) wxOVERRIDE;
 
 	/// DISK BASICが一致するか
-	bool MatchDiskBasic(const DiskBasic *target);
+	bool MatchDiskBasic(const DiskBasic *target) wxOVERRIDE;
 	/// DISK BASICの解析状態をクリア
-	void ClearDiskBasicParseAndAssign(int disk_number, int side_number);
+	void ClearDiskBasicParseAndAssign(int disk_number, int side_number) wxOVERRIDE;
 	/// キャラクターコードマップ設定
-	void SetCharCode(const wxString &name);
+	void SetCharCode(const wxString &name) wxOVERRIDE;
 };
 
 #endif /* DISKPLAIN_H */

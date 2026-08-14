@@ -6,6 +6,9 @@
 ///
 
 #include "uiclistctrl.h"
+
+#ifndef USE_CONSOLE
+
 #include <wx/menu.h>
 #include <wx/imaglist.h>
 #include <wx/icon.h>
@@ -210,7 +213,7 @@ int MyCListRows::Compare(MyCListRow **item1, MyCListRow **item2)
 MyCListCtrl::MyCListCtrl(UiDiskFrame *parentframe, wxWindow *parent, wxWindowID id,
 	const struct st_list_columns *columns,
 	int icon_sort_down, int icon_sort_up,
-	Config *ini,
+	ColumnParams *ini,
 	int style,
 	const wxPoint &pos, const wxSize &size)
 	: wxListCtrl(parent, id, pos, size, style | wxLC_REPORT
@@ -231,8 +234,9 @@ MyCListCtrl::MyCListCtrl(UiDiskFrame *parentframe, wxWindow *parent, wxWindowID 
 	// カラムデータの設定
 	for(int idx=0; columns[idx].name != NULL; idx++) {
 		const struct st_list_columns *c = &columns[idx];
-		int w =	ini ? ini->GetListColumnWidth(idx) : -1;
-		m_columns.Add(new MyCListColumn(idx, c, c->width, w >= 0 ? w : c->width));
+		int w =	ini ? ini->GetWidth(idx) : -1;
+		if (w < 0) w = c->width;
+		m_columns.Add(new MyCListColumn(idx, c, c->width, w));
 		m_indexes.Add(-1);
 	}
 
@@ -241,7 +245,7 @@ MyCListCtrl::MyCListCtrl(UiDiskFrame *parentframe, wxWindow *parent, wxWindowID 
 
 	m_idOnFirstColumn = 0;
 	for(int idx = 0; idx < column_count; idx++) {
-		int col = ini ? ini->GetListColumnPos(idx) : idx;
+		int col = ini ? ini->GetPos(idx) : idx;
 
 		if (idx == 0 && col < 0) col = 0;
 
@@ -286,8 +290,9 @@ MyCListCtrl::~MyCListCtrl()
 
 	if (m_ini) {
 		for(int idx = 0; idx < (int)m_columns.Count(); idx++) {
-			m_ini->SetListColumnWidth(idx, m_columns[idx]->GetWidth());
-			m_ini->SetListColumnPos(idx, m_columns[idx]->GetColumn());
+			int w = m_columns[idx]->GetWidth();
+			m_ini->SetWidth(idx, w);
+			m_ini->SetPos(idx, m_columns[idx]->GetColumn());
 		}
 	}
 
@@ -389,20 +394,20 @@ void MyCListCtrl::InsertListColumn(int col)
 void MyCListCtrl::InsertListColumn(int col, int idx, MyCListColumn *c)
 {
 	InsertColumn(col, c->GetText(), c->GetAlign(), -1);
-	SetColumnWidth(col, c->GetWidth());
+	SetListColumnWidth(col, c->GetWidth());
 //	c->SetId(item_id);
 }
 
 /// カラムの幅
 int MyCListCtrl::GetListColumnWidth(int col) const
 {
-	return GetColumnWidth(col);
+	return ToDIP(GetColumnWidth(col));
 }
 
 /// カラムの幅をセット
 void MyCListCtrl::SetListColumnWidth(int col, int w)
 {
-	SetColumnWidth(col, w);
+	SetColumnWidth(col, FromDIP(w));
 }
 
 /// カラムを削除
@@ -1000,3 +1005,5 @@ MyCListRearrangeBox::MyCListRearrangeBox(MyCListCtrl *parent, const wxArrayInt &
 	}
 	SetSize(sz);
 }
+
+#endif /* !USE_CONSOLE */

@@ -6,7 +6,11 @@
 ///
 
 #include "uimainframe.h"
+
+#ifndef USE_CONSOLE
+
 #include "../main.h"
+#include "uimainpanel.h"
 #include <wx/toolbar.h>
 //#include <wx/cmdline.h>
 //#include <wx/filename.h>
@@ -30,6 +34,8 @@
 #include "configbox.h"
 #include "loggingbox.h"
 #include "partitionbox.h"
+#include "filedirbox.h"
+#include "aboutbox.h"
 #include "../diskimg/diskplain.h"
 #include "../diskimg/diskwriter.h"
 #include "../diskimg/diskresult.h"
@@ -281,14 +287,16 @@ _p("macOS menu item","About..."), \
 _("&Window"),_("Minimize"),_("Zoom"),_("Bring All to Front")
 
 UiDiskFrame::UiDiskFrame(const wxString& title, const wxSize& size)
-#if defined(__WXOSX__)
+#if 1 // defined(__WXOSX__)
 	: UiDiskProcess(NULL, -1, title, wxDefaultPosition, wxDefaultSize)
 #else
 	: UiDiskProcess(NULL, -1, title, wxDefaultPosition, size)
 #endif
 {
 #if defined(__WXOSX__)
-	SetClientSize(size);
+	SetClientSize(FromDIP(size));
+#else
+	SetSize(FromDIP(size));
 #endif
 
 	p_image = new DiskPlain;
@@ -329,6 +337,7 @@ UiDiskFrame::~UiDiskFrame()
 #else
 	wxSize sz = GetSize();
 #endif
+	sz = ToDIP(sz);
 	gConfig.SetWindowWidth(sz.GetWidth());
 	gConfig.SetWindowHeight(sz.GetHeight());
 
@@ -406,10 +415,10 @@ void UiDiskFrame::PopulateToolbar(wxToolBar* toolBar)
 	INIT_TOOL_BMP(hd_part_16_export);
 	INIT_TOOL_BMP(hd_part_16_import);
 
-	int w = toolBarBitmaps[hdd_16_open].GetWidth(),
-		h = toolBarBitmaps[hdd_16_open].GetHeight();
+//	int w = toolBarBitmaps[hdd_16_open].GetWidth(),
+//		h = toolBarBitmaps[hdd_16_open].GetHeight();
 
-	toolBar->SetToolBitmapSize(wxSize(w, h));
+//	toolBar->SetToolBitmapSize(wxSize(w, h));
 
 	toolBar->AddTool(IDM_OPEN_FILE, _("Open"),
 		toolBarBitmaps[hdd_16_open], wxNullBitmap, wxITEM_NORMAL,
@@ -1440,7 +1449,7 @@ bool UiDiskFrame::ShowFileSelectDialog(const wxString &path, wxString &file_form
 bool UiDiskFrame::ShowParamSelectDialog(const wxString &path, const DiskParamPtrs &disk_params, const DiskParam *manual_param, DiskParam &param_hint)
 {
 	// パラメータを選択
-	DiskParamBox dlg(this, wxID_ANY, DiskParamBox::SELECT_DISK_TYPE, 0, NULL, &disk_params, manual_param, DiskParamBox::SHOW_TEMPLATE);
+	DiskParamDiskSelectBox dlg(this, wxID_ANY, &disk_params, manual_param, DiskParamBox::SHOW_TEMPLATE);
 	int sts = dlg.ShowModal();
 	if (sts != wxID_OK) {
 		return false;
@@ -2519,3 +2528,4 @@ bool UiDiskFrame::OpenFileWithEditor(enEditorTypes editor_type, const wxFileName
 	return true;
 }
 
+#endif /* !USE_CONSOLE */

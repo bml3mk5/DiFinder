@@ -64,6 +64,7 @@ OBJS=	$(SRCDIR)/utils.o \
 	$(SRCBASICFMTDIR)/basictype_fat_base.o \
 	$(SRCBASICFMTDIR)/basictype_fat12.o \
 	$(SRCBASICFMTDIR)/basictype_fat16.o \
+	$(SRCBASICFMTDIR)/basictype_fat32.o \
 	$(SRCBASICFMTDIR)/basictype_msdos.o \
 	$(SRCBASICFMTDIR)/basictype_os9.o \
 	$(SRCBASICFMTDIR)/basictype_hu68k.o \
@@ -107,6 +108,7 @@ OBJS=	$(SRCDIR)/utils.o \
 	$(SRCUIDIR)/rawparambox.o \
 	$(SRCUIDIR)/rawexpbox.o \
 	$(SRCUIDIR)/rawsectorbox.o \
+	$(SRCUIDIR)/filedirbox.o \
 	$(SRCUIDIR)/uibindump.o \
 	$(SRCUIDIR)/uiclistctrl.o \
 	$(SRCUIDIR)/uicdlistctrl.o \
@@ -116,12 +118,14 @@ OBJS=	$(SRCDIR)/utils.o \
 	$(SRCUIDIR)/uidisklist.o \
 	$(SRCUIDIR)/uifilelist.o \
 	$(SRCUIDIR)/uimainframe.o \
+	$(SRCUIDIR)/uimainpanel.o \
 	$(SRCUIDIR)/uimainprocess.o \
 	$(SRCUIDIR)/uirawdisk.o \
 	$(SRCUIDIR)/uifatarea.o \
 	$(SRCUIDIR)/uirpanel.o \
 	$(SRCUIDIR)/mymenu.o \
 	$(SRCUIDIR)/mydialog.o \
+	$(SRCUIDIR)/aboutbox.o \
 	$(SRCDIR)/main.o
 
 EXE =$(BUILDDIR)/$(EXEFILE)

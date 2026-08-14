@@ -545,7 +545,7 @@ bool DiskBasicTypeHFS::AssignDirectory(bool is_root, const DiskBasicGroups &grou
 }
 
 /// 使用可能なディスクサイズを得る
-void DiskBasicTypeHFS::GetUsableDiskSize(int &disk_size, int &group_size) const
+void DiskBasicTypeHFS::GetUsableDiskSize(wxInt64 &disk_size, wxInt64 &group_size) const
 {
 	group_size = basic->GetFatEndGroup() + 1;
 	disk_size = group_size * basic->GetDisk()->GetSectorSize();
@@ -1073,12 +1073,12 @@ bool DiskBasicTypeHFS::AdditionalProcessOnFormatted(const DiskBasicIdentifiedDat
 /// @param [in]  size			書き込み先バッファサイズ
 /// @param [in]  remain			残りのデータサイズ
 /// @param [in]  sector_num		セクタ番号
-/// @param [in]  group_num		現在のグループ番号
-/// @param [in]  next_group		次のグループ番号
+/// @param [in]  group_item		現在のグループアイテム
+/// @param [in]  next_group		次のグループアイテム
 /// @param [in]  sector_end		最終セクタ番号
 /// @param [in]  seq_num		通し番号(0...)
 /// @return 書き込んだバイト数
-int DiskBasicTypeHFS::WriteFile(DiskBasicDirItem *item, wxInputStream &istream, wxUint8 *buffer, int size, int remain, int sector_num, wxUint32 group_num, wxUint32 next_group, int sector_end, int seq_num)
+int DiskBasicTypeHFS::WriteFile(DiskBasicDirItem *item, wxInputStream &istream, wxUint8 *buffer, int size, int remain, int sector_num, DiskBasicGroupItem *group_item, DiskBasicGroupItem *next_group, int sector_end, int seq_num)
 {
 	int len = 0;
 	if (remain <= size) {

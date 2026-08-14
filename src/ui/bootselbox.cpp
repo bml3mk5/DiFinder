@@ -7,13 +7,15 @@
 
 #include "bootselbox.h"
 #include <wx/string.h>
-#include <wx/listbox.h>
-#include <wx/stattext.h>
-#include <wx/sizer.h>
 #include "../diskimg/diskimage.h"
 #include "../diskimg/bootparam.h"
 #include "../utils.h"
 
+#ifndef USE_CONSOLE
+
+#include <wx/listbox.h>
+#include <wx/stattext.h>
+#include <wx/sizer.h>
 
 // Attach Event
 BEGIN_EVENT_TABLE(BootSelBox, wxDialog)
@@ -24,7 +26,7 @@ END_EVENT_TABLE()
 BootSelBox::BootSelBox(wxWindow* parent, wxWindowID id, DiskImageFile *file, int show_flags)
 	: wxDialog(parent, id, _("Select Bootstrap Type"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
-	wxSizerFlags flags = wxSizerFlags().Expand().Border(wxALL, 4);
+	wxSizerFlags flags = wxSizerFlags().Expand().Border(wxALL, FromDIP(4));
 
 	wxBoxSizer *szrAll = new wxBoxSizer(wxVERTICAL);
 
@@ -85,3 +87,5 @@ const BootParam *BootSelBox::GetBootParam() const
 
 	return match;
 }
+
+#endif /* !USE_CONSOLE */

@@ -1,6 +1,6 @@
 # ![](difinder_icon.png) Disk Image Finder
 
-#### Copyright(C) Sasaji 2015-2025 All Rights Reserved.
+#### Copyright(C) Sasaji 2015-2026 All Rights Reserved.
 
 <a href="#ja">日本語</a> <a href="#en">English</a>
 
@@ -24,6 +24,8 @@
  * 富士通 FM TOWNS MS-DOS (FAT12/FAT16)
   + ロングファイルネーム(LFN)には対応していません。
  * Apple Macintosh HFS (※読み出しのみ)
+ * PC-AT MBR MS-DOS (FAT12/FAT16/FAT32)
+  + ロングファイルネーム(LFN)には対応していません。
 
 #### フロッピーディスクイメージにアクセスしたいなら[こちら](https://github.com/bml3mk5/L3DiskEx/releases)
 
@@ -55,6 +57,8 @@ Supported DISK BASIC / OS：
  * FUJITSU FM TOWNS MS-DOS (FAT12/FAT16)
   + A long filename (LFN) is not supported.
  * Apple Macintosh HFS (* Read only)
+ * PC-AT MBR MS-DOS (FAT12/FAT16/FAT32)
+  + A long filename (LFN) is not supported.
 
 #### You can access to files in a floppy disk image: [Here](https://github.com/bml3mk5/L3DiskEx/releases)
 

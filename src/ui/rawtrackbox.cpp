@@ -6,6 +6,9 @@
 ///
 
 #include "rawtrackbox.h"
+
+#ifndef USE_CONSOLE
+
 #include <wx/stattext.h>
 #include <wx/sizer.h>
 #include <wx/numformatter.h>
@@ -24,7 +27,7 @@ RawTrackBox::RawTrackBox(wxWindow* parent, wxWindowID id, int num, wxUint32 offs
 //	wxTextValidator validate(wxFILTER_ALPHANUMERIC);
 
 //	wxSizerFlags flagsr = wxSizerFlags().Align(wxALIGN_RIGHT);
-	wxSizerFlags flags = wxSizerFlags().Expand().Border(wxALL, 4);
+	wxSizerFlags flags_a4 = wxSizerFlags().Expand().Border(wxALL, FromDIP(4));
 
 	wxBoxSizer *szrAll = new wxBoxSizer(wxVERTICAL);
 //	wxGridSizer *grid;
@@ -32,7 +35,7 @@ RawTrackBox::RawTrackBox(wxWindow* parent, wxWindowID id, int num, wxUint32 offs
 	wxString str;
 
 	wxSizer *szrButtons = CreateButtonSizer(wxOK);
-	szrAll->Add(szrButtons, flags);
+	szrAll->Add(szrButtons, flags_a4);
 
 	SetSizerAndFit(szrAll);
 }
@@ -41,3 +44,5 @@ int RawTrackBox::ShowModal()
 {
 	return wxDialog::ShowModal();
 }
+
+#endif /* !USE_CONSOLE */

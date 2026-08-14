@@ -9,13 +9,17 @@
 #define BOOTSELBOX_H
 
 #include "../common.h"
-#include <wx/dialog.h>
 #include <wx/dynarray.h>
+
+class DiskImageFile;
+class BootParam;
+
+#ifndef USE_CONSOLE
+
+#include <wx/dialog.h>
 
 class wxListBox;
 class wxTextCtrl;
-class DiskImageFile;
-class BootParam;
 
 /// ブート種類選択ボックス
 class BootSelBox : public wxDialog
@@ -48,5 +52,6 @@ public:
 	wxDECLARE_EVENT_TABLE();
 };
 
-#endif /* BOOTSELBOX_H */
+#endif /* !USE_CONSOLE */
 
+#endif /* BOOTSELBOX_H */

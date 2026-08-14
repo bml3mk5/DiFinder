@@ -105,7 +105,7 @@ int DiskPlainParser::Parse(wxInputStream &istream, const DiskParam *disk_param, 
 int DiskPlainParser::Check(wxInputStream &istream, const DiskTypeHints *disk_hints, const DiskParam *disk_param, DiskParamPtrs &disk_params, DiskParam &manual_param)
 {
 	int rc = 0;
-	int stream_size = (int)istream.GetLength();
+	wxFileOffset stream_size = istream.GetLength();
 
 	// パラメータで判断
 	if (disk_param != NULL) {
@@ -122,7 +122,7 @@ int DiskPlainParser::Check(wxInputStream &istream, const DiskTypeHints *disk_hin
 			wxString hint = disk_hints->Item(i).GetHint();
 			const DiskParam *param = gDiskTemplates.Find(hint);
 			if (param) {
-				int disk_size_hint = param->CalcDiskSize();
+				wxInt64 disk_size_hint = param->CalcDiskSize();
 				if (stream_size == disk_size_hint) {
 					// ファイルサイズが一致
 					disk_params.Add(param);
@@ -142,7 +142,7 @@ int DiskPlainParser::Check(wxInputStream &istream, const DiskTypeHints *disk_hin
 					continue;
 				}
 
-				int disk_size_hint = param->CalcDiskSize();
+				wxInt64 disk_size_hint = param->CalcDiskSize();
 				if (stream_size * mag == disk_size_hint) {
 					if (!separator) {
 						disk_params.Add(NULL);
@@ -167,21 +167,20 @@ int DiskPlainParser::Check(wxInputStream &istream, const DiskTypeHints *disk_hin
 }
 
 /// ディスクサイズから尤もらしいパラメータを計算する
-void DiskPlainParser::CalcParamFromSize(int disk_size, DiskParam &disk_param)
+void DiskPlainParser::CalcParamFromSize(wxFileOffset disk_size, DiskParam &disk_param)
 {
-	// セクタサイズヒント
-	const int sec_size_hints[] = {
-		512,256,1024,0
-	};
 	// セクタ数ヒント
 	const int secs256[] = {	33, 0 };
 	const int secs512[] = {	17, 0 };
 	const int secs1024[] = { 9, 0 };
-	const int *secs_hint[] = {
-		secs256,
-		secs512,
-		secs1024,
-		NULL
+	const struct {
+		int        sec_size; // セクタサイズ
+		const int *secs;
+	} secs_hint[] = {
+		{ 512, secs512 },
+		{ 256, secs256 },
+		{ 1024, secs1024 },
+		{ 0, NULL }
 	};
 
 	// トラック数はディスクサイズで
@@ -189,19 +188,19 @@ void DiskPlainParser::CalcParamFromSize(int disk_size, DiskParam &disk_param)
 	int min_tracks = 100;
 
 	int ival = 0;
-	int desided_sec_size_idx = -1;
+	int desided_idx = -1;
 	int desided_all_sectors = 0;
 
-	for(int sec_size_idx = 0; sec_size_hints[sec_size_idx] != 0; sec_size_idx++) {
+	for(int idx = 0; secs_hint[idx].sec_size != 0; idx++) {
 		// セクタサイズで割る
-		ival = disk_size % sec_size_hints[sec_size_idx];	// 余り
+		ival = disk_size % secs_hint[idx].sec_size;	// 余り
 		if (ival == 0) {
-			desided_sec_size_idx = sec_size_idx;
-			desided_all_sectors = disk_size / sec_size_hints[sec_size_idx];
+			desided_idx = idx;
+			desided_all_sectors = (int)(disk_size / secs_hint[idx].sec_size);
 			break;
 		}
 	}
-	if (desided_sec_size_idx < 0) {
+	if (desided_idx < 0) {
 		// セクタサイズ候補なし
 		return;
 	}
@@ -210,13 +209,31 @@ void DiskPlainParser::CalcParamFromSize(int disk_size, DiskParam &disk_param)
 	int desided_sides = 0;
 	int desided_sectors = 0;
 	bool desided = false;
-	const int *sectors = secs_hint[desided_sec_size_idx];
-	for(int sides = 8; sides >= 2 && !desided; sides--) {
-		for(int tracks = min_tracks; tracks <= max_tracks && !desided; tracks++) {
+	const int *sectors = secs_hint[desided_idx].secs;
+
+	if (!desided) {
+		// セクタ数*サイド数で割りきれるものを候補にする
+		for(int sides = 8; sides >= 2 && !desided; sides--) {
 			for(int ss = 0; sectors[ss] != 0 && !desided; ss++) {
-				ival = (tracks * sides * sectors[ss]);
-				if (desided_all_sectors == ival) {
-					desided_tracks = tracks;
+				ival = desided_all_sectors % (sides * sectors[ss]); // 余り
+				if (ival == 0) {
+					desided_tracks = desided_all_sectors / sectors[ss] / sides;
+					desided_sides = sides;
+					desided_sectors = sectors[ss];
+					desided = true;
+					break;
+				}
+			}
+		}
+	}
+
+	if (!desided) {
+		// セクタ数で割りきれなくても候補にする
+		for(int ss = 0; sectors[ss] != 0 && !desided; ss++) {
+			for(int sides = 8; sides >= 2 && !desided; sides--) {
+				ival = desided_all_sectors / sectors[ss] / sides;
+				if (ival > 0) {
+					desided_tracks = ival;
 					desided_sides = sides;
 					desided_sectors = sectors[ss];
 					desided = true;
@@ -282,7 +299,7 @@ void DiskPlainParser::CalcParamFromSize(int disk_size, DiskParam &disk_param)
 		desided_sides,
 		desided_tracks,
 		desided_sectors,
-		sec_size_hints[desided_sec_size_idx],
+		secs_hint[desided_idx].sec_size,
 		0,
 		1,
 		DiskParticulars(),

@@ -15,9 +15,8 @@
 //
 //
 DiskBasicTypeMSDOS::DiskBasicTypeMSDOS(DiskBasic *basic, DiskBasicFat *fat, DiskBasicDir *dir)
-	: DiskBasicTypeFAT16(basic, fat, dir)
+	: DiskBasicTypeFAT32(basic, fat, dir)
 {
-	m_fat_type = 0; // FAT12 default
 }
 
 /// FAT位置をセット
@@ -26,11 +25,16 @@ DiskBasicTypeMSDOS::DiskBasicTypeMSDOS(DiskBasic *basic, DiskBasicFat *fat, Disk
 void DiskBasicTypeMSDOS::SetGroupNumber(wxUint32 num, wxUint32 val)
 {
 	switch (m_fat_type) {
-	case 0:
+	case FAT_TYPE_12:
 		DiskBasicTypeFAT12::SetGroupNumber(num, val);
 		break;
-	default:
+	case FAT_TYPE_16:
 		DiskBasicTypeFAT16::SetGroupNumber(num, val);
+		break;
+	case FAT_TYPE_32:
+		DiskBasicTypeFAT32::SetGroupNumber(num, val);
+		break;
+	default:
 		break;
 	}
 }
@@ -39,10 +43,14 @@ void DiskBasicTypeMSDOS::SetGroupNumber(wxUint32 num, wxUint32 val)
 wxUint32 DiskBasicTypeMSDOS::GetGroupNumber(wxUint32 num) const
 {
 	switch (m_fat_type) {
-	case 0:
+	case FAT_TYPE_12:
 		return DiskBasicTypeFAT12::GetGroupNumber(num);
-	default:
+	case FAT_TYPE_16:
 		return DiskBasicTypeFAT16::GetGroupNumber(num);
+	case FAT_TYPE_32:
+		return DiskBasicTypeFAT32::GetGroupNumber(num);
+	default:
+		return 0;
 	}
 }
 
@@ -50,10 +58,14 @@ wxUint32 DiskBasicTypeMSDOS::GetGroupNumber(wxUint32 num) const
 wxUint32 DiskBasicTypeMSDOS::GetGroupSystemCode() const
 {
 	switch (m_fat_type) {
-	case 0:
+	case FAT_TYPE_12:
 		return 0xff8;
-	default:
+	case FAT_TYPE_16:
 		return 0xfff8;
+	case FAT_TYPE_32:
+		return 0x0ffffff8;
+	default:
+		return 0;
 	}
 }
 
@@ -61,11 +73,16 @@ wxUint32 DiskBasicTypeMSDOS::GetGroupSystemCode() const
 void DiskBasicTypeMSDOS::CalcDiskFreeSize(bool wrote)
 {
 	switch (m_fat_type) {
-	case 0:
+	case FAT_TYPE_12:
 		DiskBasicTypeFAT12::CalcDiskFreeSize(wrote);
 		break;
-	default:
+	case FAT_TYPE_16:
 		DiskBasicTypeFAT16::CalcDiskFreeSize(wrote);
+		break;
+	case FAT_TYPE_32:
+		DiskBasicTypeFAT32::CalcDiskFreeSize(wrote);
+		break;
+	default:
 		break;
 	}
 }
@@ -78,10 +95,14 @@ void DiskBasicTypeMSDOS::CalcDiskFreeSize(bool wrote)
 double DiskBasicTypeMSDOS::CheckFat(bool is_formatting)
 {
 	switch (m_fat_type) {
-	case 0:
+	case FAT_TYPE_12:
 		return DiskBasicTypeFAT12::CheckFat(is_formatting);
-	default:
+	case FAT_TYPE_16:
 		return DiskBasicTypeFAT16::CheckFat(is_formatting);
+	case FAT_TYPE_32:
+		return DiskBasicTypeFAT32::CheckFat(is_formatting);
+	default:
+		return -1.0;
 	}
 }
 
@@ -174,6 +195,8 @@ double DiskBasicTypeMSDOS::ParseMSDOSParamOnDisk(DiskImageDisk *disk, bool is_fo
 	}
 
 	// FATタイプの決定
+	m_fat_type = FAT_TYPE_12;
+
 	wxUint32 data_sectors = sector_mag * wxUINT16_SWAP_ON_BE(bpb->BPB_TotSec16);
 	if (data_sectors == 0) {
 		data_sectors = sector_mag * wxUINT32_SWAP_ON_BE(bpb->BPB_TotSec32);
@@ -182,21 +205,53 @@ double DiskBasicTypeMSDOS::ParseMSDOSParamOnDisk(DiskImageDisk *disk, bool is_fo
 	int max_grp = (int)(data_sectors / basic->GetSectorsPerGroup());
 #if 0
 	if (max_grp >= 65525) {
-		m_fat_type = 2;	// FAT32
+		m_fat_type = FAT_TYPE_32;	// FAT32
 	} else
 #endif
 	if (max_grp >= 4086) {
-		m_fat_type = 1;	// FAT16
+		m_fat_type = FAT_TYPE_16;	// FAT16
+	}
+
+	// FAT32か？
+	if (bpb->BPB_FATSz16 == 0) {
+		fat32_bs_t *fat32_bs = (fat32_bs_t *)(datas + 36);
+		if (fat32_bs->BPB_FatSz32 == 0) {
+			return -1.0;
+		}
+
+		m_fat_type = FAT_TYPE_32;	// FAT32
+
+		// FAT1つのセクタ数
+		basic->SetSectorsPerFat(sector_mag * wxUINT32_SWAP_ON_BE(fat32_bs->BPB_FatSz32));
+		// ディレクトリのエントリ数
+		basic->SetDirEntryCount(0);
+		// ルートディレクトリのあるクラスタ
+		basic->SetVariousParam(wxT("DirStartCluster"), wxVariant((int)wxUINT32_SWAP_ON_BE(fat32_bs->BPB_RootClus)));
+		// ディレクトリの最終セクタを再計算
+		basic->SetDirStartSector(-1);
+		basic->SetDirEndSector(-1);
+		basic->CalcDirStartEndSector(sector_size_on_disk);
 	}
 
 	// 最終グループ番号を計算
+	wxUint32 system_code = basic->GetGroupSystemCode();
+	wxUint32 final_code = basic->GetGroupFinalCode();
 	int max_grp_on_fat = 0;
 	switch(m_fat_type) {
-	case 0:
+	case FAT_TYPE_12:
 		max_grp_on_fat = basic->GetSectorsPerFat() * sector_size_on_disk * 2 / 3;	// FAT12で計算
+		system_code &= 0xfff;
+		final_code &= 0xfff;
+		break;
+	case FAT_TYPE_16:
+		max_grp_on_fat = basic->GetSectorsPerFat() * sector_size_on_disk / 2;	// FAT16で計算
+		system_code &= 0xffff;
+		final_code &= 0xffff;
+		break;
+	case FAT_TYPE_32:
+		max_grp_on_fat = basic->GetSectorsPerFat() * sector_size_on_disk;	// FAT32で計算
 		break;
 	default:
-		max_grp_on_fat = basic->GetSectorsPerFat() * sector_size_on_disk / 2;	// FAT16で計算
 		break;
 	}
 	int max_grp_on_prm = disk->GetNumberOfSectors() / basic->GetSectorsPerGroup();
@@ -204,17 +259,24 @@ double DiskBasicTypeMSDOS::ParseMSDOSParamOnDisk(DiskImageDisk *disk, bool is_fo
 	max_grp = (max_grp < max_grp_on_fat ? max_grp : max_grp_on_fat);
 	max_grp = (max_grp < max_grp_on_prm ? max_grp : max_grp_on_prm);
 	basic->SetFatEndGroup(max_grp - 1);
+	basic->SetGroupSystemCode(system_code);
+	basic->SetGroupFinalCode(final_code);
 
 	// テンプレートに一致するものがあるか
 	const DiskBasicParam *param = gDiskBasicTemplates.FindType(basic->GetBasicCategoryName(), basic->GetBasicTypeName());
 	if (param) {
 		wxString str = param->GetBasicDescription();
 		switch(m_fat_type) {
-		case 0:
+		case FAT_TYPE_12:
 			str += wxT(" (FAT12)");
 			break;
-		default:
+		case FAT_TYPE_16:
 			str += wxT(" (FAT16)");
+			break;
+		case FAT_TYPE_32:
+			str += wxT(" (FAT32)");
+			break;
+		default:
 			break;
 		}
 		basic->SetBasicDescription(str);
@@ -224,7 +286,53 @@ double DiskBasicTypeMSDOS::ParseMSDOSParamOnDisk(DiskImageDisk *disk, bool is_fo
 	if (nums > 0) {
 		valid_ratio = (double)valids/nums;
 	}
+
+//	// FAT32はサポート外
+//	if (m_fat_type == FAT_TYPE_32) {
+//		valid_ratio = -1.0;
+//	}
+
 	return valid_ratio;
+}
+
+/// ルートディレクトリのチェック
+/// @param [in]     start_sector 開始セクタ番号
+/// @param [in]     end_sector   終了セクタ番号
+/// @param [out]    group_items  セクタリスト
+/// @param [in]     is_formatting フォーマット中か
+/// @return <0.0 エラー 1.0:正常
+double DiskBasicTypeMSDOS::CheckRootDirectory(int start_sector, int end_sector, DiskBasicGroups &group_items, bool is_formatting)
+{
+	// フォーマット中はチェックしない
+	if (is_formatting) return 1.0;
+
+//	if (m_fat_type == FAT_TYPE_32) {
+//		DiskBasicDirItem *root = basic->GetRootDirectory();
+//		root->GetAllGroups(group_items);
+//		return DiskBasicType::CheckDirectory(true, group_items);
+//	} else {
+		return DiskBasicType::CheckRootDirectory(start_sector, end_sector, group_items, is_formatting);
+//	}
+}
+
+/// ルートディレクトリをアサイン
+/// @param [in]     start_sector 開始セクタ番号
+/// @param [in]     end_sector   終了セクタ番号
+/// @param [out]    group_items  セクタリスト
+/// @param [in,out] dir_item     ルートディレクトリアイテム
+/// @return true / false
+bool DiskBasicTypeMSDOS::AssignRootDirectory(int start_sector, int end_sector, DiskBasicGroups &group_items, DiskBasicDirItem *dir_item)
+{
+	if (m_fat_type == FAT_TYPE_32) {
+		if (dir_item->GetStartGroup(0) == 0) {
+			int val = basic->GetVariousIntegerParam(wxT("DirStartCluster"));
+			dir_item->SetStartGroup(0, val);
+		}
+		dir_item->GetAllGroups(group_items);
+		return DiskBasicType::AssignDirectory(true, group_items, dir_item);
+	} else {
+		return DiskBasicType::AssignRootDirectory(start_sector, end_sector, group_items, dir_item);
+	}
 }
 
 /// セクタデータを埋めた後の個別処理

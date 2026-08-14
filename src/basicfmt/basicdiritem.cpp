@@ -116,14 +116,28 @@ DiskBasicDirItem::DiskBasicDirItem(DiskBasic *basic, int n_num, const DiskBasicG
 /// デストラクタ
 DiskBasicDirItem::~DiskBasicDirItem()
 {
-	if (m_children) {
-		for(size_t i=0; i<m_children->Count(); i++) {
-			DiskBasicDirItem *child = m_children->Item(i);
-			delete child;
-		}
-		m_children->Clear();
-		delete m_children;
-	}
+	EmptyChildren();
+}
+
+/// 初期状態に戻す
+void DiskBasicDirItem::Reset()
+{
+	EmptyChildren();
+
+	m_groups.Empty();
+
+	m_parent = NULL;
+	m_children = NULL;
+	m_valid_dir = false;
+
+	m_num = 0;
+//	m_position = 0;
+//	m_file_size = 0;
+//	m_sector = NULL;
+
+	m_external_attr = 0;
+
+	m_flags = (VISIBLE_LIST | VISIBLE_TREE);
 }
 
 #if 0

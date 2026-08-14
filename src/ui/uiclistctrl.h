@@ -9,6 +9,9 @@
 #define UICLISTCTRL_H
 
 #include "../common.h"
+
+#ifndef USE_CONSOLE
+
 #include <wx/listctrl.h>
 #include <wx/dynarray.h>
 #include <wx/rearrangectrl.h>
@@ -23,7 +26,7 @@
 
 class wxMenu;
 class UiDiskFrame;
-class Config;
+class ColumnParams;
 
 //////////////////////////////////////////////////////////////////////
 
@@ -130,7 +133,7 @@ protected:
 	int				 m_idOnFirstColumn;
 	int				 m_icon_sort_down;
 	int				 m_icon_sort_up;
-	Config			*m_ini;
+	ColumnParams	*m_ini;
 #ifdef USE_VIRTUAL_ON_LIST_CTRL
 	MyCListRows		 m_rows;
 #endif
@@ -142,7 +145,7 @@ public:
 	MyCListCtrl(UiDiskFrame *parentframe, wxWindow *parent, wxWindowID id,
 		const struct st_list_columns *columns,
 		int icon_sort_down, int icon_sort_up,
-		Config *ini,
+		ColumnParams *ini,
 		int style,
 		const wxPoint &pos=wxDefaultPosition, const wxSize &size=wxDefaultSize);
 	virtual ~MyCListCtrl();
@@ -271,5 +274,6 @@ public:
 
 };
 
-#endif /* UICLISTCTRL_H */
+#endif /* !USE_CONSOLE */
 
+#endif /* UICLISTCTRL_H */

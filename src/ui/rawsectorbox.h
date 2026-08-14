@@ -8,15 +8,17 @@
 #ifndef RAWSECTORBOX_H
 #define RAWSECTORBOX_H
 
+#include "../common.h"
+
+#ifndef USE_CONSOLE
+
+#include <wx/dialog.h>
+
 #define SECTORBOX_TRANS \
 _("Required information entry is empty.") \
 _("'%s' is invalid") \
 _("Validation conflict") \
 _("'%s' should only contain digits.")
-
-#include "../common.h"
-#include <wx/dialog.h>
-
 
 #define SECTORBOX_HIDE_SECTOR_NUMS	0x0040
 
@@ -38,6 +40,9 @@ private:
 	wxTextCtrl *txtSecNums;
 
 	wxTextCtrl *txtStatus;
+
+	wxTextCtrl *txtRCRC;
+	wxTextCtrl *txtCCRC;
 
 public:
 	RawSectorBox(wxWindow* parent, wxWindowID id, const wxString &caption, int id_c, int id_h, int id_r, int id_n, int sec_nums, bool deleted, bool sdensity, int status, int hide_flags = 0);
@@ -75,5 +80,6 @@ public:
 	wxDECLARE_EVENT_TABLE();
 };
 
-#endif /* RAWSECTORBOX_H */
+#endif /* !USE_CONSOLE */
 
+#endif /* RAWSECTORBOX_H */

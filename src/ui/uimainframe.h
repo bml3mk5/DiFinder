@@ -11,6 +11,9 @@
 /* #define USE_MENU_OPEN	*/
 
 #include "../common.h"
+
+#ifndef USE_CONSOLE
+
 #include "uimainprocess.h"
 #include <wx/string.h>
 #include <wx/filename.h>
@@ -680,6 +683,8 @@ public:
 
 	wxDECLARE_EVENT_TABLE();
 };
+
+#endif /* !USE_CONSOLE */
 
 #endif /* UIMAINFRAME_H */
 

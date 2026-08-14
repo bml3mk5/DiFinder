@@ -199,13 +199,13 @@ public:
 	~BootTemplates() {}
 
 	/// @brief XMLファイルから読み込み
-	bool Load(const wxString &data_path, const wxString &locale_name, wxString &errmsgs);
+	bool Load(const wxString &data_path, const wxString &locale_name, wxArrayString &errmsgs);
 	/// @brief BootTypesエレメントをロード
-	bool LoadBootTypes(const wxXmlNode *node, const wxString &locale_name, wxString &errmsgs);
+	bool LoadBootTypes(const wxXmlNode *node, const wxString &locale_name, wxArrayString &errmsgs);
 	/// @brief BootCategoryエレメントのロード
-	bool LoadBootCategories(const wxXmlNode *node, const wxString &locale_name, wxString &errmsgs);
+	bool LoadBootCategories(const wxXmlNode *node, const wxString &locale_name, wxArrayString &errmsgs);
 	/// @brief CompareKeywordsエレメントをロード
-	bool LoadKeywords(const wxXmlNode *node, BootKeywords &keywords, wxString &errmsgs);
+	bool LoadKeywords(const wxXmlNode *node, BootKeywords &keywords, wxArrayString &errmsgs);
 	/// @brief CompareKeywordsエレメントの属性をロード
 	bool LoadKeywordAttrs(const wxXmlNode *node, BootKeyword &keyword);
 	/// @brief CompareKeywordsエレメントのStringエレメントをロード
@@ -215,7 +215,7 @@ public:
 	/// @brief CompareKeywordsエレメントのArrayStringエレメントをロード
 	bool LoadKeywordArrayString(const wxXmlNode *node, BootKeywords &keywords);
 	/// @brief DiskBasicTypesエレメントをロード
-	bool LoadDiskBasicTypes(const wxXmlNode *node, BasicParamNames &basic_types, wxString &errmsgs);
+	bool LoadDiskBasicTypes(const wxXmlNode *node, BasicParamNames &basic_types, wxArrayString &errmsgs);
 
 	/// @brief 一致するテンプレートの番号を返す
 	int IndexOf(const BootParam *n_boot_param) const;

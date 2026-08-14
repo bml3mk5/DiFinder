@@ -201,13 +201,13 @@ public:
 	virtual void	SetWriteProtect(bool val) {}
 
 	/// ディスクサイズ（ヘッダサイズ含む）
-	virtual wxUint32 GetSize() const { return 0; }
+	virtual wxUint64 GetSize() const { return 0; }
 	/// ディスクサイズ（ヘッダサイズ含む）を設定
-	virtual void	SetSize(wxUint32 val) {}
+	virtual void	SetSize(wxUint64 val) {}
 	/// ディスクサイズ（ヘッダサイズを除く）
-	virtual wxUint32 GetSizeWithoutHeader() const { return 0; }
+	virtual wxUint64 GetSizeWithoutHeader() const { return 0; }
 	/// ディスクサイズ（ヘッダサイズを除く）を設定
-	virtual void	SetSizeWithoutHeader(wxUint32 val) {}
+	virtual void	SetSizeWithoutHeader(wxUint64 val) {}
 	/// ヘッダサイズを返す
 	virtual wxUint32 GetHeaderSize() const { return 0; }
 
@@ -323,16 +323,26 @@ public:
 	virtual DiskImageSector *GetSector(int sector_pos) { return NULL; }
 	/// キャッシュを更新する
 	virtual void RefreshCache(int sector_pos) {}
+	/// キャッシュをクリア ファイル更新もしない
+	virtual void ClearCacheAll() {}
 	/// キャッシュをクリアする
-	void ClearCache(wxUint32 start, wxUint32 size) {}
+	virtual void ClearCache(wxUint32 start, wxUint32 size) {}
 	/// キャッシュのリファレンス数ををクリアする
-	void ClearCacheRefs(wxUint32 start, wxUint32 size) {}
+	virtual void ClearCacheRefs(wxUint32 start, wxUint32 size) {}
 
+	/// 変更されているか
 	virtual bool IsModified() { return false; }
+	/// セクタ変更をクリア
 	virtual void ClearModify() {}
+	/// 範囲内のセクタが変更されているか
+	virtual bool IsModified(wxUint32 start, wxUint32 size) { return false; }
+	/// 範囲内のセクタ変更をクリア
+	virtual void ClearModify(wxUint32 start, wxUint32 size) {}
 
 	/// データをすべて出力	
 	virtual void Flush() {}
+	/// 範囲内のデータを出力
+	virtual void Flush(wxUint32 start, wxUint32 size) {}
 
 	/// 書き込み禁止かどうかを返す
 	virtual bool	IsWriteProtected() const { return true; }

@@ -20,7 +20,16 @@
 */
 class DiskBasicTypeFATBase : public DiskBasicType
 {
+public:
+	enum enFatType {
+		FAT_TYPE_12 = 0,
+		FAT_TYPE_16 = 1,
+		FAT_TYPE_32 = 2,
+	};
+
 protected:
+	enFatType m_fat_type;	// FAT12 = 0 / 16 = 1
+
 	DiskBasicTypeFATBase() : DiskBasicType() {}
 	DiskBasicTypeFATBase(const DiskBasicType &src) : DiskBasicType(src) {}
 public:
@@ -31,6 +40,8 @@ public:
 	//@{
 	/// @brief 次の空きFAT位置を返す
 	virtual wxUint32 GetNextEmptyGroupNumber(wxUint32 curr_group);
+	/// @brief FAT種類を返す
+	virtual int GetFatType() const { return (int)m_fat_type; }
 	//@}
 
 	/// @name check / assign FAT area
@@ -44,7 +55,7 @@ public:
 	/// @name disk size
 	//@{
 	/// @brief 使用可能なディスクサイズを得る
-	virtual void	GetUsableDiskSize(int &disk_size, int &group_size) const;
+	virtual void	GetUsableDiskSize(wxInt64 &disk_size, wxInt64 &group_size) const;
 	/// @brief 残りディスクサイズを計算
 	void			CalcDiskFreeSizeBase(bool wrote, wxUint32 start_group, wxUint32 used_group);
 	//@}

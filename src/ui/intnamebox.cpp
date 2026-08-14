@@ -6,6 +6,9 @@
 ///
 
 #include "intnamebox.h"
+
+#ifndef USE_CONSOLE
+
 #include "intnamevalid.h"
 #include "../main.h"
 #include "uimainprocess.h"
@@ -23,7 +26,7 @@
 #include "../utils.h"
 
 
-#define INTNAME_LISTCOL_WIDTH	64
+#define INTNAME_LISTCOL_WIDTH	42
 
 
 // Attach Event
@@ -74,11 +77,14 @@ void IntNameBox::CreateBox(UiDiskProcess *frame, wxWindow* parent, wxWindowID id
 	this->unique_number = frame->GetUniqueNumber();
 	this->basic = basic;
 
-	wxSizerFlags border = wxSizerFlags().Expand().Border(wxALL, 4);
-	wxSizerFlags fborder = wxSizerFlags(1).Expand().Border(wxALL, 4);	// flexible
+	int p4 = FromDIP(4);
+	wxSizerFlags border = wxSizerFlags().Expand().Border(wxALL, p4);
+	wxSizerFlags fborder = wxSizerFlags(1).Expand().Border(wxALL, p4);	// flexible
 //	wxSizerFlags aleft = wxSizerFlags().Left();
 	wxSizerFlags atitle = wxSizerFlags().Align(wxALIGN_CENTER_VERTICAL);
-	wxSize tsize(INTNAME_COLUMN_WIDTH, -1);
+	wxSizerFlags flags_b4 = wxSizerFlags().Expand().Border(wxBOTTOM, p4);
+
+	wxSize tsize(FromDIP(INTNAME_COLUMN_WIDTH), -1);
 	wxSize size;
 	long style = 0;
 	mNameMaxLen = item->GetFileNameStrSize();
@@ -108,7 +114,7 @@ void IntNameBox::CreateBox(UiDiskProcess *frame, wxWindow* parent, wxWindowID id
 	txtIntName = NULL;
 	if (show_flags & INTNAME_SHOW_TEXT) {
 		szrAll->Add(new wxStaticText(this, wxID_ANY, _("File Name In The Disk Image")), border);
-		size.x = DEFAULT_TEXTWIDTH; size.y = -1;
+		size.x = FromDIP(DEFAULT_TEXTWIDTH); size.y = -1;
 		if (item->IsFileNameEditable()) {
 			IntNameValidator validate(item, _("file name"), basic->GetValidFileName());
 			txtIntName = new wxTextCtrl(this, IDC_TEXT_INTNAME, filename, wxDefaultPosition, size, style, validate);
@@ -260,7 +266,7 @@ void IntNameBox::CreateBox(UiDiskProcess *frame, wxWindow* parent, wxWindowID id
 				chkIgnoreDate->SetValue(gConfig.DoesIgnoreDateTime());
 				ChangedIgnoreDate(chkIgnoreDate->GetValue());
 				hbox->Add(chkIgnoreDate, atitle);
-				szrAll->Add(hbox, wxSizerFlags().Expand().Border(wxBOTTOM, 4));
+				szrAll->Add(hbox, flags_b4);
 			}
 		}
 	}
@@ -296,12 +302,12 @@ void IntNameBox::CreateBox(UiDiskProcess *frame, wxWindow* parent, wxWindowID id
 
 		// グループ番号のリスト
 
-		sz.Set(INTNAME_LISTCOL_WIDTH * 4 + 32, -1);
+		int colw = FromDIP(INTNAME_LISTCOL_WIDTH);
+		sz.Set(FromDIP(INTNAME_LISTCOL_WIDTH * 6 + 32), -1);
 		lstGroups = new wxListCtrl(this, IDC_LIST_GROUPS, wxDefaultPosition, sz, wxLC_REPORT | wxLC_SINGLE_SEL);
-		lstGroups->AppendColumn(_("Group"), wxLIST_FORMAT_LEFT, INTNAME_LISTCOL_WIDTH);
-		lstGroups->AppendColumn(_("Start Sector"), wxLIST_FORMAT_RIGHT, INTNAME_LISTCOL_WIDTH);
-		lstGroups->AppendColumn(_("End Sector"), wxLIST_FORMAT_RIGHT, INTNAME_LISTCOL_WIDTH);
-//		lstGroups->AppendColumn(_("Division"), wxLIST_FORMAT_RIGHT, INTNAME_LISTCOL_WIDTH);
+		lstGroups->AppendColumn(_("Group"), wxLIST_FORMAT_LEFT, colw * 2);
+		lstGroups->AppendColumn(_("Start Sector"), wxLIST_FORMAT_RIGHT, colw * 2);
+		lstGroups->AppendColumn(_("End Sector"), wxLIST_FORMAT_RIGHT, colw * 2);
 		szrAll->Add(lstGroups, fborder);
 
 		lstGroups->SetFont(font);
@@ -311,8 +317,8 @@ void IntNameBox::CreateBox(UiDiskProcess *frame, wxWindow* parent, wxWindowID id
 		if (gConfig.DoesShowInterDirItem()) {
 			// ディレクトリ内部のメタデータリスト
 			lstInternal = new wxListCtrl(this, IDC_LIST_INTERNAL, wxDefaultPosition, sz, wxLC_REPORT | wxLC_SINGLE_SEL);
-			lstInternal->AppendColumn(_("Name"), wxLIST_FORMAT_LEFT, INTNAME_LISTCOL_WIDTH * 2);
-			lstInternal->AppendColumn(_("Value"), wxLIST_FORMAT_LEFT, INTNAME_LISTCOL_WIDTH * 4);
+			lstInternal->AppendColumn(_("Name"), wxLIST_FORMAT_LEFT, colw * 2);
+			lstInternal->AppendColumn(_("Value"), wxLIST_FORMAT_LEFT, colw * 4);
 			szrAll->Add(lstInternal, fborder);
 
 			lstInternal->SetFont(font);
@@ -322,7 +328,7 @@ void IntNameBox::CreateBox(UiDiskProcess *frame, wxWindow* parent, wxWindowID id
 	chkSkipDlg = NULL;
 	if (show_flags & INTNAME_SHOW_SKIP_DIALOG) {
 		// 「以降スキップ」チェックボックス
-		sz.Set(200, 2);
+		sz = FromDIP(wxSize(200, 2));
 		szrAll->Add(new wxStaticLine(this, wxID_ANY, wxDefaultPosition, sz, wxLI_HORIZONTAL), border);
 		chkSkipDlg = new wxCheckBox(this, IDC_CHK_SKIP_DLG, _("Skip the confirmation after this."));
 		chkSkipDlg->SetValue(gConfig.IsSkipImportDialog());
@@ -943,3 +949,5 @@ bool IntNameBox::IsSkipDialog(bool def_val) const
 {
 	return (chkSkipDlg ? chkSkipDlg->IsChecked() : def_val);
 }
+
+#endif /* !USE_CONSOLE */

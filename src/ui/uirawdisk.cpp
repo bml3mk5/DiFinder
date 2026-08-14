@@ -6,6 +6,9 @@
 ///
 
 #include "uirawdisk.h"
+
+#ifndef USE_CONSOLE
+
 #include <wx/statbox.h>
 #include <wx/textctrl.h>
 #include <wx/valnum.h>
@@ -21,11 +24,14 @@
 #include "mymenu.h"
 #include "../main.h"
 #include "uimainframe.h"
+#include "uimainpanel.h"
+#include "filedirbox.h"
 #include "rawtrackbox.h"
 #include "rawsectorbox.h"
 #include "rawparambox.h"
 #include "rawexpbox.h"
 #include "../utils.h"
+
 
 //////////////////////////////////////////////////////////////////////
 
@@ -34,6 +40,7 @@ enum enDefaultParameters {
 	Def_Tracks_Per_Side = 1024,
 	Def_Sides_Per_Disk = 255,
 };
+
 //////////////////////////////////////////////////////////////////////
 
 const struct st_list_columns gUiDiskRawSectorColumnDefs[] = {
@@ -67,6 +74,7 @@ UiDiskRawPanel::UiDiskRawPanel(UiDiskFrame *parentframe, wxWindow *parentwindow)
 
 	invert_data = false;
 	reverse_side = false;
+	m_conf_load = false;
 
 	// fit size on parent window
 	wxSize sz = parentwindow->GetClientSize();
@@ -78,9 +86,47 @@ UiDiskRawPanel::UiDiskRawPanel(UiDiskFrame *parentframe, wxWindow *parentwindow)
 	// control panel
 	lpanel = new UiDiskRawTrack(frame, this);
 	rpanel = new UiDiskRawSector(frame, this);
-	SplitVertically(lpanel, rpanel, 236);
+
+	SplitVertically(lpanel, rpanel, FromDIP(230));
 
 	SetMinimumPaneSize(10);
+}
+
+UiDiskRawPanel::~UiDiskRawPanel()
+{
+	SaveSashPosition();
+}
+
+/// 最初の非表示
+void UiDiskRawPanel::HideFirst()
+{
+	// 仕切り位置の保存をせずに隠す
+	wxSplitterWindow::Show(false);
+}
+
+/// 表示/非表示
+bool UiDiskRawPanel::Show(bool show)
+{
+	bool sts = wxSplitterWindow::Show(show);
+	if (show && !m_conf_load) {
+		LoadSashPosition();
+		m_conf_load = true;
+	}
+	return sts;
+}
+
+/// 仕切り位置を設定ファイルから読み設定する
+void UiDiskRawPanel::LoadSashPosition()
+{
+	int w = gConfig.GetTrackPanelWidth();
+	SetSashPosition(FromDIP(w));
+}
+
+/// 仕切り位置を設定ファイルに保存する
+void UiDiskRawPanel::SaveSashPosition()
+{
+	int w = GetSashPosition();
+	gConfig.SetTrackPanelWidth(ToDIP(w));
 }
 
 /// トラックリストにデータを設定する
@@ -399,7 +445,7 @@ UiDiskRawTrack::UiDiskRawTrack(UiDiskFrame *parentframe, UiDiskRawPanel *parentw
 	m_sides_per_disk = Def_Sides_Per_Disk;
 
 	// controls
-	wxSizerFlags flags_center = wxSizerFlags().Centre().Border(wxALL, 4);
+	wxSizerFlags flags_center = wxSizerFlags().Centre().Border(wxALL, FromDIP(4));
 
 	wxBoxSizer *szrAll = new wxBoxSizer(wxVERTICAL);
 
@@ -407,13 +453,13 @@ UiDiskRawTrack::UiDiskRawTrack(UiDiskFrame *parentframe, UiDiskRawPanel *parentw
 	szrAll->Add(track_box);
 
 	wxSize sz(200, -1);
-	txtTrack = new MySliderText(this, IDC_TXT_TRACK, wxDefaultPosition, sz);
+	txtTrack = new MySliderText(this, IDC_TXT_TRACK, wxDefaultPosition, FromDIP(sz));
 	track_box->Add(txtTrack);
 
 	wxStaticBoxSizer *side_box = new wxStaticBoxSizer(wxVERTICAL, this, _("Side Number"));
 	szrAll->Add(side_box);
 
-	txtSide = new MySliderText(this, IDC_TXT_SIDE, wxDefaultPosition, sz);
+	txtSide = new MySliderText(this, IDC_TXT_SIDE, wxDefaultPosition, FromDIP(sz));
 	side_box->Add(txtSide);
 
 	wxBoxSizer *hbox = new wxBoxSizer(wxHORIZONTAL);
@@ -424,7 +470,7 @@ UiDiskRawTrack::UiDiskRawTrack(UiDiskFrame *parentframe, UiDiskRawPanel *parentw
 	wxStaticBoxSizer *sector_box = new wxStaticBoxSizer(wxVERTICAL, this, _("Sector Number"));
 	szrAll->Add(sector_box);
 
-	txtSector = new MySliderText(this, IDC_TXT_SECTOR, wxDefaultPosition, sz);
+	txtSector = new MySliderText(this, IDC_TXT_SECTOR, wxDefaultPosition, FromDIP(sz));
 	sector_box->Add(txtSector);
 
 	hbox = new wxBoxSizer(wxHORIZONTAL);
@@ -1662,3 +1708,5 @@ void UiDiskRawSector::EditSector()
 	infile.Close();
 	if (inverted) mem_invert(buf, bufsize);
 }
+
+#endif /* !USE_CONSOLE */

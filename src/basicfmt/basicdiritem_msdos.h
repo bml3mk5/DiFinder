@@ -76,8 +76,10 @@ protected:
 	/// @brief 時間に変換
 	static wxUint16	ConvTmToTime(const TM &tm);
 
+#ifndef USE_CONSOLE
 	/// @brief ダイアログ表示前にファイルの属性を設定
 	virtual void	SetFileTypeForAttrDialog(int show_flags, const wxString &name, int &file_type_1, int &file_type_2);
+#endif /* !USE_CONSOLE */
 
 	/// @brief ダイアログ内の属性部分のレイアウトを作成
 	wxStaticBoxSizer *CreateControlsSubForAttrDialog(IntNameBox *parent, int show_flags, wxBoxSizer *sizer, wxSizerFlags &flags, int file_type_1);
@@ -91,6 +93,8 @@ public:
 	DiskBasicDirItemMSDOS(DiskBasic *basic, int n_block_num, int n_position);
 	DiskBasicDirItemMSDOS(DiskBasic *basic, int n_num, const DiskBasicGroupItem *n_gitem, int n_block_num, int n_position, const int *n_next, bool &n_unuse);
 
+	/// @brief 初期状態に戻す
+	virtual void	Reset();
 //	/// @brief アイテムへのポインタを設定
 //	virtual void	SetDataPtr(int n_num, const DiskBasicGroupItem *n_gitem, int n_block_num, int n_position, wxUint8 *n_data, const int *n_next = NULL);
 	/// @brief アイテムへのポインタを設定
@@ -177,19 +181,20 @@ public:
 
 	/// @brief セーブ時にファイルサイズを再計算する ファイルの終端コードが必要な場合など
 	virtual int		RecalcFileSizeOnSave(wxInputStream *istream, int file_size);
+	/// @brief ダイアログ入力後のファイル名チェック
+	virtual bool	ValidateFileName(const wxString &filename, wxString &errormsg);
 
-
+#ifndef USE_CONSOLE
 	/// @name プロパティダイアログ用
 	//@{
 	/// @brief ダイアログ内の属性部分のレイアウトを作成
 	virtual void	CreateControlsForAttrDialog(IntNameBox *parent, int show_flags, const wxString &file_path, wxBoxSizer *sizer, wxSizerFlags &flags);
 	/// @brief 機種依存の属性を設定する
 	virtual bool	SetAttrInAttrDialog(const IntNameBox *parent, DiskBasicDirItemAttr &attr, DiskBasicError &errinfo) const;
-	/// @brief ダイアログ入力後のファイル名チェック
-	virtual bool	ValidateFileName(const wxWindow *parent, const wxString &filename, wxString &errormsg);
 	/// @brief プロパティで表示する内部データを設定
 	virtual void	SetInternalDataInAttrDialog(KeyValArray &vals);
 	//@}
+#endif /* !USE_CONSOLE */
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -198,6 +203,8 @@ public:
 class DiskBasicDirItemVFAT : public DiskBasicDirItemMSDOS
 {
 protected:
+	bool m_has_lfn;	///< LFNを持っているか
+
 	DiskBasicDirItemVFAT() : DiskBasicDirItemMSDOS() {}
 	DiskBasicDirItemVFAT(const DiskBasicDirItemVFAT &src) : DiskBasicDirItemMSDOS(src) {}
 
@@ -207,6 +214,14 @@ protected:
 	virtual void	SetNativeName(wxUint8 *filename, size_t size, size_t length);
 	/// @brief ファイル名を得る
 	virtual void	GetNativeName(wxUint8 *filename, size_t size, size_t &length) const;
+	/// @brief 拡張子を得る
+	virtual void	GetNativeExt(wxUint8 *fileext, size_t size, size_t &length) const;
+	/// @brief ショートファイル名を得る
+	void			GetNativeNameSFN(wxUint8 *filename, size_t size, size_t &length) const;
+	/// @brief SFNのチェックサムを計算する
+	wxUint8			CalcCheckSumSFN() const;
+	/// @brief ロングファイル名を得る
+	bool			GetNativeNameLFN(wxUint8 *filename, size_t size, size_t &length) const;
 
 public:
 	DiskBasicDirItemVFAT(DiskBasic *basic);
@@ -221,6 +236,8 @@ public:
 	virtual bool	IsDeletable() const;
 	/// @brief ファイル名を編集できるか
 	virtual bool	IsFileNameEditable() const;
+	/// @brief ディレクトリアイテムをアサインした後の追加処理 ロングファイル名のチェック
+	virtual void	AdditionalProcessAfterAssigned();
 
 	/// @brief 属性を設定
 	virtual void	SetFileAttr(const DiskBasicFileType &file_type);
@@ -231,10 +248,10 @@ public:
 	/// @brief 属性の文字列を返す(ファイル一覧画面表示用)
 	virtual wxString GetFileAttrStr() const;
 
-	/// @brief 最初のグループ番号をセット
-	virtual void	SetStartGroup(int fileunit_num, wxUint32 val, int size = 0);
-	/// @brief 最初のグループ番号を返す
-	virtual wxUint32 GetStartGroup(int fileunit_num) const;
+//	/// @brief 最初のグループ番号をセット
+//	virtual void	SetStartGroup(int fileunit_num, wxUint32 val, int size = 0);
+//	/// @brief 最初のグループ番号を返す
+//	virtual wxUint32 GetStartGroup(int fileunit_num) const;
 
 	/// @brief アイテムが作成日時を持っているか
 	virtual bool 	HasCreateDateTime() const { return true; }
@@ -271,9 +288,10 @@ public:
 	/// @brief バイト列を文字列に変換 文字コードは機種依存
 	virtual void	ConvCharsToString(const wxUint8 *src, size_t len, wxString &dst) const;
 
-	/// @brief その他の属性値を設定する
-	virtual void	SetOptionalAttr(DiskBasicDirItemAttr &attr);
+//	/// @brief その他の属性値を設定する
+//	virtual void	SetOptionalAttr(DiskBasicDirItemAttr &attr);
 
+#ifndef USE_CONSOLE
 	/// @name プロパティダイアログ用
 	//@{
 	/// @brief ダイアログ内の属性部分のレイアウトを作成
@@ -283,6 +301,7 @@ public:
 	/// @brief プロパティで表示する内部データを設定
 	virtual void	SetInternalDataInAttrDialog(KeyValArray &vals);
 	//@}
+#endif /* !USE_CONSOLE */
 };
 
 #endif /* BASICDIRITEM_MSDOS_H */

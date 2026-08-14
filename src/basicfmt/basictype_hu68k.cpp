@@ -17,7 +17,6 @@
 DiskBasicTypeHU68K::DiskBasicTypeHU68K(DiskBasic *basic, DiskBasicFat *fat, DiskBasicDir *dir)
 	: DiskBasicTypeFAT16BE(basic, fat, dir)
 {
-	m_fat_type = 0; // FAT12 default
 }
 
 /// FAT位置をセット
@@ -26,11 +25,13 @@ DiskBasicTypeHU68K::DiskBasicTypeHU68K(DiskBasic *basic, DiskBasicFat *fat, Disk
 void DiskBasicTypeHU68K::SetGroupNumber(wxUint32 num, wxUint32 val)
 {
 	switch (m_fat_type) {
-	case 0:
+	case FAT_TYPE_12:
 		DiskBasicTypeFAT12::SetGroupNumber(num, val);
 		break;
-	default:
+	case FAT_TYPE_16:
 		DiskBasicTypeFAT16BE::SetGroupNumber(num, val);
+		break;
+	default:
 		break;
 	}
 }
@@ -39,10 +40,12 @@ void DiskBasicTypeHU68K::SetGroupNumber(wxUint32 num, wxUint32 val)
 wxUint32 DiskBasicTypeHU68K::GetGroupNumber(wxUint32 num) const
 {
 	switch (m_fat_type) {
-	case 0:
+	case FAT_TYPE_12:
 		return DiskBasicTypeFAT12::GetGroupNumber(num);
-	default:
+	case FAT_TYPE_16:
 		return DiskBasicTypeFAT16BE::GetGroupNumber(num);
+	default:
+		return 0;
 	}
 }
 
@@ -50,10 +53,12 @@ wxUint32 DiskBasicTypeHU68K::GetGroupNumber(wxUint32 num) const
 wxUint32 DiskBasicTypeHU68K::GetGroupSystemCode() const
 {
 	switch (m_fat_type) {
-	case 0:
+	case FAT_TYPE_12:
 		return 0xff8;
-	default:
+	case FAT_TYPE_16:
 		return 0xfff8;
+	default:
+		return 0;
 	}
 }
 
@@ -61,11 +66,13 @@ wxUint32 DiskBasicTypeHU68K::GetGroupSystemCode() const
 void DiskBasicTypeHU68K::CalcDiskFreeSize(bool wrote)
 {
 	switch (m_fat_type) {
-	case 0:
+	case FAT_TYPE_12:
 		DiskBasicTypeFAT12::CalcDiskFreeSize(wrote);
 		break;
-	default:
+	case FAT_TYPE_16:
 		DiskBasicTypeFAT16BE::CalcDiskFreeSize(wrote);
+		break;
+	default:
 		break;
 	}
 }
@@ -78,10 +85,12 @@ void DiskBasicTypeHU68K::CalcDiskFreeSize(bool wrote)
 double DiskBasicTypeHU68K::CheckFat(bool is_formatting)
 {
 	switch (m_fat_type) {
-	case 0:
+	case FAT_TYPE_12:
 		return DiskBasicTypeFAT12::CheckFat(is_formatting);
-	default:
+	case FAT_TYPE_16:
 		return DiskBasicTypeFAT16BE::CheckFat(is_formatting);
+	default:
+		return 0;
 	}
 }
 
@@ -202,6 +211,8 @@ double DiskBasicTypeHU68K::ParseHU68KParamOnDisk(DiskImageDisk *disk, bool is_fo
 	}
 
 	// FATタイプの決定
+	m_fat_type = FAT_TYPE_12;
+
 	wxUint32 data_sectors = sector_mag * wxUINT16_SWAP_ON_LE(bpb->TotalSecs16);
 	if (data_sectors == 0) {
 		data_sectors = sector_mag * wxUINT32_SWAP_ON_LE(bpb->TotalSecs32);
@@ -210,21 +221,29 @@ double DiskBasicTypeHU68K::ParseHU68KParamOnDisk(DiskImageDisk *disk, bool is_fo
 	int max_grp = (int)(data_sectors / basic->GetSectorsPerGroup());
 #if 0
 	if (max_grp >= 65525) {
-		m_fat_type = 2;	// FAT32
+		m_fat_type = FAT_TYPE_32;	// FAT32
 	} else
 #endif
 	if (max_grp >= 4086) {
-		m_fat_type = 1;	// FAT16
+		m_fat_type = FAT_TYPE_16;	// FAT16
 	}
 
 	// 最終グループ番号を計算
+	wxUint32 system_code = basic->GetGroupSystemCode();
+	wxUint32 final_code = basic->GetGroupFinalCode();
 	int max_grp_on_fat = 0;
 	switch(m_fat_type) {
-	case 0:
+	case FAT_TYPE_12:
 		max_grp_on_fat = basic->GetSectorsPerFat() * sector_size_on_disk * 2 / 3;	// FAT12で計算
+		system_code &= 0xfff;
+		final_code &= 0xfff;
+		break;
+	case FAT_TYPE_16:
+		max_grp_on_fat = basic->GetSectorsPerFat() * sector_size_on_disk / 2;	// FAT16で計算
+		system_code &= 0xffff;
+		final_code &= 0xffff;
 		break;
 	default:
-		max_grp_on_fat = basic->GetSectorsPerFat() * sector_size_on_disk / 2;	// FAT16で計算
 		break;
 	}
 	int max_grp_on_prm = disk->GetNumberOfSectors() / basic->GetSectorsPerGroup();
@@ -232,17 +251,21 @@ double DiskBasicTypeHU68K::ParseHU68KParamOnDisk(DiskImageDisk *disk, bool is_fo
 	max_grp = (max_grp < max_grp_on_fat ? max_grp : max_grp_on_fat);
 	max_grp = (max_grp < max_grp_on_prm ? max_grp : max_grp_on_prm);
 	basic->SetFatEndGroup(max_grp - 1);
+	basic->SetGroupSystemCode(system_code);
+	basic->SetGroupFinalCode(final_code);
 
 	// テンプレートに一致するものがあるか
 	const DiskBasicParam *param = gDiskBasicTemplates.FindType(basic->GetBasicCategoryName(), basic->GetBasicTypeName());
 	if (param) {
 		wxString str = param->GetBasicDescription();
 		switch(m_fat_type) {
-		case 0:
+		case FAT_TYPE_12:
 			str += wxT(" (FAT12)");
 			break;
-		default:
+		case FAT_TYPE_16:
 			str += wxT(" (FAT16 BE)");
+			break;
+		default:
 			break;
 		}
 		basic->SetBasicDescription(str);
@@ -305,21 +328,24 @@ bool DiskBasicTypeHU68K::CreateBiosParameterBlock(const char *jmp, const char *n
 	number_of_sectors = number_of_sectors / sector_mag;
 
 	// グループ数
+	m_fat_type = FAT_TYPE_12;
 	int number_of_groups = number_of_sectors / sectors_per_group;
 	if (number_of_groups >= 4086) {
-		m_fat_type = 1;
+		m_fat_type = FAT_TYPE_16;
 	}
 	// FATのセクタ数
 	int sectors_per_fat = basic->GetSectorsPerFat();
 	if (sectors_per_fat <= 0) {
 		switch(m_fat_type) {
-		case 0:
+		case FAT_TYPE_12:
 			// FAT12
 			sectors_per_fat = (number_of_groups + (sector_size_on_os * 2 / 3) - 1) * 3 / 2 / sector_size_on_os;
 			break;
-		default:
+		case FAT_TYPE_16:
 			// FAT16
 			sectors_per_fat = (number_of_groups + (sector_size_on_os / 2) - 1) * 2 / sector_size_on_os;
+			break;
+		default:
 			break;
 		}
 	} else {

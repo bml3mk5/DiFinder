@@ -54,6 +54,7 @@
     <ClCompile Include="..\src\basicfmt\basictype.cpp" />
     <ClCompile Include="..\src\basicfmt\basictype_fat12.cpp" />
     <ClCompile Include="..\src\basicfmt\basictype_fat16.cpp" />
+    <ClCompile Include="..\src\basicfmt\basictype_fat32.cpp" />
     <ClCompile Include="..\src\basicfmt\basictype_fat_base.cpp" />
     <ClCompile Include="..\src\basicfmt\basictype_hfs.cpp" />
     <ClCompile Include="..\src\basicfmt\basictype_hu68k.cpp" />
@@ -83,11 +84,13 @@
     <ClCompile Include="..\src\main.cpp" />
     <ClCompile Include="..\src\parambase.cpp" />
     <ClCompile Include="..\src\result.cpp" />
+    <ClCompile Include="..\src\ui\aboutbox.cpp" />
     <ClCompile Include="..\src\ui\basicparambox.cpp" />
     <ClCompile Include="..\src\ui\basicselbox.cpp" />
     <ClCompile Include="..\src\ui\bootselbox.cpp" />
     <ClCompile Include="..\src\ui\configbox.cpp" />
     <ClCompile Include="..\src\ui\diskparambox.cpp" />
+    <ClCompile Include="..\src\ui\filedirbox.cpp" />
     <ClCompile Include="..\src\ui\fileselbox.cpp" />
     <ClCompile Include="..\src\ui\fontminibox.cpp" />
     <ClCompile Include="..\src\ui\intnamebox.cpp" />
@@ -109,6 +112,7 @@
     <ClCompile Include="..\src\ui\uifatarea.cpp" />
     <ClCompile Include="..\src\ui\uifilelist.cpp" />
     <ClCompile Include="..\src\ui\uimainframe.cpp" />
+    <ClCompile Include="..\src\ui\uimainpanel.cpp" />
     <ClCompile Include="..\src\ui\uimainprocess.cpp" />
     <ClCompile Include="..\src\ui\uirawdisk.cpp" />
     <ClCompile Include="..\src\ui\uirpanel.cpp" />
@@ -131,6 +135,7 @@
     <ClInclude Include="..\src\basicfmt\basictype.h" />
     <ClInclude Include="..\src\basicfmt\basictype_fat12.h" />
     <ClInclude Include="..\src\basicfmt\basictype_fat16.h" />
+    <ClInclude Include="..\src\basicfmt\basictype_fat32.h" />
     <ClInclude Include="..\src\basicfmt\basictype_fat_base.h" />
     <ClInclude Include="..\src\basicfmt\basictype_hfs.h" />
     <ClInclude Include="..\src\basicfmt\basictype_hu68k.h" />
@@ -160,11 +165,13 @@
     <ClInclude Include="..\src\main.h" />
     <ClInclude Include="..\src\parambase.h" />
     <ClInclude Include="..\src\result.h" />
+    <ClInclude Include="..\src\ui\aboutbox.h" />
     <ClInclude Include="..\src\ui\basicparambox.h" />
     <ClInclude Include="..\src\ui\basicselbox.h" />
     <ClInclude Include="..\src\ui\bootselbox.h" />
     <ClInclude Include="..\src\ui\configbox.h" />
     <ClInclude Include="..\src\ui\diskparambox.h" />
+    <ClInclude Include="..\src\ui\filedirbox.h" />
     <ClInclude Include="..\src\ui\fileselbox.h" />
     <ClInclude Include="..\src\ui\fontminibox.h" />
     <ClInclude Include="..\src\ui\intnamebox.h" />
@@ -187,6 +194,7 @@
     <ClInclude Include="..\src\ui\uifatarea.h" />
     <ClInclude Include="..\src\ui\uifilelist.h" />
     <ClInclude Include="..\src\ui\uimainframe.h" />
+    <ClInclude Include="..\src\ui\uimainpanel.h" />
     <ClInclude Include="..\src\ui\uimainprocess.h" />
     <ClInclude Include="..\src\ui\uirawdisk.h" />
     <ClInclude Include="..\src\ui\uirpanel.h" />

@@ -131,7 +131,7 @@ public:
 	/// @name disk size
 	//@{
 	/// @brief 使用可能なディスクサイズを得る
-	virtual void	GetUsableDiskSize(int &disk_size, int &group_size) const;
+	virtual void	GetUsableDiskSize(wxInt64 &disk_size, wxInt64 &group_size) const;
 	/// @brief 残りディスクサイズを計算
 	virtual void	CalcDiskFreeSize(bool wrote);
 	//@}

@@ -157,7 +157,7 @@ public:
 	/// @name disk size
 	//@{
 	/// @brief 使用可能なディスクサイズを得る
-	virtual void	GetUsableDiskSize(int &disk_size, int &group_size) const;
+	virtual void	GetUsableDiskSize(wxInt64 &disk_size, wxInt64 &group_size) const;
 	/// @brief 残りディスクサイズを計算
 	virtual void	CalcDiskFreeSize(bool wrote);
 	//@}
@@ -215,7 +215,7 @@ public:
 	/// @brief 書き込み可能か
 	virtual bool	SupportWriting() const { return false; }
 	/// @brief データの書き込み処理
-	virtual int		WriteFile(DiskBasicDirItem *item, wxInputStream &istream, wxUint8 *buffer, int size, int remain, int sector_num, wxUint32 group_num, wxUint32 next_group, int sector_end, int seq_num);
+	virtual int		WriteFile(DiskBasicDirItem *item, wxInputStream &istream, wxUint8 *buffer, int size, int remain, int sector_num, DiskBasicGroupItem *group_item, DiskBasicGroupItem *next_group, int sector_end, int seq_num);
 	//@}
 
 	/// @name delete

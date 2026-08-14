@@ -25,8 +25,10 @@ protected:
 	/// @brief 拡張子を格納する位置を返す
 	virtual wxUint8 *GetFileExtPos(size_t &len) const;
 
+#ifndef USE_CONSOLE
 	/// @brief ダイアログ表示前にファイルの属性を設定
 	virtual void	SetFileTypeForAttrDialog(int show_flags, const wxString &name, int &file_type_1, int &file_type_2);
+#endif /* !USE_CONSOLE */
 
 public:
 	DiskBasicDirItemHU68K(DiskBasic *basic);
@@ -35,6 +37,8 @@ public:
 	DiskBasicDirItemHU68K(DiskBasic *basic, int n_block_num, int n_position);
 	DiskBasicDirItemHU68K(DiskBasic *basic, int n_num, const DiskBasicGroupItem *n_gitem, int n_block_num, int n_position, const int *n_next, bool &n_unuse);
 
+	/// @brief 初期状態に戻す
+	virtual void	Reset();
 //	/// @brief アイテムへのポインタを設定
 //	virtual void	SetDataPtr(int n_num, const DiskBasicGroupItem *n_gitem, int n_block_num, int n_position, wxUint8 *n_data, const int *n_next = NULL);
 	/// @brief アイテムへのポインタを設定
@@ -43,8 +47,10 @@ public:
 	/// @brief ディレクトリアイテムのサイズ
 	virtual size_t	GetDataSize() const;
 
+#ifndef USE_CONSOLE
 	/// @brief プロパティで表示する内部データを設定
 	virtual void	SetInternalDataInAttrDialog(KeyValArray &vals);
+#endif /* !USE_CONSOLE */
 };
 
 #endif /* BASICDIRITEM_HU68K_H */

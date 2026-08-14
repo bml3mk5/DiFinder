@@ -821,13 +821,13 @@ int DiskParam::CalcNumberOfBlocks() const
 }
 
 /// ディスクサイズを計算する（ベタディスク用）
-int DiskParam::CalcDiskSize() const
+wxInt64 DiskParam::CalcDiskSize() const
 {
 	if (number_of_blocks > 0) {
-		return number_of_blocks * GetSectorSize();
+		return (wxInt64)number_of_blocks * GetSectorSize();
 	}
 
-	int disk_size = 0;
+	wxInt64 disk_size = 0;
 	int trk = GetTrackNumberBaseOnDisk();
 	int trks = GetTracksPerSide() + trk;
 	for(; trk < trks; trk++) {
@@ -1028,7 +1028,7 @@ DiskTemplates::DiskTemplates() : TemplatesBase()
 /// @param[in] locale_name ローケル名
 /// @param[out] errmsgs    エラーメッセージ
 /// @return true / false
-bool DiskTemplates::Load(const wxString &data_path, const wxString &locale_name, wxString &errmsgs)
+bool DiskTemplates::Load(const wxString &data_path, const wxString &locale_name, wxArrayString &errmsgs)
 {
 	wxXmlDocument doc;
 
@@ -1124,9 +1124,10 @@ bool DiskTemplates::Load(const wxString &data_path, const wxString &locale_name,
 			if (Find(type_name) == NULL) {
 				params.Add(p);
 			} else {
-				errmsgs += wxT("\n");
-				errmsgs += _("Duplicate type name in DiskType : ");
-				errmsgs += type_name;
+				wxString errmsg;
+				errmsg += _("Duplicate type name in DiskType : ");
+				errmsg += type_name;
+				errmsgs.Add(errmsg);
 				return false;
 			}
 		}
@@ -1140,7 +1141,7 @@ bool DiskTemplates::Load(const wxString &data_path, const wxString &locale_name,
 /// @param[out] basic_types ロードしたデータ
 /// @param[out] errmsgs     エラーメッセージ
 /// @return true
-bool DiskTemplates::LoadBootTypes(const wxXmlNode *node, BootParamNames &boot_types, wxString &errmsgs)
+bool DiskTemplates::LoadBootTypes(const wxXmlNode *node, BootParamNames &boot_types, wxArrayString &errmsgs)
 {
 	wxXmlNode *citemnode = node->GetChildren();
 	while(citemnode) {
@@ -1169,7 +1170,7 @@ bool DiskTemplates::LoadBootTypes(const wxXmlNode *node, BootParamNames &boot_ty
 /// @param[out] s       ロードしたデータ
 /// @param[out] errmsgs エラーメッセージ
 /// @return true
-bool DiskTemplates::LoadSingleDensity(const wxXmlNode *node, DiskParticular &s, wxString &errmsgs)
+bool DiskTemplates::LoadSingleDensity(const wxXmlNode *node, DiskParticular &s, wxArrayString &errmsgs)
 {
 	wxString str;
 	str = node->GetAttribute("track");
@@ -1196,7 +1197,7 @@ bool DiskTemplates::LoadSingleDensity(const wxXmlNode *node, DiskParticular &s, 
 /// @param[out] d       ロードしたデータ
 /// @param[out] errmsgs エラーメッセージ
 /// @return true
-bool DiskTemplates::LoadParticularTrack(const wxXmlNode *node, DiskParticular &d, wxString &errmsgs)
+bool DiskTemplates::LoadParticularTrack(const wxXmlNode *node, DiskParticular &d, wxArrayString &errmsgs)
 {
 	wxString str;
 	str = node->GetAttribute("track");
@@ -1205,8 +1206,7 @@ bool DiskTemplates::LoadParticularTrack(const wxXmlNode *node, DiskParticular &d
 	}
 	str = node->GetAttribute("tracks");
 	if (str.Upper() == wxT("ALL")) {
-		errmsgs += wxT("\n");
-		errmsgs += _("Cannot set \"ALL\" on tracks attribute in ParticularTrack element.");
+		errmsgs.Add(_("Cannot set \"ALL\" on tracks attribute in ParticularTrack element."));
 		return false;
 	}
 	if (!str.IsEmpty() && str.Upper() != wxT("ALL")) {
@@ -1248,7 +1248,7 @@ bool DiskTemplates::LoadParticularTrack(const wxXmlNode *node, DiskParticular &d
 /// @param[out] d       ロードしたデータ
 /// @param[out] errmsgs エラーメッセージ
 /// @return true
-bool DiskTemplates::LoadParticularSector(const wxXmlNode *node, DiskParticular &d, wxString &errmsgs)
+bool DiskTemplates::LoadParticularSector(const wxXmlNode *node, DiskParticular &d, wxArrayString &errmsgs)
 {
 	wxString str;
 	str = node->GetAttribute("track");
@@ -1295,7 +1295,7 @@ bool DiskTemplates::LoadParticularSector(const wxXmlNode *node, DiskParticular &
 /// @param[out] categories  ロードしたデータ
 /// @param[out] errmsgs     エラーメッセージ
 /// @return true
-bool DiskTemplates::LoadCategories(const wxXmlNode *node, wxArrayString &categories, wxString &errmsgs)
+bool DiskTemplates::LoadCategories(const wxXmlNode *node, wxArrayString &categories, wxArrayString &errmsgs)
 {
 	wxXmlNode *citemnode = node->GetChildren();
 	while(citemnode) {

@@ -281,6 +281,8 @@ public:
 	DiskBasicDirItemHFS(DiskBasic *basic, int n_block_num, int n_position);
 	DiskBasicDirItemHFS(DiskBasic *basic, int n_num, const DiskBasicGroupItem *n_gitem, int n_block_num, int n_position, const int *n_next, bool &n_unuse);
 
+	/// @brief 初期状態に戻す
+	virtual void	Reset();
 	/// @brief アイテムへのポインタを設定
 	virtual void	SetDataPtr(int n_num, const DiskBasicGroupItem *n_gitem, int n_block_num, int n_position, const int *n_next = NULL);
 
@@ -443,6 +445,7 @@ public:
 //	/// @brief 終了アドレスを返す
 //	virtual int		GetEndAddress() const;
 
+#ifndef USE_CONSOLE
 	/// @name プロパティダイアログ用
 	//@{
 	/// @brief ダイアログ内の属性部分のレイアウトを作成
@@ -451,13 +454,12 @@ public:
 	virtual void	ChangeTypeInAttrDialog(IntNameBox *parent);
 	/// @brief 機種依存の属性を設定する
 	virtual bool	SetAttrInAttrDialog(const IntNameBox *parent, DiskBasicDirItemAttr &attr, DiskBasicError &errinfo) const;
-	/// @brief ダイアログ入力後のファイル名チェック
-	virtual bool	ValidateFileName(const wxWindow *parent, const wxString &filename, wxString &errormsg);
 	/// @brief ファイルサイズが適正か
 	virtual bool	IsFileValidSize(const IntNameBox *parent, int size, int *limit);
 	/// @brief プロパティで表示する内部データを設定
 	virtual void	SetInternalDataInAttrDialog(KeyValArray &vals);
 	//@}
+#endif /* !USE_CONSOLE */
 };
 
 #endif /* BASICDIRITEM_HFS_H */

@@ -33,8 +33,8 @@ enum en_fat_availability {
 class DiskBasicAvailabillity : public wxArrayInt
 {
 private:
-	int m_free_size;	///< 空きサイズ
-	int m_free_grps;	///< 空きグループ数
+	wxInt64 m_free_size;	///< 空きサイズ
+	wxInt64 m_free_grps;	///< 空きグループ数
 
 public:
 	DiskBasicAvailabillity();
@@ -51,13 +51,13 @@ public:
 	/// @brief ゲット (Safety)
 	int  Get(size_t idx) const;
 	/// @brief 空きサイズを返す
-	int GetFreeSize() const { return m_free_size; }
+	wxInt64 GetFreeSize() const { return m_free_size; }
 	/// @brief 空きグループ数を返す
-	int GetFreeGroups() const { return m_free_grps; }
+	wxInt64 GetFreeGroups() const { return m_free_grps; }
 	/// @brief 空きサイズをセット
-	void SetFreeSize(int val) { m_free_size = val; }
+	void SetFreeSize(wxInt64 val) { m_free_size = val; }
 	/// @brief 空きグループ数をセット
-	void SetFreeGroups(int val) { m_free_grps = val; }
+	void SetFreeGroups(wxInt64 val) { m_free_grps = val; }
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -68,14 +68,12 @@ public:
 class BitMLBuffer
 {
 protected:
-//	wxUint8 *m_buffer;
 	DiskImageDisk *p_disk;
 	int m_block_num;
 	int m_start;
 	int m_size;
 public:
 	BitMLBuffer();
-//	BitMLBuffer(wxUint8 *buffer, size_t size);
 	BitMLBuffer(DiskImageDisk *disk, int block_num, int start, int size);
 	virtual ~BitMLBuffer() {}
 
@@ -128,27 +126,28 @@ class DiskBasicFatBuffer
 private:
 	DiskImageDisk *p_disk;
 	int m_block_num;	///< セクタブロック番号
-	int m_size;			///< バッファサイズ
-//	wxUint8 *p_buffer;	///< バッファポインタ（セクタ内の開始ポインタ）
-	int m_start;		///< セクタ内バッファの開始位置
+	wxUint32 m_size;			///< バッファサイズ
+	wxUint32 m_accume_start;	///< 累積開始位置
+	wxUint32 m_buffer_start;	///< セクタ内バッファの開始位置
 
 public:
 	DiskBasicFatBuffer();
-//	DiskBasicFatBuffer(DiskImageSector *newsector, wxUint8 *newbuf, int newsize);
-	DiskBasicFatBuffer(DiskImageDisk *disk, int block_num, int start, int size);
+	DiskBasicFatBuffer(DiskImageDisk *disk, int block_num, wxUint32 buffer_start, wxUint32 size, wxUint32 accume_start);
 	DiskBasicFatBuffer(const DiskBasicFatBuffer &src);
 	DiskBasicFatBuffer &operator=(const DiskBasicFatBuffer &src);
 	~DiskBasicFatBuffer();
-//	/// @brief バッファポインタを返す
-//	wxUint8 *GetBuffer() const { return p_buffer; }
 	/// @brief バッファ開始位置を返す
-	int		 GetStart() const { return m_start; }
+	wxUint32 GetBufferStart() const { return m_buffer_start; }
 	/// @brief バッファサイズを返す
-	int		 GetSize() const { return m_size; }
+	wxUint32 GetSize() const { return m_size; }
 	/// @brief バッファを指定コードで埋める
 	void	 Fill(wxUint8 code);
 	/// @brief バッファにコピー
 	void	 Copy(const wxUint8 *buf, size_t len);
+	/// @brief 累計位置が範囲内か
+	int		 InRange(wxUint32 accume_pos) const;
+	/// @brief 累計位置を範囲内の指定位置に変換
+	wxUint32 ConvPos(wxUint32 accume_pos) const;
 	/// @brief 指定位置のデータを返す(8ビット)
 	wxUint32 Get(size_t pos) const;
 	/// @brief 指定位置にデータをセット(8ビット)
@@ -165,6 +164,14 @@ public:
 	wxUint32 Get16BE(size_t pos) const;
 	/// @brief 指定位置にデータをセット(16ビット、ビッグエンディアン)
 	void	 Set16BE(size_t pos, wxUint32 val);
+	/// @brief 指定位置のデータを返す(32ビット、リトルエンディアン)
+	wxUint32 Get32LE(size_t pos) const;
+	/// @brief 指定位置にデータをセット(32ビット、リトルエンディアン)
+	void	 Set32LE(size_t pos, wxUint32 val);
+	/// @brief 指定位置のデータを返す(32ビット、ビッグエンディアン)
+	wxUint32 Get32BE(size_t pos) const;
+	/// @brief 指定位置にデータをセット(32ビット、ビッグエンディアン)
+	void	 Set32BE(size_t pos, wxUint32 val);
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -176,7 +183,23 @@ WX_DECLARE_OBJARRAY(DiskBasicFatBuffer, ArrayDiskBasicFatBuffer);
 /// @brief FAT１つ分のバッファ（複数セクタあり） DiskBasicFatBuffer の配列
 class DiskBasicFatBuffers : public ArrayDiskBasicFatBuffer
 {
+protected:
+	int m_size;			///< 1セクタのサイズ
+
+	///  @brief 位置からセクタ位置を返す
+	bool	GetSectorIndex(wxUint32 &pos, size_t &idx) const;
+
 public:
+	DiskBasicFatBuffers();
+	/// @brief コピーコンストラクタ
+	DiskBasicFatBuffers(const DiskBasicFatBuffers &src);
+	/// @brief 代入
+	DiskBasicFatBuffers &operator=(const DiskBasicFatBuffers &src);
+	/// @brief セクタサイズを返す
+	int      GetSize() const { return m_size; }
+	/// @brief セクタサイズをセット
+	void     SetSize(int val) { m_size = val; }
+
 	/// @brief 8ビットデータを返す
 	wxUint32 GetData8(wxUint32 pos) const;
 	/// @brief 8ビットデータをセット
@@ -200,6 +223,16 @@ public:
 	wxUint32 GetData16BE(wxUint32 pos) const;
 	/// @brief 16ビットデータ(ビッグエンディアン)をセット
 	void     SetData16BE(wxUint32 pos, wxUint32 val);
+
+	/// @brief 32ビットデータ(リトルエンディアン)を返す
+	wxUint32 GetData32LE(wxUint32 pos) const;
+	/// @brief 32ビットデータ(リトルエンディアン)をセット
+	void     SetData32LE(wxUint32 pos, wxUint32 val);
+
+	/// @brief 32ビットデータ(ビッグエンディアン)を返す
+	wxUint32 GetData32BE(wxUint32 pos) const;
+	/// @brief 32ビットデータ(ビッグエンディアン)をセット
+	void     SetData32BE(wxUint32 pos, wxUint32 val);
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -263,6 +296,20 @@ public:
 	void     SetData16BE(wxUint32 pos, wxUint32 val);
 	/// @brief 16ビットデータ(ビッグエンディアン)をセット
 	void     SetData16BE(size_t idx, wxUint32 pos, wxUint32 val);
+
+	/// @brief 32ビットデータ(リトルエンディアン)を返す
+	wxUint32 GetData32LE(size_t idx, wxUint32 pos) const;
+	/// @brief 32ビットデータ(リトルエンディアン)をセット
+	void     SetData32LE(wxUint32 pos, wxUint32 val);
+	/// @brief 32ビットデータ(リトルエンディアン)をセット
+	void     SetData32LE(size_t idx, wxUint32 pos, wxUint32 val);
+
+	/// @brief 32ビットデータ(ビッグエンディアン)を返す
+	wxUint32 GetData32BE(size_t idx, wxUint32 pos) const;
+	/// @brief 32ビットデータ(ビッグエンディアン)をセット
+	void     SetData32BE(wxUint32 pos, wxUint32 val);
+	/// @brief 32ビットデータ(ビッグエンディアン)をセット
+	void     SetData32BE(size_t idx, wxUint32 pos, wxUint32 val);
 };
 
 class DiskBasic;

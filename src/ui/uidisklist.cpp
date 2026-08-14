@@ -6,12 +6,16 @@
 ///
 
 #include "uidisklist.h"
+
+#ifndef USE_CONSOLE
+
 #include <wx/imaglist.h>
 #include <wx/clipbrd.h>
 #include <wx/dataobj.h>
 #include "mymenu.h"
 #include "../main.h"
 #include "uimainframe.h"
+#include "uimainpanel.h"
 #include "uidiskattr.h"
 #include "uifilelist.h"
 #include "diskparambox.h"
@@ -1329,3 +1333,5 @@ bool UiDiskList::IsSelectedDiskSide()
 {
 	return false;
 }
+
+#endif /* !USE_CONSOLE */

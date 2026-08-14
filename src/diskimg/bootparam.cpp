@@ -189,7 +189,7 @@ BootTemplates::BootTemplates() : TemplatesBase()
 /// @param[in] locale_name ローケル名
 /// @param[out] errmsgs    エラーメッセージ
 /// @return true / false
-bool BootTemplates::Load(const wxString &data_path, const wxString &locale_name, wxString &errmsgs)
+bool BootTemplates::Load(const wxString &data_path, const wxString &locale_name, wxArrayString &errmsgs)
 {
 	wxXmlDocument doc;
 
@@ -217,7 +217,7 @@ bool BootTemplates::Load(const wxString &data_path, const wxString &locale_name,
 /// @param[in] locale_name  ローケル名
 /// @param[out] errmsgs     エラーメッセージ
 /// @return true
-bool BootTemplates::LoadBootTypes(const wxXmlNode *node, const wxString &locale_name, wxString &errmsgs)
+bool BootTemplates::LoadBootTypes(const wxXmlNode *node, const wxString &locale_name, wxArrayString &errmsgs)
 {
 	wxXmlNode *itemnode = node->GetChildren();
 	while(itemnode) {
@@ -260,9 +260,10 @@ bool BootTemplates::LoadBootTypes(const wxXmlNode *node, const wxString &locale_
 			if (FindType(type_name) == NULL) {
 				params.Add(p);
 			} else {
-				errmsgs += wxT("\n");
-				errmsgs += _("Duplicate type name in BootType : ");
-				errmsgs += type_name;
+				wxString errmsg;
+				errmsg += _("Duplicate type name in BootType : ");
+				errmsg += type_name;
+				errmsgs.Add(errmsg);
 				return false;
 			}
 		}
@@ -276,7 +277,7 @@ bool BootTemplates::LoadBootTypes(const wxXmlNode *node, const wxString &locale_
 /// @param[in] locale_name  ローケル名
 /// @param[out] errmsgs     エラーメッセージ
 /// @return true
-bool BootTemplates::LoadBootCategories(const wxXmlNode *node, const wxString &locale_name, wxString &errmsgs)
+bool BootTemplates::LoadBootCategories(const wxXmlNode *node, const wxString &locale_name, wxArrayString &errmsgs)
 {
 	bool valid = true;
 	wxXmlNode *item = node->GetChildren();
@@ -302,9 +303,10 @@ bool BootTemplates::LoadBootCategories(const wxXmlNode *node, const wxString &lo
 			if (FindCategory(type_name) == NULL) {
 				categories.Add(c);
 			} else {
-				errmsgs += wxT("\n");
-				errmsgs += _("Duplicate type name in BootCategory : ");
-				errmsgs += type_name;
+				wxString errmsg;
+				errmsg += _("Duplicate type name in BootCategory : ");
+				errmsg += type_name;
+				errmsgs.Add(errmsg);
 				valid = false;
 				break;
 			}
@@ -319,7 +321,7 @@ bool BootTemplates::LoadBootCategories(const wxXmlNode *node, const wxString &lo
 /// @param[out] keywords    ロードしたデータ
 /// @param[out] errmsgs     エラーメッセージ
 /// @return true
-bool BootTemplates::LoadKeywords(const wxXmlNode *node, BootKeywords &keywords, wxString &errmsgs)
+bool BootTemplates::LoadKeywords(const wxXmlNode *node, BootKeywords &keywords, wxArrayString &errmsgs)
 {
 	wxXmlNode *citemnode = node->GetChildren();
 	while(citemnode) {
@@ -418,7 +420,7 @@ bool BootTemplates::LoadKeywordArrayString(const wxXmlNode *node, BootKeywords &
 /// @param[out] basic_types ロードしたデータ
 /// @param[out] errmsgs     エラーメッセージ
 /// @return true
-bool BootTemplates::LoadDiskBasicTypes(const wxXmlNode *node, BasicParamNames &basic_types, wxString &errmsgs)
+bool BootTemplates::LoadDiskBasicTypes(const wxXmlNode *node, BasicParamNames &basic_types, wxArrayString &errmsgs)
 {
 	wxXmlNode *citemnode = node->GetChildren();
 	while(citemnode) {
