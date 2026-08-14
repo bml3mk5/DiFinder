@@ -20,12 +20,12 @@
  * シャープ X68000 Human68k (FAT12/FAT16)
  * シャープ OS-9/X68000
  * NEC PC-9801 MS-DOS (FAT12/FAT16)
-  + ロングファイルネーム(LFN)には対応していません。
+   + ロングファイルネーム(LFN)には対応していません。
  * 富士通 FM TOWNS MS-DOS (FAT12/FAT16)
-  + ロングファイルネーム(LFN)には対応していません。
+   + ロングファイルネーム(LFN)には対応していません。
  * Apple Macintosh HFS (※読み出しのみ)
  * PC-AT MBR MS-DOS (FAT12/FAT16/FAT32)
-  + ロングファイルネーム(LFN)には対応していません。
+   + ロングファイルネーム(LFN)には対応していません。
 
 #### フロッピーディスクイメージにアクセスしたいなら[こちら](https://github.com/bml3mk5/L3DiskEx/releases)
 
@@ -53,12 +53,12 @@ Supported DISK BASIC / OS：
  * SHARP X68000 Human68k (FAT12/FAT16)
  * SHARP OS-9/X68000
  * NEC PC-9801 MS-DOS (FAT12/FAT16)
-  + A long filename (LFN) is not supported.
+   + A long filename (LFN) is not supported.
  * FUJITSU FM TOWNS MS-DOS (FAT12/FAT16)
-  + A long filename (LFN) is not supported.
+   + A long filename (LFN) is not supported.
  * Apple Macintosh HFS (* Read only)
  * PC-AT MBR MS-DOS (FAT12/FAT16/FAT32)
-  + A long filename (LFN) is not supported.
+   + A long filename (LFN) is not supported.
 
 #### You can access to files in a floppy disk image: [Here](https://github.com/bml3mk5/L3DiskEx/releases)
 
